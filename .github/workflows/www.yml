@@ -18,8 +18,8 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
       - run: npm install
-      - run: npm build
-      - run: npm www
+      - run: npm run build
+      - run: npm run www
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v2
         with:
