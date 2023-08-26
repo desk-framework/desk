@@ -1,9 +1,8 @@
 {
-	"private": true,
 	"name": "@desk-framework/webcontext",
-	"version": "0.0.0",
+	"version": "4.0.0-dev1",
 	"publishConfig": {
-		"tag": "dev"
+		"tag": "next"
 	},
 	"description": "Desk framework: web context",
 	"author": "Jelmer Cormont",
@@ -44,7 +43,7 @@
 		"lib"
 	],
 	"dependencies": {
-		"desk-frame": "file:../desk-frame",
+		"desk-frame": "4.0.0-dev1",
 		"tslib": "^2.6.2"
 	}
 }
