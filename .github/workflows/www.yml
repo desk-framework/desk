@@ -1,3 +1,4 @@
+name: www-build
 on:
   push:
     branches:
