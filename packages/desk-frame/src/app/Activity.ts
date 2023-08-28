@@ -254,11 +254,11 @@ export class Activity extends ManagedObject {
 				let activationPath = activity.activationPath;
 				try {
 					// set pathMatch and call handler
-					let match = (activity.pathMatch = activationPath?.match(
-						activity.path,
-						activity
-					));
-					await activity.handlePathMatchAsync(match);
+					let match = activationPath?.match(activity.path, activity);
+					if (activity.pathMatch !== match) {
+						activity.pathMatch = match;
+						await activity.handlePathMatchAsync(match);
+					}
 				} catch (err) {
 					// path change might be cancelled for good reasons,
 					// don't leak unhandled error unnecessarily
