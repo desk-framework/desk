@@ -18,18 +18,14 @@ const ViewBody = (
 			<spacer width={16} />
 		</row>
 		<separator />
-		<view view={bound("countActivity")} />
+		<render view={bound("countActivity")} />
 	</cell>
 );
 
 export class MainActivity extends PageViewActivity {
 	static ViewBody = ViewBody;
 
-	constructor() {
-		super();
-		this.path = "/main";
-	}
-
+	path = "/main";
 	countActivity = this.attach(new CountActivity());
 
 	protected override async afterActiveAsync() {
