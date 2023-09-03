@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/webcontext",
-	"version": "4.0.0-dev1",
+	"version": "4.0.0-dev2",
 	"publishConfig": {
 		"tag": "next"
 	},
@@ -43,7 +43,7 @@
 		"lib"
 	],
 	"dependencies": {
-		"desk-frame": "4.0.0-dev1",
+		"desk-frame": "next",
 		"tslib": "^2.6.2"
 	}
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/test",
-	"version": "4.0.0-dev1",
+	"version": "4.0.0-dev2",
 	"publishConfig": {
 		"tag": "next"
 	},
@@ -26,6 +26,6 @@
 		"useTabs": true
 	},
 	"dependencies": {
-		"desk-frame": "4.0.0-dev1"
+		"desk-frame": "next"
 	}
 }
