@@ -1,16 +1,17 @@
 import { LazyString, ManagedObject, StringConvertible } from "../core/index.js";
-import { err, ERROR, errorHandler, setErrorHandler } from "../errors.js";
-import { ActivationContext } from "./ActivationContext.js";
+import { ERROR, err, errorHandler, setErrorHandler } from "../errors.js";
+import { UITheme } from "../ui/UITheme.js";
+import { LogWriter } from "./LogWriter.js";
+import { Scheduler } from "./Scheduler.js";
 import { ServiceContext } from "./ServiceContext.js";
+import { ActivationContext } from "./ActivationContext.js";
+import type { ActivationPath } from "./ActivationPath.js";
 import type { Activity } from "./Activity.js";
 import type { I18nProvider } from "./I18nProvider.js";
 import type { NavigationTarget } from "./NavigationTarget.js";
-import type { ActivationPath } from "./ActivationPath.js";
 import type { RenderContext } from "./RenderContext.js";
+import type { Service } from "./Service.js";
 import type { ViewportContext } from "./ViewportContext.js";
-import { UITheme } from "../ui/UITheme.js";
-import { Scheduler } from "./Scheduler.js";
-import { LogWriter } from "./LogWriter.js";
 
 /**
  * A singleton class that represents the global application state
@@ -56,7 +57,7 @@ export class GlobalContext extends ManagedObject {
 	/**
 	 * The current service context, an instance of {@link ServiceContext}
 	 * - This object contains all current service instances, and provides methods to observe any changes.
-	 * @note To add a service to the application, use the {@link GlobalContext.addService() app.addService()} method instead.
+	 * @note To add a service to the application, use the {@link GlobalContext.addService() app.addService()} method.
 	 */
 	readonly services = new ServiceContext();
 
@@ -161,7 +162,7 @@ export class GlobalContext extends ManagedObject {
 	 * @param name The name of the service to be added
 	 * @param service The service to be added
 	 */
-	addService(name: string, service: ManagedObject) {
+	addService(name: string, service: Service) {
 		this.services.set(name, service);
 		return this;
 	}

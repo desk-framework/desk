@@ -1,3 +1,4 @@
+import { Service } from "../../../dist/app/Service.js";
 import {
 	app,
 	ServiceObserver,
@@ -24,36 +25,42 @@ describe("ManagedService", (scope) => {
 		// if this fails, don't bother testing more because can't guarantee global state
 		t.breakOnFail();
 
-		class MyService extends ManagedObject {
+		class MyService extends Service {
 			foo = 1;
 		}
 		let svc = new MyService();
+		expect(svc.isServiceRegistered()).toBe(false);
 		app.services.set("Test.MyService", svc);
-		app.services.set("Test.MyService", svc);
+		expect(svc.isServiceRegistered()).toBe(true);
 		expect(app.services.get("Test.MyService")).toBe(svc);
 		expect(app.services.get("teST.mYSERvicE")).toBeUndefined();
 		expect([...app.services.objects()]).toBeArray([svc]);
 
 		svc.unlink();
 		expect(app.services.get("Test.MyService")).toBeUndefined();
+		expect(svc.isServiceRegistered()).toBe(false);
 	});
 
 	test("Change service", () => {
-		class MyService extends ManagedObject {
+		class MyService extends Service {
 			foo = 1;
 		}
 		let svc1 = new MyService();
 		app.services.set("Test.MyService", svc1);
 		expect([...app.services.objects()]).toBeArray([svc1]);
+		app.services.set("Test.MyService", svc1);
+		expect([...app.services.objects()]).toBeArray([svc1]);
 		let svc2 = new MyService();
 		app.services.set("Test.MyService", svc2);
 		expect(app.services.get("Test.MyService")).toBe(svc2);
+		expect(svc1.isServiceRegistered()).toBe(false);
+		expect(svc2.isServiceRegistered()).toBe(true);
 		svc2.unlink();
 		expect([...app.services.objects()]).toBeArray(0);
 	});
 
 	test("Observe single service", () => {
-		class ObservedService extends ManagedObject {
+		class ObservedService extends Service {
 			foo = 1;
 		}
 		let svc = new ObservedService();
@@ -66,7 +73,7 @@ describe("ManagedService", (scope) => {
 	});
 
 	test("Observe single service, using function", (t) => {
-		class ObservedService extends ManagedObject {
+		class ObservedService extends Service {
 			foo = 1;
 		}
 		let svc = new ObservedService();
@@ -90,7 +97,7 @@ describe("ManagedService", (scope) => {
 	});
 
 	test("Observe single service, custom observer", (t) => {
-		class ObservedService extends ManagedObject {
+		class ObservedService extends Service {
 			foo = 1;
 		}
 		class ObservedServiceObserver extends ServiceObserver<ObservedService> {
@@ -131,7 +138,7 @@ describe("ManagedService", (scope) => {
 	});
 
 	test("Stop observing", (t) => {
-		class ObservedService extends ManagedObject {
+		class ObservedService extends Service {
 			stop?: boolean;
 		}
 		class ObservedServiceObserver extends ServiceObserver<ObservedService> {
@@ -168,7 +175,7 @@ describe("ManagedService", (scope) => {
 	});
 
 	test("Observe service changes", (t) => {
-		class ChangedService extends ManagedObject {
+		class ChangedService extends Service {
 			foo = 1;
 		}
 		class ChangedServiceObserver extends ServiceObserver<ChangedService> {
@@ -204,7 +211,7 @@ describe("ManagedService", (scope) => {
 	});
 
 	test("Reference service using bindings", (t) => {
-		class MyService extends ManagedObject {
+		class MyService extends Service {
 			foo = 1;
 		}
 
