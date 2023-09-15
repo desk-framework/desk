@@ -18,11 +18,13 @@ describe("JSX", () => {
 	});
 
 	test("Single component with preset", () => {
-		let MyCell = <cell borderColor={UIColor.Blue} textColor={UIColor.Red} />;
+		let MyCell = (
+			<cell borderColor={UIColor["@blue"]} textColor={UIColor["@red"]} />
+		);
 		let cell = new MyCell();
 		expect(cell).toBeInstanceOf(UICell);
-		expect(cell).toHaveProperty("borderColor").toBe(UIColor.Blue);
-		expect(cell).toHaveProperty("textColor").toBe(UIColor.Red);
+		expect(cell).toHaveProperty("borderColor").toBe(UIColor["@blue"]);
+		expect(cell).toHaveProperty("textColor").toBe(UIColor["@red"]);
 	});
 
 	test("Component with content", () => {

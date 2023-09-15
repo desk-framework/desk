@@ -1,4 +1,10 @@
-import { bound, JSX, PageViewActivity, UIIcon, UIStyle } from "../../../dist";
+import {
+	bound,
+	JSX,
+	PageViewActivity,
+	UIIconResource,
+	UIStyle,
+} from "../../../dist";
 
 const MAX = 1000;
 
@@ -15,7 +21,7 @@ const ViewBody = (
 		</row>
 		<list items={bound("items")}>
 			<row>
-				<label icon={UIIcon.ExpandRight} style={labelStyle}>
+				<label icon={UIIconResource["@expandRight"]} style={labelStyle}>
 					Hello, this is row %[item]
 				</label>
 			</row>

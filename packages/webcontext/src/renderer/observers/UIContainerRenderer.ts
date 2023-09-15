@@ -4,14 +4,26 @@ import {
 	ManagedObject,
 	RenderContext,
 	UICell,
+	UIColumn,
 	UIComponent,
 	UIComponentEvent,
 	UIContainer,
-	UIStyle,
+	UIRow,
+	UIScrollContainer,
+	UITheme,
 } from "desk-frame";
 import { BaseObserver } from "./BaseObserver.js";
-import { getCSSColor, getCSSLength } from "../../style/DOMStyle.js";
 import {
+	applyElementClassName,
+	applyElementStyle,
+	getCSSColor,
+	getCSSLength,
+} from "../../style/DOMStyle.js";
+import {
+	CLASS_CELL,
+	CLASS_COLUMN,
+	CLASS_ROW,
+	CLASS_SCROLL,
 	CLASS_SEPARATOR_LINE,
 	CLASS_SEPARATOR_LINE_VERT,
 	CLASS_SEPARATOR_SPACER,
@@ -27,13 +39,13 @@ export class UIContainerRenderer<
 	override observe(observed: UIContainer) {
 		let result = super
 			.observe(observed as any)
-			.observePropertyAsync(
-				"content",
-				"layout",
-				"padding",
-				"spacing",
-				"distribution",
-			);
+			.observePropertyAsync("content", "layout", "padding", "spacing");
+		if (observed instanceof UIRow) {
+			result.observePropertyAsync("height" as any, "align" as any);
+		}
+		if (observed instanceof UIColumn) {
+			result.observePropertyAsync("width" as any, "align" as any);
+		}
 		return result;
 	}
 
@@ -58,7 +70,7 @@ export class UIContainerRenderer<
 					return;
 				case "layout":
 				case "padding":
-				case "distribution":
+				case "align": // for rows and columns
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -159,50 +171,70 @@ export class UIContainerRenderer<
 
 	override updateStyle(
 		element: HTMLElement,
-		styles?: Partial<UIStyle.Definition>,
+		BaseStyle?: new () => UITheme.BaseStyle<string, any>,
+		styles?: any[],
 	) {
 		let container = this.observed;
-		if (!container) return;
+		if (container) {
+			// set styles based on type of container
+			let systemName: string;
+			let layout = container.layout;
+			if (container instanceof UIRow) {
+				systemName = CLASS_ROW;
+				styles = [{ height: container.height, padding: container.padding }];
+				if (container.align) {
+					layout = { ...layout, distribution: container.align };
+				}
+			} else if (container instanceof UIColumn) {
+				systemName = CLASS_COLUMN;
+				styles = [{ width: container.width, padding: container.padding }];
+				if (container.align) {
+					layout = { ...layout, gravity: container.align };
+				}
+			} else if (container instanceof UIScrollContainer) {
+				systemName = CLASS_SCROLL;
+				styles = [{ padding: container.padding }];
+			} else {
+				// (use styles passed in by cell renderer)
+				systemName = CLASS_CELL;
+			}
 
-		let layout: UIStyle.Definition.ContainerLayout = container.layout;
-		if (container.distribution)
-			layout = { ...layout, distribution: container.distribution };
-
-		let decoration = styles && styles.decoration;
-		if (container.padding)
-			decoration = { ...decoration, padding: container.padding };
-
-		super.updateStyle(element, {
-			...styles,
-			containerLayout: layout,
-			decoration,
-		});
-		this.updateSeparator();
+			applyElementClassName(element, BaseStyle, systemName, false, true);
+			applyElementStyle(element, styles, container.position, layout);
+			this.updateSeparator();
+		}
 	}
 
 	updateSeparator() {
 		if (this.observed && this.contentUpdater) {
-			let options = this.observed.layout.separator;
+			// Note: 'vertical' is a bit confusing here,
+			// because it's the separator orientation
+			// not the container axis (horizontal layout
+			// needs vertical lines, and vice versa)
+			let layout = this.observed.layout;
+			let horzAxis =
+				layout?.axis === "horizontal"
+					? true
+					: layout?.axis === "vertical"
+					? false
+					: this.observed instanceof UIRow;
+			let options = layout?.separator;
 			if (!options && this.observed.spacing) {
 				let space = this.observed.spacing;
-				let vertical = this.observed.layout.axis === "horizontal";
 				options =
 					this.lastSeparator &&
 					this.lastSeparator.space === space &&
-					this.lastSeparator.vertical === vertical
+					this.lastSeparator.vertical === horzAxis
 						? this.lastSeparator
-						: { space, vertical };
+						: { space, vertical: horzAxis };
 			}
 			if (this.lastSeparator !== options) {
 				this.lastSeparator = options;
-				this.contentUpdater.setSeparator(
-					options,
-					this.observed.layout.axis === "horizontal",
-				);
+				this.contentUpdater.setSeparator(options, horzAxis);
 			}
 		}
 	}
-	lastSeparator?: UIStyle.Definition.SeparatorOptions;
+	lastSeparator?: UIContainer.SeparatorOptions;
 
 	onDragContainer(e: UIComponentEvent<UIContainer, any>) {
 		let element = this.element!;
@@ -327,33 +359,33 @@ export class ContentUpdater {
 
 	/** Set separator details; possibly update rendered separators */
 	setSeparator(
-		options?: UIStyle.Definition.SeparatorOptions,
+		options?: UIContainer.SeparatorOptions,
 		defaultVertical?: boolean,
 	) {
 		let sep: HTMLElement | undefined;
 		let vertical = (options && options.vertical) ?? defaultVertical;
 		if (options && options.lineThickness) {
-			let thickness = getCSSLength(options.lineThickness, "");
+			let size = getCSSLength(options.lineThickness, "");
 			let margin = getCSSLength(options.lineMargin, "");
 			sep = document.createElement("hr");
 			sep.className =
 				CLASS_SEPARATOR_LINE +
 				(vertical ? " " + CLASS_SEPARATOR_LINE_VERT : "");
-			sep.style.borderWidth = thickness;
+			sep.style.borderWidth = size;
 			sep.style.margin = margin
 				? vertical
 					? "0 " + margin
 					: margin + " 0"
 				: "";
-			sep.style.borderColor = getCSSColor(options.lineColor || "@Separator");
+			sep.style.borderColor = getCSSColor(options.lineColor || "@separator");
 		} else if (options && options.space) {
-			let thickness = getCSSLength(options && options.space, "0");
+			let size = getCSSLength(options && options.space, "0");
 			sep = document.createElement("spacer" as string);
 			sep.className = CLASS_SEPARATOR_SPACER;
 			if (vertical) {
-				sep.style.width = thickness;
+				sep.style.width = size;
 			} else {
-				sep.style.height = thickness;
+				sep.style.height = size;
 			}
 		}
 		this._sepTemplate = sep;

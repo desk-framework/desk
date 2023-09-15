@@ -63,7 +63,7 @@ describe("UIStyle and UIStyleController", (scope) => {
 	});
 
 	test("UIColor value is cached but changes with theme", () => {
-		let blue = UIColor.Blue.alpha(0.5);
+		let blue = UIColor["@blue"].alpha(0.5);
 		let first = String(blue);
 
 		// set blue theme color for the first time

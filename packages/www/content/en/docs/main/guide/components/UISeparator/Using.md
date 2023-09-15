@@ -29,16 +29,16 @@ Like all views, separator components are often defined statically, rather than b
 ```ts
 const view = UISeparator.with({
 	thickness: 2,
-	color: UIColor.Red,
+	color: UIColor["@red"],
 });
 ```
 
 ```jsx
 // or, using JSX syntax:
-<separator thickness={2} color={UIColor.Red} />
+<separator thickness={2} color={UIColor["@red"]} />
 ```
 
-If no preset properties are specified, the separator appears as a thin horizontal line, using the {@link UIColor.Separator} color (grey by default).
+If no preset properties are specified, the separator appears as a thin horizontal line, using the {@link UIColor["@separator"]} color (grey by default).
 
 ```ts
 const view = UIColumn.with(

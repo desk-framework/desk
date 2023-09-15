@@ -3,11 +3,11 @@ import {
 	UICell,
 	UICloseLabel,
 	UIExpandedLabel,
-	UIHeading1,
-	UIHeading2,
-	UIHeading3,
+	UIHeading1Label,
+	UIHeading2Label,
+	UIHeading3Label,
 	UILabel,
-	UIParagraph,
+	UIParagraphLabel,
 	UIStyle,
 } from "../../../dist/index.js";
 import { describe, expect, test, useTestContext } from "@desk-framework/test";
@@ -31,15 +31,15 @@ describe("UILabel", (scope) => {
 		expect(close.style).toBe(UIStyle.CloseLabel);
 
 		let [h1, h2, h3] = [
-			new UIHeading1("foo"),
-			new UIHeading2("foo"),
-			new UIHeading3("foo"),
+			new UIHeading1Label("foo"),
+			new UIHeading2Label("foo"),
+			new UIHeading3Label("foo"),
 		];
 		expect(h1.headingLevel).toBe(1);
 		expect(h2.headingLevel).toBe(2);
 		expect(h3.headingLevel).toBe(3);
 
-		let p = new UIParagraph("foo");
+		let p = new UIParagraphLabel("foo");
 		expect(p.style.getIds().pop()).toMatchRegExp(/paragraph/);
 	});
 

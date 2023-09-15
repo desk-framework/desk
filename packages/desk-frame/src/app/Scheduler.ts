@@ -3,6 +3,7 @@ import {
 	removeFromNullableArray,
 } from "../core/NullableArray.js";
 import { errorHandler } from "../errors.js";
+import { ConfigOptions } from "../index.js";
 import { AppException } from "./AppException.js";
 
 /**
@@ -13,13 +14,13 @@ export class Scheduler {
 	 * Creates a new asynchronous task queue with the provided name and options
 	 * @param name The name of the task queue, or a unique symbol to identify it
 	 * @param replace True if any existing queues with the same name should be replaced
-	 * @param configure A callback function to set additional options for the task queue
+	 * @param config An options object or configuration function to set additional options for the task queue
 	 * @returns A new {@link AsyncTaskQueue} instance
 	 */
 	createQueue(
 		name: string | symbol,
 		replace?: boolean,
-		configure?: (options: AsyncTaskQueue.Options) => void,
+		config?: ConfigOptions.Arg<AsyncTaskQueue.Options>,
 	) {
 		// stop all and remove queues with the same name first, if required
 		if (replace) {
@@ -33,9 +34,7 @@ export class Scheduler {
 		}
 
 		// create the queue with given options
-		let options = new AsyncTaskQueue.Options();
-		configure && configure(options);
-		let queue = new AsyncTaskQueue(name, options);
+		let queue = new AsyncTaskQueue(name, AsyncTaskQueue.Options.init(config));
 		this._queues.push(queue);
 		return queue;
 	}
@@ -323,7 +322,7 @@ export class AsyncTaskQueue {
 
 export namespace AsyncTaskQueue {
 	/** An object with options for a particular {@link AsyncTaskQueue} */
-	export class Options {
+	export class Options extends ConfigOptions {
 		/** The number of tasks that can be started (asynchronously) in parallel, defaults to 1 */
 		parallel = 1;
 		/** True if errors should be added to {@link AsyncTaskQueue.errors} instead of being handled globally */

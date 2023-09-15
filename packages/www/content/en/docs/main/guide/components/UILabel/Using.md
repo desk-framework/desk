@@ -5,12 +5,12 @@ sort: -10
 nav_uplink: {@link UILabel}
 applies_to:
   - UILabel
-  - UIParagraph
+  - UIParagraphLabel
   - UIExpandedLabel
   - UICloseLabel
-  - UIHeading1
-  - UIHeading2
-  - UIHeading3
+  - UIHeading1Label
+  - UIHeading2Label
+  - UIHeading3Label
 assets:
   - sample-single.js
   - sample-paragraph.js
@@ -38,13 +38,13 @@ Like all views, label components are often defined statically, rather than being
 ```ts
 const view = UILabel.with({
 	text: "This is a label",
-	icon: UIIcon.ExpandRight,
+	icon: UIIconResource["@expandRight"],
 });
 ```
 
 ```jsx
 // or, using JSX syntax:
-<label icon={UIIcon.ExpandRight}>This is a label</label>
+<label icon={UIIconResource["@expandRight"]}>This is a label</label>
 ```
 
 Label decorations, dimensions, position, and text styles are customizable, either using {@link UITheme} styles or using any of the style properties of the control itself.
@@ -55,16 +55,16 @@ Label decorations, dimensions, position, and text styles are customizable, eithe
 
 Several predefined label variants are available. The base class {@link UILabel} should be used in all other cases.
 
-## Paragraph labels {#UIParagraph}
+## Paragraph labels {#UIParagraphLabel}
 
-The {@link UIParagraph} class can be used to add a _paragraph_ label view.
+The {@link UIParagraphLabel} class can be used to add a _paragraph_ label view.
 
 Paragraph labels apply the {@link UIStyle.Paragraph} style, which enables text wrapping across multiple lines.
 
 <!--{{iframesample js="./sample-paragraph.js"}}-->
 
 ```ts
-const view = UIParagraph.withText("This is a paragraph. ...");
+const view = UIParagraphLabel.withText("This is a paragraph. ...");
 ```
 
 ```jsx
@@ -116,9 +116,9 @@ const view = UIRow.with(
 </row>
 ```
 
-## Heading labels {#UIHeading1}
+## Heading labels {#UIHeading1Label}
 
-The {@link UIHeading1}, {@link UIHeading2}, and {@link UIHeading3} classes can be used to add labels that contain heading text. These classes set the {@link UILabel.headingLevel} value to their corresponding values, and automatically apply styles such as {@link UIStyle.Heading1}.
+The {@link UIHeading1Label}, {@link UIHeading2Label}, and {@link UIHeading3Label} classes can be used to add labels that contain heading text. These classes set the {@link UILabel.headingLevel} value to their corresponding values, and automatically apply styles such as {@link UIStyle.Heading1}.
 
 Since these styles are very dependent on the overall look of your application, it's usually a good idea to set appropriate heading styles on {@link UITheme.styles app.theme.styles}.
 
@@ -126,9 +126,9 @@ Since these styles are very dependent on the overall look of your application, i
 
 ```ts
 const view = UIColumn.with(
-	UIHeading1.withText("Heading 1"),
-	UIHeading2.withText("Heading 2"),
-	UIParagraph.withText("Regular text"),
+	UIHeading1Label.withText("Heading 1"),
+	UIHeading2Label.withText("Heading 2"),
+	UIParagraphLabel.withText("Regular text"),
 );
 ```
 
@@ -193,29 +193,28 @@ export default (
 
 The following properties can be preset using `UILabel.with({ ... })` or JSX `<label ...>`.
 
-| Property                                            | Type                                                                  |
-| :-------------------------------------------------- | :-------------------------------------------------------------------- |
-| {@link UIComponent.style style}                     | Instance of {@link UIStyle} or a theme style name starting with `@`   |
-| {@link UIComponent.dimensions dimensions}           | An object with {@link UIStyle.Definition.Dimensions} properties       |
-| {@link UIComponent.position position}               | An object with {@link UIStyle.Definition.Position} properties         |
-| {@link UIControl.textStyle textStyle}               | An object with {@link UIStyle.Definition.TextStyle} properties        |
-| {@link UIControl.decoration decoration}             | An object with {@link UIStyle.Definition.Decoration} properties       |
-| {@link UIComponent.hidden hidden}                   | Boolean, or binding                                                   |
-| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                                                    |
-| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                                                    |
-| {@link UIControl.disabled disabled}                 | Boolean, or binding                                                   |
-| {@link UIControl.shrinkwrap shrinkwrap}             | Boolean, or binding                                                   |
-| {@link UILabel.text text}                           | String, {@link LazyString}, or binding                                |
-| {@link UILabel.htmlFormat htmlFormat}               | Boolean, or binding                                                   |
-| {@link UILabel.headingLevel headingLevel}           | Number, or binding                                                    |
-| {@link UILabel.icon icon}                           | String, {@link UIIcon}, theme icon name starting with `@`, or binding |
-| {@link UILabel.iconSize iconSize}                   | Number, or binding                                                    |
-| {@link UILabel.iconMargin iconMargin}               | Number, or binding                                                    |
-| {@link UILabel.iconColor iconColor}                 | String, {@link UIColor} instance, or binding                          |
-| {@link UILabel.iconAfter iconAfter}                 | Boolean, or binding                                                   |
-| allowFocus                                          | True if this component may receive input focus                        |
-| allowKeyboardFocus                                  | True if keyboard focus should be enabled                              |
-| requestFocus                                        | True to request focus immediately after first render                  |
+| Property                                            | Type                                                                          |
+| :-------------------------------------------------- | :---------------------------------------------------------------------------- |
+| {@link UIComponent.style style}                     | Instance of {@link UIStyle} or a theme style name starting with `@`           |
+| {@link UIComponent.dimensions dimensions}           | An object with {@link UIStyle.Definition.Dimensions} properties               |
+| {@link UIComponent.position position}               | An object with {@link UIStyle.Definition.Position} properties                 |
+| {@link UIControl.textStyle textStyle}               | An object with {@link UIStyle.Definition.TextStyle} properties                |
+| {@link UIControl.decoration decoration}             | An object with {@link UIStyle.Definition.Decoration} properties               |
+| {@link UIComponent.hidden hidden}                   | Boolean, or binding                                                           |
+| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                                                            |
+| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                                                            |
+| {@link UIControl.disabled disabled}                 | Boolean, or binding                                                           |
+| {@link UIControl.shrinkwrap shrinkwrap}             | Boolean, or binding                                                           |
+| {@link UILabel.text text}                           | String, {@link LazyString}, or binding                                        |
+| {@link UILabel.htmlFormat htmlFormat}               | Boolean, or binding                                                           |
+| {@link UILabel.headingLevel headingLevel}           | Number, or binding                                                            |
+| {@link UILabel.icon icon}                           | String, {@link UIIconResource}, theme icon name starting with `@`, or binding |
+| {@link UILabel.iconSize iconSize}                   | Number, or binding                                                            |
+| {@link UILabel.iconMargin iconMargin}               | Number, or binding                                                            |
+| {@link UILabel.iconColor iconColor}                 | String, {@link UIColor} instance, or binding                                  |
+| allowFocus                                          | True if this component may receive input focus                                |
+| allowKeyboardFocus                                  | True if keyboard focus should be enabled                                      |
+| requestFocus                                        | True to request focus immediately after first render                          |
 
 Note that {@link UILabel} also provides the following methods.
 

@@ -9,13 +9,13 @@ describe("UIColor colors", () => {
 		});
 
 		test("Color value using predefined instance", () => {
-			expect(UIColor.Black).asString().toBe("#000000");
+			expect(UIColor["@black"]).asString().toBe("#000000");
 		});
 
 		test("Color value using indirectly predefined instance", () => {
-			let blue = UIColor.Blue.toString();
-			expect(UIColor.Primary).asString().toBe(blue);
-			expect(UIColor.Text)
+			let blue = UIColor["@blue"].toString();
+			expect(UIColor["@primary"]).asString().toBe(blue);
+			expect(UIColor["@text"])
 				.asString()
 				.toMatchRegExp(/0\,0\,0/);
 		});
@@ -28,13 +28,13 @@ describe("UIColor colors", () => {
 
 		test("Black and white", () => {
 			expect(UIColor.isBrightColor(new UIColor())).toBeTruthy();
-			expect(UIColor.isBrightColor(UIColor.Black)).toBeFalsy();
-			expect(UIColor.isBrightColor(UIColor.White)).toBeTruthy();
+			expect(UIColor.isBrightColor(UIColor["@black"])).toBeFalsy();
+			expect(UIColor.isBrightColor(UIColor["@white"])).toBeTruthy();
 		});
 
 		test("Black and white text", (t) => {
-			let blackText = UIColor.White.text();
-			let whiteText = UIColor.Black.text();
+			let blackText = UIColor["@white"].text();
+			let whiteText = UIColor["@black"].text();
 			t.log("Black", String(blackText));
 			t.log("White", String(whiteText));
 			expect(UIColor.isBrightColor(blackText)).toBeFalsy();
@@ -42,8 +42,8 @@ describe("UIColor colors", () => {
 		});
 
 		test("Hex color text", () => {
-			let blackTextStr = UIColor.White.text().toString();
-			let whiteTextStr = UIColor.Black.text().toString();
+			let blackTextStr = UIColor["@white"].text().toString();
+			let whiteTextStr = UIColor["@black"].text().toString();
 			let textOnDarkStr = new UIColor("#333333").text().toString();
 			let textOnLightStr = new UIColor("#cccccc").text().toString();
 			expect(textOnDarkStr).toBe(whiteTextStr);
@@ -51,8 +51,8 @@ describe("UIColor colors", () => {
 		});
 
 		test("rgb color text", () => {
-			let blackTextStr = UIColor.White.text().toString();
-			let whiteTextStr = UIColor.Black.text().toString();
+			let blackTextStr = UIColor["@white"].text().toString();
+			let whiteTextStr = UIColor["@black"].text().toString();
 			let textOnDarkStr = new UIColor("rgb(30,30,30)").text().toString();
 			let textOnLightStr = new UIColor("rgb(200,200,200)").text().toString();
 			expect(textOnDarkStr).toBe(whiteTextStr);
@@ -60,8 +60,8 @@ describe("UIColor colors", () => {
 		});
 
 		test("rgba color text", () => {
-			let blackTextStr = UIColor.White.text().toString();
-			let whiteTextStr = UIColor.Black.text().toString();
+			let blackTextStr = UIColor["@white"].text().toString();
+			let whiteTextStr = UIColor["@black"].text().toString();
 			let textOnDarkStr = new UIColor("rgba(30,30,30, 128)").text().toString();
 			let textOnLightStr = new UIColor("rgba(200,200,200,128)")
 				.text()

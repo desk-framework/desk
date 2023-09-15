@@ -11,7 +11,7 @@ applies_to:
   - UITheme.icons
   - UITheme.colors
   - UIColor
-  - UIIcon
+  - UIIconResource
   - UIComponent
   - UIStyleController
 ---
@@ -38,7 +38,7 @@ A new {@link UIStyle} object can be applied dynamically to each UI component, bu
 // styles.ts
 export default {
 	brandedButton: UIStyle.OutlineButton.extend({
-		decoration: { background: UIColor.Yellow },
+		decoration: { background: UIColor["@yellow"] },
 		// ... other styles
 	}),
 	boldLabel: UIStyle.Label.extend({ textStyle: { bold: true } }),
@@ -129,14 +129,14 @@ The {@link UICell} view component exposes many styles conveniently as properties
 
 ```ts
 const view = UICell.with(
-	{ background: UIColor.Green },
+	{ background: UIColor["@green"] },
 	// ... cell contents ...
 );
 ```
 
 ```jsx
 export default (
-	<cell background={UIColor.Green}>
+	<cell background={UIColor["@green"]}>
 		{/*
        ... cell contents ...
     */}
@@ -164,10 +164,10 @@ let myTheme = app.theme!.clone();
 myTheme.style = {
 	...myTheme.styles,
 	Heading2: myTheme.styles.Heading2!.extend({
-		textStyle: { color: UIColor.Red },
+		textStyle: { color: UIColor["@red"] },
 	}),
 	FadedLabel: myTheme.styles.Label!.extend({
-		textStyle: { color: UIColor.Text.alpha(0.35) },
+		textStyle: { color: UIColor["@text"].alpha(0.35) },
 	}),
 };
 
@@ -192,17 +192,17 @@ Specifically, themes also include a set of colors and icons that can be referenc
 
 Colors can be defined and used in several different ways. Each of these result in an instance of {@link UIColor} being interpreted by the platform-specific renderer.
 
-- Using colors through static properties of {@link UIColor}, such as `UIColor.Primary`, `UIColor.Green` and `UIColor.Red`. Each of these properties dynamically refers to a {@link UIColor} object defined by {@link UITheme.colors}.
-- Using named custom colors — similar to custom styles, these can be accessed using the {@link UIColor} constructor with a string that starts with the `@` character, e.g. `new UIColor("@Brand1")` **or** as strings passed to many of the style properties. Note that the property name on {@link UITheme.colors} should not include the `@` character.
+- Using colors through static properties of {@link UIColor}, such as `UIColor["@primary"]`, `UIColor["@green"]` and `UIColor["@red"]`. Each of these properties dynamically refers to a {@link UIColor} object defined by {@link UITheme.colors}.
+- Using named custom colors — similar to custom styles, these can be accessed using the {@link UIColor} constructor with a string that starts with the `@` character, e.g. `new UIColor("@brand1")` **or** as strings passed to many of the style properties. Note that the property name on {@link UITheme.colors} should not include the `@` character.
 - Using CSS color values, passed to the {@link UIColor} constructor, e.g. `new UIColor("#f00")`.
-- Using a combination of filters, on top of a base color instance. Filters are available as methods of the {@link UIColor} class, e.g. `UIColor.Primary.alpha(0.5)`.
+- Using a combination of filters, on top of a base color instance. Filters are available as methods of the {@link UIColor} class, e.g. `UIColor["@primary"].alpha(0.5)`.
 
 ```ts
 const view = UICell.with(
 	// make sure text-on-green is readable
 	{
-		background: UIColor.Green,
-		textColor: UIColor.Green.text(),
+		background: UIColor["@green"],
+		textColor: UIColor["@green"].text(),
 	},
 	UILabel.withText("Text"),
 );
@@ -221,34 +221,34 @@ Refer to the {@link UIColor} class for more details.
 
 Icons can be used with label and button UI controls, next to (or intead of) the control's text.
 
-When referencing an icon through the `icon` property of a label or button, you can either use an instance of the {@link UIIcon} class or reference a theme icon using its name, prepended with the `@` character.
+When referencing an icon through the `icon` property of a label or button, you can either use an instance of the {@link UIIconResource} class or reference a theme icon using its name, prepended with the `@` character.
 
-A set of default icons is made available using static properties of the {@link UIIcon} class itself.
+A set of default icons is made available using static properties of the {@link UIIconResource} class itself.
 
-- {@ref UIIcon}
+- {@ref UIIconResource}
 
 ```ts
 const view = UICell.with(
 	// a button that includes an icon
 	UIPrimaryButton.with({
 		label: "Close",
-		icon: UIIcon.Close, // a UIIcon instance
+		icon: UIIconResource["@close"], // a UIIconResource instance
 	}),
 );
 ```
 
-Instances of {@link UIIcon} can be created using SVG or emojis, or (in the future) perhaps using platform specific formats.
+Instances of {@link UIIconResource} can be created using SVG or emojis, or (in the future) perhaps using platform specific formats.
 
 ```ts
-let myHappyIcon = new UIIcon("🙂");
-let mySvgIcon = new UIIcon(`<svg xmlns="...">...</svg>`);
+let myHappyIcon = new UIIconResource("🙂");
+let mySvgIcon = new UIIconResource(`<svg xmlns="...">...</svg>`);
 ```
 
-Custom icons can be added to a theme by setting additional properties of {@UITheme.icons} to instances of {@link UIIcon}. The property names of this object should **not** start with the `@` character themselves.
+Custom icons can be added to a theme by setting additional properties of {@UITheme.icons} to instances of {@link UIIconResource}. The property names of this object should **not** start with the `@` character themselves.
 
 - {@ref UITheme.icons}
 
-> **Note:** As with styles, whether to use the theme to store custom icons (and reference them using the `@` string syntax) **or** export UIIcon instances from a separate module (and use them directly on control view presets) is a personal preference and depends mostly on the other requirements of your application project.
+> **Note:** As with styles, whether to use the theme to store custom icons (and reference them using the `@` string syntax) **or** export UIIconResource instances from a separate module (and use them directly on control view presets) is a personal preference and depends mostly on the other requirements of your application project.
 
 ## Dynamic styles (UIStyleController) {#controller}
 
@@ -270,7 +270,7 @@ const view = UICell.with(
 			state: bound.boolean("someValue"),
 			style:
 				// this could be an import, const, or theme style:
-				UIStyle.Label.extend({ textStyle: { color: UIColor.Red } }),
+				UIStyle.Label.extend({ textStyle: { color: UIColor["@red"] } }),
 		},
 		UILabel.withText("Hello, world!"),
 	),
@@ -280,7 +280,7 @@ const view = UICell.with(
 	// same, but with direct override
 	UIStyleController.with(
 		{
-			textStyle: bound.boolean("someValue").select({ color: UIColor.Red }),
+			textStyle: bound.boolean("someValue").select({ color: UIColor["@red"] }),
 		},
 		UILabel.withText("Hello, world!"),
 	),
@@ -296,7 +296,7 @@ export default (
 	<cell>
 		<style
 			state={bound.boolean("someValue")}
-			textStyle={{ color: UIColor.Red }}
+			textStyle={{ color: UIColor["@red"] }}
 		>
 			<label>Hello, world!</label>
 		</style>

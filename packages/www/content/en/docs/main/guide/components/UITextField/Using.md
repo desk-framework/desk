@@ -57,14 +57,14 @@ A special type of text field can be created using the {@link UIBorderlessTextFie
 ```ts
 const view = UICell.with(
 	{
-		borderColor: UIColor.Separator,
+		borderColor: UIColor["@separator"],
 		borderThickness: { bottom: 1 },
 	},
 	UICenterRow.with(
 		UIBorderlessTextField.with({
 			placeholder: "Search...",
 		}),
-		UIIconButton.withIcon(UIIcon.ExpandDown),
+		UIIconButton.withIcon(UIIconResource["@expandDown"]),
 	),
 );
 ```

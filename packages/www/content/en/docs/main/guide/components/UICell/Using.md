@@ -32,8 +32,8 @@ const view = UICell.with(
 	{
 		margin: 16,
 		padding: 8,
-		background: UIColor.Blue.alpha(0.1),
-		borderColor: UIColor.Red,
+		background: UIColor["@blue"].alpha(0.1),
+		borderColor: UIColor["@red"],
 		borderThickness: 2,
 		dropShadow: 1,
 	},
@@ -46,8 +46,8 @@ const view = UICell.with(
 <cell
 	margin={16}
 	padding={8}
-	background={UIColor.Blue.alpha(0.1)}
-	borderColor={UIColor.Red}
+	background={UIColor["@blue"].alpha(0.1)}
+	borderColor={UIColor["@red"]}
 	borderThickness={2}
 	dropShadow={1}
 >
@@ -99,7 +99,7 @@ const cellStyle = UIStyle.Cell.extend(
 	{
 		decoration: {
 			borderThickness: 1,
-			borderColor: UIColor.Separator,
+			borderColor: UIColor["@separator"],
 		},
 	},
 	{

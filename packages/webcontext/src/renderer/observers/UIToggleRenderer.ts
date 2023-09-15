@@ -1,7 +1,16 @@
-import { ManagedChangeEvent, RenderContext, UIToggle } from "desk-frame";
-import { CLASS_TOGGLE } from "../../style/defaults/css.js";
-import { BaseObserver } from "./BaseObserver.js";
-import { applyDecorationCSS } from "../../style/DOMStyle.js";
+import {
+	ManagedChangeEvent,
+	RenderContext,
+	UIToggle,
+	UIToggleLabelStyle,
+	UIToggleStyle,
+} from "desk-frame";
+import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
+import { CLASS_TOGGLE_WRAPPER } from "../../style/defaults/css.js";
+import {
+	applyElementClassName,
+	applyElementStyle,
+} from "../../style/DOMStyle.js";
 
 let _nextId = 0;
 
@@ -10,14 +19,7 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 	override observe(observed: UIToggle) {
 		return super
 			.observe(observed)
-			.observePropertyAsync(
-				"label",
-				"state",
-				"textStyle",
-				"decoration",
-				"disabled",
-				"shrinkwrap",
-			);
+			.observePropertyAsync("label", "state", "disabled", "labelStyle");
 	}
 
 	protected override async handlePropertyChange(
@@ -31,10 +33,8 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 				case "state":
 					this.scheduleUpdate(this.element);
 					return;
-				case "textStyle":
-				case "decoration":
 				case "disabled":
-				case "shrinkwrap":
+				case "labelStyle":
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -67,41 +67,54 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 
 	override updateStyle(element: HTMLElement) {
 		let toggle = this.observed;
-		if (!toggle) return;
+		if (toggle) {
+			// set element (wrapper) style
+			applyElementClassName(
+				element,
+				getBaseStyleClass(toggle.toggleStyle) || UIToggleStyle,
+				CLASS_TOGGLE_WRAPPER,
+			);
+			applyElementStyle(element, [toggle.toggleStyle], toggle.position);
 
-		// set disabled state
-		let checkbox = element.firstChild as HTMLInputElement;
-		checkbox.disabled = !!toggle.disabled;
+			// set label style
+			let label = element.lastChild as HTMLLabelElement;
+			applyElementClassName(
+				element,
+				getBaseStyleClass(toggle.labelStyle) || UIToggleLabelStyle,
+				undefined,
+				true,
+			);
+			applyElementStyle(label, [toggle.labelStyle], undefined, undefined, true);
 
-		// set style objects
-		applyDecorationCSS(checkbox, toggle.decoration);
-		super.updateStyle(
-			element,
-			{
-				textStyle: toggle.textStyle,
-				decoration: { cssClassNames: [CLASS_TOGGLE] },
-			},
-			toggle.shrinkwrap,
-		);
+			// set disabled state
+			let checkbox = element.firstChild as HTMLInputElement;
+			checkbox.disabled = !!toggle.disabled;
+			if (toggle.disabled) {
+				element.setAttribute("disabled", "disabled");
+				label.setAttribute("disabled", "disabled");
+			} else {
+				element.removeAttribute("disabled");
+				label.removeAttribute("disabled");
+			}
+		}
 	}
 
 	updateContent(element: HTMLElement) {
 		let toggle = this.observed;
-		if (!toggle) return;
+		if (toggle) {
+			// update checkbox state
+			let checkbox = element.firstChild as HTMLInputElement;
+			if (toggle.formField) checkbox.name = toggle.formField;
+			if (checkbox.checked && !toggle.state) {
+				checkbox.checked = false;
+			} else if (!checkbox.checked && toggle.state) {
+				checkbox.checked = true;
+			}
 
-		// update checkbox state
-		let checkbox = element.firstChild as HTMLInputElement;
-		if (toggle.formField) checkbox.name = toggle.formField;
-		if (checkbox.checked && !toggle.state) {
-			checkbox.checked = false;
-		} else if (!checkbox.checked && toggle.state) {
-			checkbox.checked = true;
+			// update label
+			let label = element.lastChild as HTMLLabelElement;
+			let text = toggle.label;
+			label.textContent = text == null ? "" : String(text);
 		}
-
-		// update label
-		let label = element.lastChild as HTMLLabelElement;
-		let text = toggle.label;
-		text = text == null ? "" : String(text);
-		label.textContent = text ? "  " + text : "";
 	}
 }

@@ -4,10 +4,9 @@ import {
 	StringConvertible,
 	strf,
 } from "../../core/index.js";
-import { UIFormContext, _boundFormContext } from "../UIFormContext.js";
 import { UIComponent } from "../UIComponent.js";
-import { UIControl } from "./UIControl.js";
-import { UIStyle } from "../UIStyle.js";
+import { UIFormContext, _boundFormContext } from "../UIFormContext.js";
+import { UITheme } from "../UITheme.js";
 
 /**
  * A view class that represents a text field control
@@ -18,7 +17,7 @@ import { UIStyle } from "../UIStyle.js";
  *
  * @online_docs Refer to the Desk website for more documentation on using this UI component class.
  */
-export class UITextField extends UIControl {
+export class UITextField extends UIComponent {
 	/**
 	 * Creates a preset text field class with the specified form field name and placeholder
 	 * - The form field name is used with the nearest `formContext` property, see {@link UIFormContext}.
@@ -35,8 +34,6 @@ export class UITextField extends UIControl {
 	/** Creates a new text field view instance */
 	constructor() {
 		super();
-		this.style = UIStyle.TextField;
-		this.shrinkwrap = false;
 		_boundFormContext.bindTo(this, "formContext");
 		new UITextFieldObserver().observe(this);
 	}
@@ -47,7 +44,7 @@ export class UITextField extends UIControl {
 	 */
 	override applyViewPreset(
 		preset: UIComponent.ViewPreset<
-			UIControl,
+			UIComponent,
 			this,
 			| "placeholder"
 			| "value"
@@ -56,6 +53,10 @@ export class UITextField extends UIControl {
 			| "formField"
 			| "enterKeyHint"
 			| "disableSpellCheck"
+			| "disabled"
+			| "readonly"
+			| "width"
+			| "textFieldStyle"
 		> & {
 			/** Event that's emitted after the text field has updated and input focus lost */
 			onChange?: string;
@@ -85,7 +86,7 @@ export class UITextField extends UIControl {
 	value = "";
 
 	/** The text field placeholder text */
-	placeholder?: StringConvertible;
+	placeholder?: StringConvertible = undefined;
 
 	/**
 	 * True if multiline input mode should be enabled
@@ -112,6 +113,18 @@ export class UITextField extends UIControl {
 	 * @see {@link UIFormContext}
 	 */
 	formContext?: UIFormContext;
+
+	/** True if user input should be disabled on this control */
+	disabled = false;
+
+	/** True if the text field should appear like a label */
+	readonly = false;
+
+	/** Target width of the text field, in pixels or CSS length with unit */
+	width?: string | number = undefined;
+
+	/** The style to be applied to the text field */
+	textFieldStyle: UITheme.StyleConfiguration<UITextFieldStyle> = undefined;
 }
 
 /** @internal Text field UI component observer to manage the input value automatically */
@@ -138,20 +151,6 @@ class UITextFieldObserver extends Observer<UITextField> {
 	}
 }
 
-/**
- * A view class that represents a text field control without any visible borders
- * - Refer to {@link UITextField} for information on text field components.
- * - This class uses the {@link UIStyle.BorderlessTextField} style.
- *
- * **JSX tag:** `<borderlesstextfield>`
- */
-export class UIBorderlessTextField extends UITextField {
-	constructor() {
-		super();
-		this.style = UIStyle.BorderlessTextField;
-	}
-}
-
 export namespace UITextField {
 	/** An identifier for a text field input type */
 	export type InputType = "text" | "password" | "number" | "date" | "color";
@@ -165,4 +164,20 @@ export namespace UITextField {
 		| "previous"
 		| "search"
 		| "send";
+}
+
+/**
+ * A style class that includes default style properties for instances of {@link UITextField}
+ * - Default styles are taken from {@link UITheme}.
+ * - Extend or override this class to implement custom text field styles, see {@link UITheme.BaseStyle} for details.
+ */
+export class UITextFieldStyle extends UITheme.BaseStyle<
+	"TextField",
+	UIComponent.DimensionsStyleType &
+		UIComponent.DecorationStyleType &
+		UIComponent.TextStyleType
+> {
+	constructor() {
+		super("TextField", UITextFieldStyle);
+	}
 }

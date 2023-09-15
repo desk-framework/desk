@@ -3,21 +3,26 @@ import {
 	ManagedChangeEvent,
 	Observer,
 	UIComponent,
-	UIStyle,
 	RenderContext,
+	UITheme,
 } from "desk-frame";
 import { ELT_HND_PROP } from "../events.js";
 import { WebRenderer } from "../WebRenderer.js";
-import { applyElementCSS } from "../../style/DOMStyle.js";
+
+/** @internal Helper function to find the base style (class) from a style/overrides object (e.g. `UILabel.labelStyle`), if any */
+export function getBaseStyleClass(
+	object: UITheme.StyleConfiguration<any>,
+): undefined | (new () => UITheme.BaseStyle<string, any>) {
+	let base = (object as any)?.[UITheme.BaseStyle.OVERRIDES_BASE] || object;
+	if (typeof base === "function") return base;
+}
 
 /** @internal Abstract observer class for all `UIComponent` instances, to create output and call render callback; implemented for all types of UI components */
 export abstract class BaseObserver<
 	TUIComponent extends UIComponent,
 > extends Observer<TUIComponent> {
 	override observe(observed: TUIComponent) {
-		return super
-			.observe(observed)
-			.observePropertyAsync("hidden", "dimensions", "position");
+		return super.observe(observed).observePropertyAsync("hidden", "position");
 	}
 
 	/** Handler for base property changes; must be overridden to handle other UI component properties */
@@ -29,15 +34,15 @@ export abstract class BaseObserver<
 		if (this.observed && this.element) {
 			switch (property) {
 				case "hidden":
-					this.updateStyle(this.element);
+					this._hidden = this.observed.hidden;
+					if (!this._hidden) this.updateStyle(this.element);
 					if (this.updateCallback) {
 						this.updateCallback = this.updateCallback.call(
 							undefined,
-							this.hidden ? undefined : this.output,
+							this._hidden ? undefined : this.output,
 						);
 					}
 					return;
-				case "dimensions":
 				case "position":
 					this.scheduleUpdate(undefined, this.element);
 					return;
@@ -58,12 +63,16 @@ export abstract class BaseObserver<
 	/** Updates the provided output element with all properties of the UI component; called automatically before rendering (after `getOutputElement`), but can also be called when state properties change */
 	update(element: HTMLElement) {
 		if (!this.observed) return;
+		this._hidden = this.observed.hidden;
 		this._asyncContentUp = undefined;
 		this._asyncStyleUp = undefined;
 		if (this.observed.accessibleRole)
-			element.setAttribute("role", this.observed.accessibleRole);
+			element.setAttribute("role", String(this.observed.accessibleRole || ""));
 		if (this.observed.accessibleLabel)
-			element.setAttribute("aria-label", this.observed.accessibleLabel);
+			element.setAttribute(
+				"aria-label",
+				String(this.observed.accessibleLabel || ""),
+			);
 		this.updateContent(element);
 		this.updateStyle(element);
 	}
@@ -92,27 +101,9 @@ export abstract class BaseObserver<
 	abstract updateContent(element: HTMLElement): void;
 
 	/** Updates the provided output element with all style properties; called automatically by `update()`, but can also be called when state properties change; must be overridden to update other style properties */
-	updateStyle(
-		element: HTMLElement,
-		styles: Partial<UIStyle.Definition> = {},
-		shrinkwrap?: boolean | "auto",
-	) {
-		let component = this.observed;
-		if (!component) return;
-		if (component.hidden) {
-			this.hidden = true;
-		} else {
-			this.hidden = false;
-			if (!styles.position) styles.position = component.position;
-			if (!styles.dimensions) styles.dimensions = component.dimensions;
-			if (shrinkwrap && styles.dimensions.grow) {
-				styles.dimensions = { ...styles.dimensions, grow: 0 };
-			} else if (shrinkwrap === false && !styles.dimensions.grow) {
-				styles.dimensions = { ...styles.dimensions, grow: 1 };
-			}
-			applyElementCSS(element, styles, component);
-		}
-	}
+	abstract updateStyle(element: HTMLElement): void;
+
+	private _hidden?: boolean;
 
 	/** Render event handler, calls encapsulated render callback with existing or new output */
 	onRender(event: RenderContext.RendererEvent) {
@@ -131,10 +122,10 @@ export abstract class BaseObserver<
 			// call render callback with new element
 			this.updateCallback = event.render.call(
 				undefined,
-				this.hidden ? undefined : this.output,
+				this._hidden ? undefined : this.output,
 				() => {
 					// try to focus if requested
-					if (this._requestedFocus && this.element && !this.hidden) {
+					if (this._requestedFocus && this.element && !this._hidden) {
 						this._requestedFocus = false;
 						(app.renderer as WebRenderer).tryFocusElement(this.element);
 					}
@@ -150,7 +141,6 @@ export abstract class BaseObserver<
 		}
 	}
 
-	hidden?: boolean;
 	updateCallback?: RenderContext.RenderCallback;
 
 	/** Called before handling DOM events, for some components (see `events.ts`); the component has already been checked here and must be defined */

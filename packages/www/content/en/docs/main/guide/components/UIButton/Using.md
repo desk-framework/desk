@@ -37,13 +37,13 @@ Like all views, button components are often defined statically, rather than bein
 ```ts
 const view = UIOutlineButton.with({
 	label: "Button",
-	icon: UIIcon.Plus,
+	icon: UIIconResource["@plus"],
 });
 ```
 
 ```jsx
 // or, using JSX syntax:
-<button icon={UIIcon.Plus}>Button</button>
+<button icon={UIIconResource["@plus"]}>Button</button>
 ```
 
 Button decorations, dimensions, position, and text styles are highly customizable, either using {@link UITheme} styles or using any of the style properties of the button itself.
@@ -67,21 +67,21 @@ const styles = {
 	dangerousButton: UIStyle.PrimaryButton.extend(
 		{
 			decoration: {
-				background: UIColor.Red,
-				borderColor: UIColor.Red,
+				background: UIColor["@red"],
+				borderColor: UIColor["@red"],
 			},
 		},
 		{
 			hover: {
 				decoration: {
-					background: UIColor.Red.brighten(-0.2),
-					borderColor: UIColor.Red.brighten(-0.2),
+					background: UIColor["@red"].brighten(-0.2),
+					borderColor: UIColor["@red"].brighten(-0.2),
 				},
 			},
 			pressed: {
 				decoration: {
-					background: UIColor.Red.brighten(0.2),
-					borderColor: UIColor.Red.brighten(0.2),
+					background: UIColor["@red"].brighten(0.2),
+					borderColor: UIColor["@red"].brighten(0.2),
 				},
 			},
 		},
@@ -138,8 +138,8 @@ const buttonStyle = UIStyle.OutlineButton.extend(
 		// use the selected state to switch styles automatically:
 		selected: {
 			decoration: {
-				background: UIColor.PrimaryBackground,
-				textColor: UIColor.PrimaryBackground.text(),
+				background: UIColor["@primaryBackground"],
+				textColor: UIColor["@primaryBackground"].text(),
 			},
 		},
 	},
@@ -162,27 +162,26 @@ const view = UISelectionController.with(
 
 The following properties can be preset using `UIButton.with({ ... })` or JSX `<button ...>`.
 
-| Property                                            | Type                                                                  |
-| :-------------------------------------------------- | :-------------------------------------------------------------------- |
-| {@link UIComponent.style style}                     | Instance of {@link UIStyle} or a theme style name starting with `@`   |
-| {@link UIComponent.dimensions dimensions}           | An object with {@link UIStyle.Definition.Dimensions} properties       |
-| {@link UIComponent.position position}               | An object with {@link UIStyle.Definition.Position} properties         |
-| {@link UIControl.textStyle textStyle}               | An object with {@link UIStyle.Definition.TextStyle} properties        |
-| {@link UIControl.decoration decoration}             | An object with {@link UIStyle.Definition.Decoration} properties       |
-| {@link UIComponent.hidden hidden}                   | Boolean, or binding                                                   |
-| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                                                    |
-| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                                                    |
-| {@link UIControl.disabled disabled}                 | Boolean, or binding                                                   |
-| {@link UIControl.shrinkwrap shrinkwrap}             | Boolean, or binding                                                   |
-| {@link UIButton.label label}                        | String, {@link LazyString}, or binding                                |
-| {@link UIButton.icon icon}                          | String, {@link UIIcon}, theme icon name starting with `@`, or binding |
-| {@link UIButton.iconSize iconSize}                  | Number, or binding                                                    |
-| {@link UIButton.iconMargin iconMargin}              | Number, or binding                                                    |
-| {@link UIButton.iconColor iconColor}                | String, {@link UIColor} instance, or binding                          |
-| {@link UIButton.iconAfter iconAfter}                | Boolean, or binding                                                   |
-| {@link UIButton.navigateTo navigateTo}              | String, or binding                                                    |
-| disableKeyboardFocus                                | True if keyboard focus should be disabled                             |
-| requestFocus                                        | True to request focus immediately after first render                  |
+| Property                                            | Type                                                                          |
+| :-------------------------------------------------- | :---------------------------------------------------------------------------- |
+| {@link UIComponent.style style}                     | Instance of {@link UIStyle} or a theme style name starting with `@`           |
+| {@link UIComponent.dimensions dimensions}           | An object with {@link UIStyle.Definition.Dimensions} properties               |
+| {@link UIComponent.position position}               | An object with {@link UIStyle.Definition.Position} properties                 |
+| {@link UIControl.textStyle textStyle}               | An object with {@link UIStyle.Definition.TextStyle} properties                |
+| {@link UIControl.decoration decoration}             | An object with {@link UIStyle.Definition.Decoration} properties               |
+| {@link UIComponent.hidden hidden}                   | Boolean, or binding                                                           |
+| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                                                            |
+| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                                                            |
+| {@link UIControl.disabled disabled}                 | Boolean, or binding                                                           |
+| {@link UIControl.shrinkwrap shrinkwrap}             | Boolean, or binding                                                           |
+| {@link UIButton.label label}                        | String, {@link LazyString}, or binding                                        |
+| {@link UIButton.icon icon}                          | String, {@link UIIconResource}, theme icon name starting with `@`, or binding |
+| {@link UIButton.iconSize iconSize}                  | Number, or binding                                                            |
+| {@link UIButton.iconMargin iconMargin}              | Number, or binding                                                            |
+| {@link UIButton.iconColor iconColor}                | String, {@link UIColor} instance, or binding                                  |
+| {@link UIButton.navigateTo navigateTo}              | String, or binding                                                            |
+| disableKeyboardFocus                                | True if keyboard focus should be disabled                                     |
+| requestFocus                                        | True to request focus immediately after first render                          |
 
 Note that {@link UIButton} also provides the following methods.
 

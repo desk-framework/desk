@@ -308,12 +308,13 @@ export class DialogViewActivity extends ViewActivity {
 	constructor() {
 		super();
 		let shade = app.theme?.modalDialogShadeOpacity;
-		let show = app.theme?.animations?.["show-dialog"];
-		let hide = app.theme?.animations?.["hide-dialog"];
 		this.renderPlacement = {
 			mode: "dialog",
 			shade,
-			transform: { show, hide },
+			transform: {
+				show: "@show-dialog",
+				hide: "@hide-dialog",
+			},
 		};
 	}
 }
