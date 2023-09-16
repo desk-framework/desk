@@ -1,6 +1,6 @@
 import { ManagedChangeEvent, RenderContext, UISpacer } from "desk-frame";
-import { BaseObserver } from "./BaseObserver.js";
 import { applyElementStyle } from "../../style/DOMStyle.js";
+import { BaseObserver } from "./BaseObserver.js";
 
 /** @internal */
 export class UISpacerRenderer extends BaseObserver<UISpacer> {
@@ -35,7 +35,7 @@ export class UISpacerRenderer extends BaseObserver<UISpacer> {
 		return output;
 	}
 
-	updateContent(element: HTMLElement) {}
+	updateContent() {}
 
 	override updateStyle(element: HTMLElement) {
 		let spacer = this.observed;

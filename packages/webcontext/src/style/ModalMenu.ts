@@ -102,6 +102,28 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 		super();
 	}
 
+	async showAsync(place?: Partial<RenderContext.PlacementOptions>) {
+		// render the view, keep a reference in order to remove it later
+		let handler = app.render(this, {
+			mode: "modal",
+			transform: {
+				show: "@show-menu",
+				hide: "@hide-menu",
+			},
+			...place,
+		});
+
+		// return a promise that's resolved when one of the items is selected
+		// or when the menu is dismissed otherwise
+		// (remember resolve function for later)
+		return new Promise<{ key: string } | undefined>((r) => {
+			this._resolve = (key) => {
+				handler.removeAsync();
+				r(key ? { key } : undefined);
+			};
+		});
+	}
+
 	override createView() {
 		// create modal container
 		let container = new UICell();
@@ -114,7 +136,6 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 					maxWidth: "none",
 			  })
 			: ModalMenu.styles.ContainerStyle;
-		this.body = container;
 
 		// reposition the menu after rendering
 		container.listen((e) => {
@@ -135,7 +156,6 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 			itemRow.cellStyle = ModalMenu.styles.ItemStyle;
 			itemRow.allowFocus = true;
 			itemRow.allowKeyboardFocus = true;
-			itemRow.accessibleRole = "listitem";
 			itemRow.layout = { axis: "horizontal", distribution: "start" };
 			container.content.add(itemRow);
 			let itemLabel = new UILabel(item.text);
@@ -174,28 +194,6 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 			new ItemObserver().observe(itemRow);
 		}
 		return container;
-	}
-
-	async showAsync(place?: Partial<RenderContext.PlacementOptions>) {
-		// render the view, keep a reference in order to remove it later
-		let handler = app.render(this, {
-			mode: "modal",
-			transform: {
-				show: "@show-menu",
-				hide: "@hide-menu",
-			},
-			...place,
-		});
-
-		// return a promise that's resolved when one of the items is selected
-		// or when the menu is dismissed otherwise
-		// (remember resolve function for later)
-		return new Promise<{ key: string } | undefined>((r) => {
-			this._resolve = (key) => {
-				handler.removeAsync();
-				r(key ? { key } : undefined);
-			};
-		});
 	}
 
 	onArrowDownKeyPress(e: UIComponentEvent) {

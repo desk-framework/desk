@@ -133,18 +133,20 @@ export class MessageDialog
 {
 	static styles = new MessageDialogStyles();
 
-	constructor(
-		public options: MessageDialogOptions,
-		isConfirm?: boolean,
-	) {
+	constructor(public options: MessageDialogOptions) {
 		super();
-		this.confirmLabel =
-			this.options.confirmLabel ||
-			(isConfirm ? strf("Confirm") : strf("Dismiss"));
-		if (isConfirm) {
-			this.cancelLabel = this.options.cancelLabel || strf("Cancel");
-			this.otherLabel = this.options.otherLabel;
-		}
+	}
+
+	setAlertButton() {
+		this.confirmLabel = this.options.confirmLabel || strf("Dismiss");
+		return this;
+	}
+
+	setConfirmButtons() {
+		this.confirmLabel = this.options.confirmLabel || strf("Confirm");
+		this.cancelLabel = this.options.cancelLabel || strf("Cancel");
+		this.otherLabel = this.options.otherLabel;
+		return this;
 	}
 
 	confirmLabel?: StringConvertible;

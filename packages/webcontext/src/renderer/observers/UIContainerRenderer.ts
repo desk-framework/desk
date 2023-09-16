@@ -12,13 +12,6 @@ import {
 	UIScrollContainer,
 	UITheme,
 } from "desk-frame";
-import { BaseObserver } from "./BaseObserver.js";
-import {
-	applyElementClassName,
-	applyElementStyle,
-	getCSSColor,
-	getCSSLength,
-} from "../../style/DOMStyle.js";
 import {
 	CLASS_CELL,
 	CLASS_COLUMN,
@@ -28,6 +21,13 @@ import {
 	CLASS_SEPARATOR_LINE_VERT,
 	CLASS_SEPARATOR_SPACER,
 } from "../../style/defaults/css.js";
+import {
+	applyElementClassName,
+	applyElementStyle,
+	getCSSColor,
+	getCSSLength,
+} from "../../style/DOMStyle.js";
+import { BaseObserver } from "./BaseObserver.js";
 
 /** Debounce DragContainer actions by keeping track of the last start time */
 let _dragStart = 0;
@@ -583,7 +583,23 @@ export class ContentUpdater {
 		return this._output.get(item);
 	}
 
-	/** Emit ContentRendering event on container, when deleting or replacing an element */
+	/** Returns a promise that's resolved after the current update ends; OR schedules a new update and returns a new promise */
+	async awaitUpdateAsync() {
+		if (this._updateP) return this._updateP;
+		if (this._async) {
+			await new Promise((r) => setTimeout(r, 1));
+		}
+		if (!this._updateP) {
+			this._updateP = new Promise((r) => {
+				this._updateResolve = r;
+			});
+			if (app.renderer) app.renderer.schedule(() => this.update());
+			else this.update();
+		}
+		return this._updateP;
+	}
+
+	/** Emits a ContentRendering event on container, when deleting or replacing an element */
 	private _emitRendering(
 		output?: Array<RenderContext.Output<Node> | undefined>,
 	) {
@@ -607,22 +623,6 @@ export class ContentUpdater {
 			}
 			return sep;
 		}
-	}
-
-	/** Returns a promise that's resolved after the current update ends; OR schedules a new update and returns a new promise */
-	async awaitUpdateAsync() {
-		if (this._updateP) return this._updateP;
-		if (this._async) {
-			await new Promise((r) => setTimeout(r, 1));
-		}
-		if (!this._updateP) {
-			this._updateP = new Promise((r) => {
-				this._updateResolve = r;
-			});
-			if (app.renderer) app.renderer.schedule(() => this.update());
-			else this.update();
-		}
-		return this._updateP;
 	}
 
 	private _stopped?: boolean;

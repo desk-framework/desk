@@ -5,12 +5,12 @@ import {
 	UIToggleLabelStyle,
 	UIToggleStyle,
 } from "desk-frame";
-import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
-import { CLASS_TOGGLE_WRAPPER } from "../../style/defaults/css.js";
 import {
 	applyElementClassName,
 	applyElementStyle,
 } from "../../style/DOMStyle.js";
+import { CLASS_TOGGLE_WRAPPER } from "../../style/defaults/css.js";
+import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
 
 let _nextId = 0;
 
@@ -19,7 +19,13 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 	override observe(observed: UIToggle) {
 		return super
 			.observe(observed)
-			.observePropertyAsync("label", "state", "disabled", "labelStyle");
+			.observePropertyAsync(
+				"label",
+				"state",
+				"disabled",
+				"toggleStyle",
+				"labelStyle",
+			);
 	}
 
 	protected override async handlePropertyChange(
@@ -34,6 +40,7 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 					this.scheduleUpdate(this.element);
 					return;
 				case "disabled":
+				case "toggleStyle":
 				case "labelStyle":
 					this.scheduleUpdate(undefined, this.element);
 					return;

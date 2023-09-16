@@ -5,9 +5,11 @@ const MAX_LOGS = 100;
 const MAX_ARRAYLEN = 15;
 const MAX_PROPS = 15;
 const MAX_STRLEN = 80;
+const MAX_NEST_DETAIL = 2;
 
 /** @internal Helper function to turn value into string for log messages */
-export function val2str(value: any, lowDetail?: boolean): string {
+export function val2str(value: any, nest = 0): string {
+	nest++;
 	if (
 		value == null ||
 		value === true ||
@@ -22,12 +24,14 @@ export function val2str(value: any, lowDetail?: boolean): string {
 	}
 	if (Array.isArray(value)) {
 		// return array representation with max elements
-		if (lowDetail) return value.length ? "[..." + value.length + "]" : "[]";
+		if (nest > MAX_NEST_DETAIL) {
+			return value.length ? "[..." + value.length + "]" : "[]";
+		}
 		return (
 			"[" +
 			value
 				.slice(0, MAX_ARRAYLEN)
-				.map((v) => val2str(v, true))
+				.map((v) => val2str(v, nest))
 				.join(", ") +
 			(value.length > MAX_ARRAYLEN
 				? ", ...(length: " + value.length + ")"
@@ -41,15 +45,16 @@ export function val2str(value: any, lowDetail?: boolean): string {
 		let result = `[[${name}]]`;
 		if (value.isUnlinked()) return result + "<unlinked>";
 		result += "[";
-		if (lowDetail)
+		if (nest > MAX_NEST_DETAIL) {
 			return result + (value.count ? "..." + value.count + "]" : "[]");
+		}
 		let n = 0;
 		for (let elt of value) {
 			if (n >= MAX_ARRAYLEN) {
 				result += ", ...(count: " + value.count + ")";
 				break;
 			}
-			result += (n++ ? ", " : "") + val2str(elt, true);
+			result += (n++ ? ", " : "") + val2str(elt, nest);
 		}
 		return result + "]";
 	}
@@ -76,19 +81,22 @@ export function val2str(value: any, lowDetail?: boolean): string {
 		let proto = Object.getPrototypeOf(value);
 		let name = proto?.constructor?.name;
 		let result =
-			lowDetail || (name && name !== "Object") ? "[[" + name + "]]" : "";
+			nest > MAX_NEST_DETAIL || (name && name !== "Object")
+				? "[[" + name + "]]"
+				: "";
 		if (value instanceof ManagedObject && value.isUnlinked())
 			result += "<unlinked>";
-		if (!lowDetail) {
+		if (nest <= MAX_NEST_DETAIL) {
 			let keys = Object.keys(value);
 			result +=
-				"{ " +
+				"{" +
 				keys
 					.slice(0, MAX_PROPS)
-					.map((k) => JSON.stringify(k) + ": " + val2str(value[k], true))
+					.map((k) => " " + JSON.stringify(k) + ": " + val2str(value[k], nest))
 					.join(", ") +
 				(keys.length > MAX_PROPS ? ", ...+" + (keys.length - MAX_PROPS) : "") +
-				" }";
+				(keys.length > 0 ? " " : "") +
+				"}";
 		}
 		return result;
 	}

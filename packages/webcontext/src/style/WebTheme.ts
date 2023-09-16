@@ -19,10 +19,10 @@ import { defaultControlTextStyle, styles } from "./defaults/styles.js";
 /** @internal Modal view implementation for the web context */
 export class ModalFactory implements UITheme.ModalControllerFactory {
 	buildAlertDialog(options: MessageDialogOptions) {
-		return new MessageDialog(options);
+		return new MessageDialog(options).setAlertButton();
 	}
 	buildConfirmDialog(options: MessageDialogOptions) {
-		return new MessageDialog(options, true);
+		return new MessageDialog(options).setConfirmButtons();
 	}
 	buildMenu(options: UITheme.MenuOptions) {
 		return new ModalMenu(options);

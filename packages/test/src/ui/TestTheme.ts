@@ -1,5 +1,6 @@
 import {
 	app,
+	MessageDialogOptions,
 	RenderContext,
 	strf,
 	StringConvertible,
@@ -7,152 +8,170 @@ import {
 	UICell,
 	UILabel,
 	UISeparator,
-	UIStyle,
 	UITheme,
 	ViewComposite,
 } from "desk-frame";
 
-/** Limited implementation of a confirmation dialog builder, can be used to test confirm/cancel actions using button presses */
-class TestDialogController implements UITheme.ConfirmationDialogController {
-	constructor(
-		confirmLabel: StringConvertible = strf("Dismiss"),
-		cancelLabel?: StringConvertible,
-	) {
-		this._confirmLabel = confirmLabel;
-		this._cancelLabel = cancelLabel;
+/** @internal Limited implementation of a message dialog controller, that can be used to test for message display and button presses */
+class TestMessageDialog
+	extends ViewComposite
+	implements UITheme.AlertDialogController, UITheme.ConfirmDialogController
+{
+	constructor(public options: MessageDialogOptions) {
+		super();
 	}
 
-	setTitle(title: StringConvertible) {
-		this._title = title;
+	setAlertButton() {
+		this.confirmLabel = this.options.confirmLabel || strf("Dismiss");
 		return this;
 	}
-	addMessage(message: StringConvertible) {
-		this._messages.push(message);
+
+	setConfirmButtons() {
+		this.confirmLabel = this.options.confirmLabel || strf("Confirm");
+		this.cancelLabel = this.options.cancelLabel || strf("Cancel");
+		this.otherLabel = this.options.otherLabel;
 		return this;
 	}
-	setButtonLabel(label: StringConvertible) {
-		this._confirmLabel = label;
-		return this;
-	}
-	setConfirmButtonLabel(label: StringConvertible) {
-		this._confirmLabel = label;
-		return this;
-	}
-	setCancelButtonLabel(label: StringConvertible) {
-		this._cancelLabel = label;
-		return this;
-	}
+
+	confirmLabel?: StringConvertible;
+	cancelLabel?: StringConvertible;
+	otherLabel?: StringConvertible;
+
 	showAsync(place?: Partial<RenderContext.PlacementOptions>) {
-		// create the simplest UI that contains all elements
-		let controller = this;
-		const Preset = UICell.with(
-			controller._title ? UILabel.withText(controller._title) : undefined,
-			...controller._messages.map((m) => UILabel.withText(m)),
-			UIButton.withLabel(
-				controller._confirmLabel || strf("Dismiss"),
-				"Confirm",
-			),
-			controller._cancelLabel
-				? UIButton.withLabel(controller._cancelLabel, "Cancel")
-				: undefined,
-		);
-		class DialogView extends ViewComposite {
-			protected override createView() {
-				return new Preset();
-			}
-			onConfirm() {
-				controller._resolve?.(true);
-			}
-			onCancel() {
-				controller._resolve?.(false);
-			}
-		}
-		let rendered = app.render(new DialogView(), { mode: "dialog", ...place });
+		let rendered = app.render(this, {
+			mode: "dialog",
+			...place,
+		});
 
 		// return a promise that's resolved when one of the buttons is pressed
-		return new Promise<{ confirmed: boolean }>((r) => {
-			this._resolve = (confirmed) => {
+		return new Promise<{ confirmed: boolean; other?: boolean }>((r) => {
+			this._resolve = (result) => {
 				rendered.removeAsync();
-				r({ confirmed });
+				r(result);
 			};
 		});
 	}
-	private _resolve?: (confirmed: boolean) => void;
-	private _messages: StringConvertible[] = [];
-	private _title?: StringConvertible;
-	private _confirmLabel?: StringConvertible;
-	private _cancelLabel?: StringConvertible;
+
+	protected override createView() {
+		return new (UICell.with(
+			{ accessibleRole: "alertdialog" },
+			...this.options.messages.map((text) => UILabel.withText(text)),
+			UIButton.with({
+				label: this.confirmLabel,
+				onClick: "+Confirm",
+				requestFocus: true,
+			}),
+			UIButton.with({
+				hidden: !this.otherLabel,
+				label: this.otherLabel,
+				onClick: "+Other",
+			}),
+			UIButton.with({
+				hidden: !this.cancelLabel,
+				label: this.cancelLabel,
+				onClick: "+Cancel",
+			}),
+		))();
+	}
+
+	onConfirm() {
+		this._resolve?.({ confirmed: true });
+	}
+	onOther() {
+		this._resolve?.({ confirmed: false, other: true });
+	}
+	onCancel() {
+		this._resolve?.({ confirmed: false });
+	}
+	onEscapeKeyPress() {
+		this._resolve?.({ confirmed: false });
+	}
+
+	private _resolve?: (result: { confirmed: boolean; other?: boolean }) => void;
 }
 
-/** Limited implementation of menu controller, can be used to test menu selection using label clicks */
-class TestMenuController implements UITheme.MenuController {
-	setWidth() {
-		// do nothing here
-		return this;
+/** @internal Limited implementation of a menu controller, that can be used to test menu selection using label clicks */
+class TestModalMenu extends ViewComposite implements UITheme.MenuController {
+	constructor(public options: UITheme.MenuOptions) {
+		super();
 	}
-	addItem(item: UITheme.MenuItem) {
-		// create the simplest UI that contains all elements
-		let controller = this;
-		if (item.separate) this._items.push(UISeparator);
-		const Preset = UICell.with(
-			UILabel.with({
-				text: item.text,
-				icon: item.icon,
-				textStyle: item.textStyle,
-			}),
-		);
-		this._items.push(
-			class extends ViewComposite {
-				protected override createView() {
-					return new Preset();
-				}
-				onClick() {
-					controller._resolve?.(item.key);
-				}
-			},
-		);
-		return this;
-	}
-	addItemGroup(
-		items: UITheme.MenuItem[],
-		selectedKey?: string | undefined,
-		textStyle?: UIStyle.Definition.TextStyle,
-	) {
-		for (let item of items) {
-			this.addItem({
-				...item,
-				textStyle,
-				icon: item.key === selectedKey ? "@Check" : "@Blank",
-			});
-		}
-		return this;
-	}
-	showAsync(place?: Partial<RenderContext.PlacementOptions>) {
-		let MenuCell = UICell.with(...(this._items as any));
-		let rendered = app.render(new MenuCell(), { mode: "modal", ...place });
+
+	async showAsync(place?: Partial<RenderContext.PlacementOptions>) {
+		// render the view, keep a reference in order to remove it later
+		let handler = app.render(this, {
+			mode: "modal",
+			...place,
+		});
 
 		// return a promise that's resolved when one of the items is selected
-		return new Promise<{ key: string }>((r) => {
+		// or when the menu is dismissed otherwise
+		// (remember resolve function for later)
+		return new Promise<{ key: string } | undefined>((r) => {
 			this._resolve = (key) => {
-				rendered.removeAsync();
-				r({ key });
+				handler.removeAsync();
+				r(key ? { key } : undefined);
 			};
 		});
 	}
-	private _resolve?: (key: string) => void;
-	private _items: RenderContext.RenderableClass[] = [];
+
+	override createView() {
+		// create modal container
+		let container = new UICell();
+		container.accessibleRole = "menu";
+
+		// add menu items with label and/or hint
+		for (let item of this.options.items) {
+			if (item.separate) {
+				// add a separator
+				container.content.add(new UISeparator());
+				continue;
+			}
+
+			// add a menu item
+			let itemRow = new UICell();
+			itemRow.accessibleRole = "menuitem";
+			itemRow.allowFocus = true;
+			itemRow.allowKeyboardFocus = true;
+			container.content.add(itemRow);
+			let itemLabel = new UILabel(item.text);
+			itemRow.content.add(itemLabel);
+			if (item.icon) itemLabel.icon = item.icon;
+			if (item.hint || item.hintIcon) {
+				let hintLabel = new UILabel(item.hint);
+				if (item.hintIcon) hintLabel.icon = item.hintIcon;
+				itemRow.content.add(hintLabel);
+			}
+
+			// add an observer to register clicks and keyboard input
+			itemRow.listen((e) => {
+				if (e.name === "Click") {
+					this._resolve?.(item.key);
+				}
+			});
+		}
+		return container;
+	}
+
+	onEscapeKeyPress() {
+		this._resolve?.();
+	}
+
+	onCloseModal() {
+		this._resolve?.();
+	}
+	private _resolve?: (key?: string) => void;
 }
 
-/** @internal */
+/** @internal Modal view implementation for the test context */
 export class TestModalFactory implements UITheme.ModalControllerFactory {
-	createAlertDialog() {
-		return new TestDialogController();
+	buildAlertDialog(options: MessageDialogOptions) {
+		return new TestMessageDialog(options).setAlertButton();
 	}
-	createConfirmationDialog() {
-		return new TestDialogController(strf("Confirm"), strf("Cancel"));
+	buildConfirmDialog(options: MessageDialogOptions) {
+		return new TestMessageDialog(options).setConfirmButtons();
 	}
-	createMenu() {
-		return new TestMenuController();
+	buildMenu(options: UITheme.MenuOptions) {
+		return new TestModalMenu(options);
 	}
 }
 

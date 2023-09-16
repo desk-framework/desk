@@ -201,6 +201,7 @@ export function defineStyleClass(
 	return instance;
 }
 
+/** @internal Helper function to apply style classes to an element using CSS class names */
 export function applyElementClassName(
 	element: HTMLElement,
 	BaseStyle?: new () => UITheme.BaseStyle<string, any>,
@@ -224,6 +225,7 @@ export function applyElementClassName(
 	element.className = className;
 }
 
+/** @internal Helper function to apply styles to an element using inline CSS properties */
 export function applyElementStyle(
 	element: HTMLElement,
 	styleOverrides?: any[],

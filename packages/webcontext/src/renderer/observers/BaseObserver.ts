@@ -57,10 +57,10 @@ export abstract class BaseObserver<
 	/** Rendered element, if any; set by `onRender` handler based on return value of `getOutput()` method */
 	element?: HTMLElement;
 
-	/** Create output (with element to render) for the observed UI component; called before rendering, must be overridden to create instances of `RenderContext.Output` */
+	/** Creates output (with element to render) for the observed UI component; called before rendering, must be overridden to create instances of `RenderContext.Output` */
 	abstract getOutput(): RenderContext.Output & { element: HTMLElement };
 
-	/** Updates the provided output element with all properties of the UI component; called automatically before rendering (after `getOutputElement`), but can also be called when state properties change */
+	/** Updates the specified output element with all properties of the UI component; called automatically before rendering (after `getOutput`), but can also be called when state properties change */
 	update(element: HTMLElement) {
 		if (!this.observed) return;
 		this._hidden = this.observed.hidden;
@@ -97,10 +97,10 @@ export abstract class BaseObserver<
 	private _asyncContentUp?: HTMLElement;
 	private _asyncStyleUp?: HTMLElement;
 
-	/** Updates the provided output element with content: either from properties (e.g. text content) or from other UI components; called automatically by `update()`, but can also be called when state properties change; must be overridden */
+	/** Updates the specified output element with content: either from properties (e.g. text content) or from other UI components; called automatically by `update()`, but can also be called when state properties change; must be overridden */
 	abstract updateContent(element: HTMLElement): void;
 
-	/** Updates the provided output element with all style properties; called automatically by `update()`, but can also be called when state properties change; must be overridden to update other style properties */
+	/** Updates the specified output element with all style properties; called automatically by `update()`, but can also be called when state properties change; must be overridden to update output styles */
 	abstract updateStyle(element: HTMLElement): void;
 
 	private _hidden?: boolean;
