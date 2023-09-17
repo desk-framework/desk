@@ -25,7 +25,7 @@ const _nextTick = Promise.resolve();
  * The base class for an observer that watches a particular {@link ManagedObject}
  *
  * @description
- * Observers can be used to watch particular objects (instances of {@link ManagedObject} or any subclass, including {@link ManagedList}, {@link ManagedMap}, {@link ManagedRecord}, etc.), specifically to:
+ * Observers can be used to watch particular objects (instances of {@link ManagedObject} or any subclass, including {@link ManagedList}, {@link ManagedRecord}, etc.), specifically to:
  *
  * - Listen for events (see {@link Observer.handleEvent handleEvent()}, which can be overridden or used to dispatch events to specific Observer methods).
  * - Check when the object is attached (see {@link Observer.handleAttachedChange handleAttachedChange()}, which can be overridden).
