@@ -20,9 +20,10 @@ describe("UITextField", (scope) => {
 	});
 
 	test("Preset using withField and form context", () => {
-		let MyTF = UITextField.withField("foo");
+		let MyTF = UITextField.withField("foo", "Placeholder");
 		let tf = new MyTF();
 		expect(tf).toHaveProperty("formField").toBe("foo");
+		expect(tf).toHaveProperty("placeholder").asString().toBe("Placeholder");
 		let formCtx = new UIFormContext({ foo: "" });
 		tf.formContext = formCtx;
 		formCtx.set("foo", "bar");

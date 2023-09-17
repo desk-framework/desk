@@ -37,6 +37,7 @@ describe("UIViewRenderer", (scope) => {
 		viewRenderer.view = new MyCell();
 		app.render(viewRenderer);
 		await t.expectOutputAsync(50, { text: "foo" });
+		expect(viewRenderer.findViewContent(UILabel)).toBeArray(1);
 	});
 
 	test("Change view after rendering", async (t) => {

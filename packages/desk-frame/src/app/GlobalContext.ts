@@ -339,13 +339,15 @@ export class GlobalContext extends ManagedObject {
 	 */
 	async showModalMenuAsync(
 		config: ConfigOptions.Arg<UITheme.MenuOptions>,
-		ref: { lastRenderOutput?: RenderContext.Output },
+		ref?: { lastRenderOutput?: RenderContext.Output },
 	) {
 		let controller = this.theme?.modalFactory?.buildMenu?.(
 			UITheme.MenuOptions.init(config),
 		);
 		if (!controller) throw err(ERROR.GlobalContext_NoModal);
-		let result = await controller.showAsync({ ref: ref.lastRenderOutput });
+		let result = await controller.showAsync({
+			ref: ref && ref.lastRenderOutput,
+		});
 		return result && result.key;
 	}
 

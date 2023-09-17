@@ -28,12 +28,33 @@ const _eventNames: { [p in TestOutputElement.PlatformEvent]?: string } = {
 	submit: "Submit",
 };
 
+/** A cache of constructed style classes, indexed by class reference */
+let _baseStyles = new Map<any, Readonly<any[]>>();
+
 /** @internal Helper function to find the base style (class) from a style/overrides object (e.g. `UILabel.labelStyle`), if any */
 export function getBaseStyleClass(
 	object: UITheme.StyleConfiguration<any>,
 ): undefined | (new () => UITheme.BaseStyle<string, any>) {
 	let base = (object as any)?.[UITheme.BaseStyle.OVERRIDES_BASE] || object;
 	if (typeof base === "function") return base;
+}
+
+/** @internal Helper function to clear the cache of constructed style classes */
+export function clearStyles() {
+	_baseStyles = new Map();
+}
+
+/** @internal Helper function to get styles from a (base) style class */
+export function getClassStyles(
+	styleClass: new () => UITheme.BaseStyle<string, any>,
+) {
+	if (!_baseStyles.has(styleClass)) {
+		_baseStyles.set(
+			styleClass,
+			(new styleClass() as UITheme.BaseStyle<string, any>).getStyles(),
+		);
+	}
+	return _baseStyles.get(styleClass)!;
 }
 
 /** @internal Helper function to merge all style overrides on a single test output element */
@@ -44,6 +65,7 @@ export function applyElementStyle(
 	layout?: UIContainer.Layout,
 ) {
 	let styles: any = (element.styles = {
+		...(element.styleClass ? getClassStyles(element.styleClass) : undefined),
 		...position,
 		...layout,
 	});

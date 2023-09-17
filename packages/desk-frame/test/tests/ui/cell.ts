@@ -16,6 +16,7 @@ describe("UICell", (scope) => {
 			.toHaveProperty("content")
 			.asArray()
 			.toBeArray([label1, label2]);
+		expect(cell.findViewContent(UILabel)).toBeArray(2);
 	});
 
 	test("Preset with properties", () => {

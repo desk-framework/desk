@@ -23,6 +23,14 @@ describe("UILabel", (scope) => {
 	test("Constructor with text", () => {
 		let label = new UILabel("foo");
 		expect(label).toHaveProperty("text").asString().toBe("foo");
+
+		// check that findViewContent on controls
+		// returns a frozen empty array
+		let content = label.findViewContent(UILabel);
+		expect(content).toBeArray(0);
+		expect(() => {
+			content.push(new UILabel("bar"));
+		}).toThrowError();
 	});
 
 	test("Sub type constructors", () => {

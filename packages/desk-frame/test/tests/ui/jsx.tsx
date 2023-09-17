@@ -1,13 +1,16 @@
 import { describe, expect, test, useTestContext } from "@desk-framework/test";
 import {
 	JSX,
+	LazyString,
 	ManagedObject,
 	UICell,
 	UIColor,
 	UIColumn,
+	UILabel,
 	ViewComposite,
 	app,
 	bound,
+	strf,
 } from "../../../dist/index.js";
 
 describe("JSX", () => {
@@ -23,6 +26,22 @@ describe("JSX", () => {
 		expect(cell).toBeInstanceOf(UICell);
 		expect(cell).toHaveProperty("padding").toBe(8);
 		expect(cell).toHaveProperty("textColor").toBe(UIColor["@red"]);
+	});
+
+	test("Single component with text", () => {
+		let MyLabel = <label>Foo</label>;
+		let label = new MyLabel();
+		expect(label).toBeInstanceOf(UILabel);
+		expect(label).toHaveProperty("text").toBeInstanceOf(LazyString);
+		expect(label).toHaveProperty("text").asString().toBe("Foo");
+	});
+
+	test("Single component with lazy string", () => {
+		let MyLabel = <label>{strf("Foo")}</label>;
+		let label = new MyLabel();
+		expect(label).toBeInstanceOf(UILabel);
+		expect(label).toHaveProperty("text").toBeInstanceOf(LazyString);
+		expect(label).toHaveProperty("text").asString().toBe("Foo");
 	});
 
 	test("Component with content", () => {
@@ -106,6 +125,18 @@ describe("JSX", () => {
 		});
 		app.render(new (MyView.with({ foo: 123 }))());
 		await t.expectOutputAsync(50, { text: "123" });
+	});
+
+	test("Component with bound content using lazy string", async (t) => {
+		const MyView = ViewComposite.define<{
+			/** A single property, bound in view */
+			foo?: number;
+		}>(<label>{strf("Foo is %[foo]")}</label>);
+		useTestContext((options) => {
+			options.renderFrequency = 5;
+		});
+		app.render(new (MyView.with({ foo: 123 }))());
+		await t.expectOutputAsync(50, { text: "Foo is 123" });
 	});
 
 	test("Component with bound content and text", async (t) => {

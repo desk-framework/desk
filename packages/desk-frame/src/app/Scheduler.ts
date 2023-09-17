@@ -108,6 +108,7 @@ export class AsyncTaskQueue {
 
 		// schedule next run if needed
 		this._schedule();
+		return this;
 	}
 
 	/**
@@ -131,6 +132,7 @@ export class AsyncTaskQueue {
 			for (let i = q.length - 1; i >= 0; i--) {
 				if (q[i]!.handle === handle) {
 					q.splice(i, 1);
+					this._n--;
 					break;
 				}
 			}
@@ -145,6 +147,7 @@ export class AsyncTaskQueue {
 
 		// schedule next run if needed
 		this._schedule();
+		return this;
 	}
 
 	/**
@@ -163,6 +166,7 @@ export class AsyncTaskQueue {
 	pause() {
 		// just set paused flag, will be checked by run()
 		this._paused = true;
+		return this;
 	}
 
 	/** Resumes execution of (pending) tasks in this queue */
@@ -170,6 +174,7 @@ export class AsyncTaskQueue {
 		// clear paused flag and schedule right away
 		this._paused = false;
 		this._schedule();
+		return this;
 	}
 
 	/**
@@ -189,6 +194,7 @@ export class AsyncTaskQueue {
 
 		// call all afterEach callbacks (from waitAsync)
 		for (let f of this._afterEach) f && f(true);
+		return this;
 	}
 
 	/**
@@ -229,7 +235,7 @@ export class AsyncTaskQueue {
 			clearTimeout(this._timer);
 			this._timer = undefined;
 		}
-		if (this._paused) return;
+		if (this._paused) return this;
 
 		// run a batch of tasks now, if possible
 		let parallel = this.options.parallel;
@@ -266,6 +272,7 @@ export class AsyncTaskQueue {
 
 		// schedule again if needed
 		this._schedule();
+		return this;
 	}
 
 	/** Helper function to handle async task, taking up one parallel slot */

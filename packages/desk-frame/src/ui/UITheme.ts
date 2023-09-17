@@ -200,6 +200,8 @@ export class UITheme {
 		result.modalDialogShadeOpacity = this.modalDialogShadeOpacity;
 		result.rowSpacing = this.rowSpacing;
 		result.modalFactory = this.modalFactory;
+		result.darkTextColor = this.darkTextColor;
+		result.lightTextColor = this.lightTextColor;
 		result.icons = new Map(this.icons);
 		result.colors = new Map(this.colors);
 		result.styles = new Map(this.styles) as any;

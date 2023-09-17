@@ -21,9 +21,10 @@ describe("UIToggle", (scope) => {
 	});
 
 	test("Preset using withField and form context", () => {
-		let MyToggle = UIToggle.withField("foo");
+		let MyToggle = UIToggle.withField("foo", "Foo");
 		let toggle = new MyToggle();
 		expect(toggle).toHaveProperty("formField").toBe("foo");
+		expect(toggle).toHaveProperty("label").asString().toBe("Foo");
 		let formCtx = new UIFormContext({ foo: false });
 		toggle.formContext = formCtx;
 		formCtx.set("foo", true);
