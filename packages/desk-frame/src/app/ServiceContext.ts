@@ -1,6 +1,7 @@
 import { ManagedMap } from "../core/ManagedMap.js";
 import { ManagedObject } from "../core/ManagedObject.js";
 import { Observer } from "../core/Observer.js";
+import { Service } from "./Service.js";
 
 /**
  * A key-value map of named services, part of the global application context
@@ -8,13 +9,23 @@ import { Observer } from "../core/Observer.js";
  * @description
  * This class is a container for named services, which should be accessible by the rest of the application. Services can be set, unset, and replaced using the service context, and a {@link ServiceObserver} can be used to access the currently registered service with a particular name.
  *
- * - Use the {@link ManagedMap.set set()} method to add or update a service by name. The service must be a managed object, which is automatically attached to the ServiceContext instance.
+ * - Use the {@link ManagedMap.set set()} method to add or update a service by name. The service must be an instance of {@link Service}, which is automatically attached to the ServiceContext instance.
  * - Unlink a service, or use the {@link ManagedMap.unset unset()} method to remove a service.
  * - Use the {@link ServiceContext.observeService observeService()} method to attach or create a {@link ServiceObserver} object.
  *
  * @hideconstructor
  */
-export class ServiceContext extends ManagedMap<string, ManagedObject> {
+export class ServiceContext extends ManagedMap<string, Service> {
+	constructor() {
+		super();
+		this.restrict(Service as any);
+	}
+
+	/** @internal Used for duck typing by Service */
+	isServiceContext() {
+		return true;
+	}
+
 	/**
 	 * Attaches an observer to a particular named service
 	 * @param name The name of the service to be observed
@@ -29,7 +40,7 @@ export class ServiceContext extends ManagedMap<string, ManagedObject> {
 	 *   cart.service.add(product);
 	 * }
 	 */
-	observeService<TService extends ManagedObject>(
+	observeService<TService extends Service>(
 		name: string,
 		observer:
 			| ServiceObserver<TService>
@@ -39,7 +50,7 @@ export class ServiceContext extends ManagedMap<string, ManagedObject> {
 			observer = ServiceObserver.fromChangeHandler<
 				ServiceObserver<TService>,
 				TService
-			>(observer);
+			>(observer, ServiceObserver);
 		}
 		return observer.observeService(this, name);
 	}
@@ -51,7 +62,7 @@ export class ServiceContext extends ManagedMap<string, ManagedObject> {
  * - Creating multiple observers for the same service may cause a memory leak. If you're creating new observers as part of your application (e.g. in a data model) be sure to use the {@link Observer.stop stop()} method when the observer is no longer needed.
  */
 export class ServiceObserver<
-	TService extends ManagedObject,
+	TService extends Service,
 > extends Observer<TService> {
 	/** The current service, updated automatically when services are added, updated, or removed */
 	get service() {
@@ -88,7 +99,7 @@ export class ServiceObserver<
 
 /** @internal Context observer used by a ServiceObserver */
 class ServiceContextObserver<
-	TService extends ManagedObject,
+	TService extends Service,
 > extends Observer<ServiceContext> {
 	constructor(
 		public name: string,
