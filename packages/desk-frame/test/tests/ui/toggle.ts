@@ -31,14 +31,10 @@ describe("UIToggle", (scope) => {
 	});
 
 	test("Rendered with label", async (t) => {
-		let MyToggle = UIToggle.with({
-			label: "foo",
-			accessibleLabel: "My toggle",
-		});
-		app.render(new MyToggle());
+		app.render(new UIToggle("foo", true));
 		await t.expectOutputAsync(100, {
 			text: "foo",
-			accessibleLabel: "My toggle",
+			checked: true,
 		});
 	});
 

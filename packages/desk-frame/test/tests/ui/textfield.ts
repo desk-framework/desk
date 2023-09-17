@@ -1,9 +1,4 @@
-import {
-	UITextField,
-	UIFormContext,
-	app,
-	UIBorderlessTextField,
-} from "../../../dist/index.js";
+import { UITextField, UIFormContext, app } from "../../../dist/index.js";
 import { describe, expect, test, useTestContext } from "@desk-framework/test";
 
 describe("UITextField", (scope) => {
@@ -16,11 +11,6 @@ describe("UITextField", (scope) => {
 	test("Constructor", () => {
 		let tf = new UITextField();
 		expect(tf).toHaveProperty("type").toBe("text");
-	});
-
-	test("Borderless type constructor", () => {
-		let tf = new UIBorderlessTextField();
-		expect(tf.style.name).toMatchRegExp(/Borderless/);
 	});
 
 	test("Preset with properties", () => {
@@ -42,14 +32,10 @@ describe("UITextField", (scope) => {
 	});
 
 	test("Rendered with placeholder", async (t) => {
-		let MyTF = UITextField.with({
-			placeholder: "foo",
-			accessibleLabel: "My text field",
-		});
-		app.render(new MyTF());
+		app.render(new UITextField("foo", "bar"));
 		await t.expectOutputAsync(100, {
 			text: "foo",
-			accessibleLabel: "My text field",
+			value: "bar",
 		});
 	});
 

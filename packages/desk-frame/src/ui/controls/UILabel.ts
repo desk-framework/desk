@@ -165,8 +165,8 @@ export class UILabelStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<h1>`
  */
 export class UIHeading1Label extends UILabel {
-	constructor() {
-		super();
+	constructor(text?: StringConvertible) {
+		super(text);
 		this.headingLevel = 1;
 		this.labelStyle = UIHeading1LabelStyle;
 	}
@@ -196,8 +196,8 @@ export class UIHeading1LabelStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<h2>`
  */
 export class UIHeading2Label extends UILabel {
-	constructor() {
-		super();
+	constructor(text?: StringConvertible) {
+		super(text);
 		this.headingLevel = 2;
 		this.labelStyle = UIHeading1LabelStyle;
 	}
@@ -227,8 +227,8 @@ export class UIHeading2LabelStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<h3>`
  */
 export class UIHeading3Label extends UILabel {
-	constructor() {
-		super();
+	constructor(text?: StringConvertible) {
+		super(text);
 		this.headingLevel = 3;
 		this.labelStyle = UIHeading1LabelStyle;
 	}
@@ -258,8 +258,8 @@ export class UIHeading3LabelStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<p>`
  */
 export class UIParagraphLabel extends UILabel {
-	constructor() {
-		super();
+	constructor(text?: StringConvertible) {
+		super(text);
 		this.labelStyle = UIParagraphLabelStyle;
 	}
 }
@@ -288,8 +288,8 @@ export class UIParagraphLabelStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<closelabel>`
  */
 export class UICloseLabel extends UILabel {
-	constructor() {
-		super();
+	constructor(text?: StringConvertible) {
+		super(text);
 		this.labelStyle = UICloseLabelStyle;
 	}
 }

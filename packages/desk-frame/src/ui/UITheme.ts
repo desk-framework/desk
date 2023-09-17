@@ -23,10 +23,10 @@ const BASE_SEPARATOR_MARGIN = 8;
 const BASE_MODAL_OPACITY = 0.3;
 
 /** Default dark text color */
-const BASE_DARK_TEXT_COLOR = "#000";
+const BASE_DARK_TEXT_COLOR = "#000000";
 
 /** Default light text color */
-const BASE_LIGHT_TEXT_COLOR = "#fff";
+const BASE_LIGHT_TEXT_COLOR = "#ffffff";
 
 /** Next 'random' ID assigned if style definition doesn't specify one */
 let _nextStyleId = 0x1234;
@@ -66,10 +66,10 @@ export class UITheme {
 	/** Default margin around separator components, defaults to 8 */
 	separatorMargin: string | number = BASE_SEPARATOR_MARGIN;
 
-	/** Default dark text color, defaults to black */
+	/** Default dark text color, defaults to `#000000` */
 	darkTextColor: string = BASE_DARK_TEXT_COLOR;
 
-	/** Default light text color, defaults to white */
+	/** Default light text color, defaults to `#ffffff` */
 	lightTextColor: string = BASE_LIGHT_TEXT_COLOR;
 
 	/** An object that contains functions that are used for creating various modal views */
@@ -470,8 +470,19 @@ export namespace UITheme {
 	 * @see {@link UITheme.MenuController}
 	 */
 	export class MenuOptions extends ConfigOptions {
+		/**
+		 * Creates a new object with the specified options
+		 * @param items List of items to be included in the menu
+		 * @param width Target width of the menu, in pixels or CSS length with unit (optional)
+		 */
+		constructor(items: MenuItem[] = [], width?: string | number) {
+			super();
+			this.items = items;
+			this.width = width;
+		}
+
 		/** List of items to be included in the menu */
-		items: MenuItem[] = [];
+		items: MenuItem[];
 
 		/** Target width of the menu, in pixels or CSS length with unit */
 		width?: string | number;

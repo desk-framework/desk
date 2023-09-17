@@ -8,7 +8,7 @@ import {
 	app,
 } from "desk-frame";
 import { TestOutputElement } from "../app/TestOutputElement.js";
-import type { TestRenderer } from "../app/TestRenderer.js";
+import type { TestRenderer } from "./TestRenderer.js";
 
 /** UI component event names that are used for basic platform events */
 const _eventNames: { [p in TestOutputElement.PlatformEvent]?: string } = {

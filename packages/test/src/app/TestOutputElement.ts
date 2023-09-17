@@ -89,10 +89,12 @@ export class TestOutputElement {
 	 * Simulates a user click or tap event
 	 * - This method sends `mousedown`, `mouseup`, and `click` events immediately after each other.
 	 * - This method also takes care of switching `toggle` checked states, and sets focus on a (parent) focusable element.
-	 * - Nothing happens if the element is hidden or currently not part of rendered output (see {@link isOutput()}).
+	 * - An error is thrown if the element is hidden or currently not part of rendered output (see {@link isOutput()}).
 	 */
 	click() {
-		if (!this.isOutput()) return this;
+		if (!this.isOutput()) {
+			throw Error("Clicked element is not rendered");
+		}
 
 		this.sendPlatformEvent("mousedown");
 		if (this.type === "toggle" && !this.disabled) {

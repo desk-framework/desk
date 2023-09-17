@@ -286,7 +286,7 @@ export abstract class ViewComposite extends View {
 			// return true or promise result, otherwise false below
 			if (result === true) return true;
 			if (result && result.then && result.catch) {
-				return (result as Promise<void>).catch(errorHandler);
+				return (result as Promise<unknown>).catch(errorHandler);
 			}
 		}
 		return false;

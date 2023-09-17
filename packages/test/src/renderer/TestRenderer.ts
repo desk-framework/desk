@@ -1,9 +1,9 @@
 import { AsyncTaskQueue, Observer, RenderContext, app } from "desk-frame";
 import { val2str } from "../log.js";
-import { makeObserver } from "../ui/observers.js";
-import { OutputAssertion, OutputSelectFilter } from "./OutputAssertion.js";
-import type { TestContextOptions } from "./TestContext.js";
-import { TestOutputElement } from "./TestOutputElement.js";
+import { makeObserver } from "./observers.js";
+import { OutputAssertion, OutputSelectFilter } from "../app/OutputAssertion.js";
+import type { TestContextOptions } from "../app/TestContext.js";
+import { TestOutputElement } from "../app/TestOutputElement.js";
 
 /** Max run time for scheduled render functions */
 const MAX_SCHED_RUNTIME = 30;

@@ -2,7 +2,7 @@ import { app } from "desk-frame";
 import { Assertion } from "./Assertion.js";
 import { TestScope } from "./TestScope.js";
 import { OutputAssertion, OutputSelectFilter } from "./app/OutputAssertion.js";
-import { TestRenderer } from "./app/TestRenderer.js";
+import { TestRenderer } from "./renderer/TestRenderer.js";
 import { val2str } from "./log.js";
 
 const DEFAULT_TIMEOUT = 10000;

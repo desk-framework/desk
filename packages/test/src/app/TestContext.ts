@@ -5,9 +5,9 @@ import {
 	app,
 } from "desk-frame";
 import { TestScope } from "../TestScope.js";
-import { TestTheme } from "../ui/TestTheme.js";
+import { TestTheme } from "../style/TestTheme.js";
 import { TestActivationPath } from "./TestActivationPath.js";
-import { TestRenderer } from "./TestRenderer.js";
+import { TestRenderer } from "../renderer/TestRenderer.js";
 import { TestViewportContext } from "./TestViewportContext.js";
 
 /** Type definition for the global {@link app} context with test-specific render and activation contexts, set by the {@link useTestContext} function */

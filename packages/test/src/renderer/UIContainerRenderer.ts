@@ -209,10 +209,13 @@ export class ContentUpdater {
 			// set output to undefined first, to avoid rendering again
 			this._output.set(item, undefined);
 			let isSync = true;
-			let lastOutput: RenderContext.Output | undefined;
+			let lastOutput: RenderContext.Output<TestOutputElement> | undefined;
 
 			// define rendering callback
-			const callback: RenderContext.RenderCallback = (output, afterRender) => {
+			const callback: RenderContext.RenderCallback<TestOutputElement> = (
+				output,
+				afterRender,
+			) => {
 				const scheduleAfter =
 					afterRender &&
 					(() => {
@@ -230,7 +233,7 @@ export class ContentUpdater {
 				}
 
 				// set output for later reference, return if still synchronous
-				this._output.set(item, output as any);
+				this._output.set(item, output);
 				if (isSync) {
 					lastOutput = output;
 					scheduleAfter && scheduleAfter();
@@ -262,8 +265,9 @@ export class ContentUpdater {
 						let i;
 						for (i = content.length - 1; i >= 0; i--) {
 							if (content[i] === lastElt) {
-								content[i] = output.element as any;
+								content[i] = output.element;
 								lastElt.parent = undefined;
+								output.element.parent = this.element;
 								break;
 							}
 						}
@@ -280,7 +284,7 @@ export class ContentUpdater {
 			const doRender = () => {
 				if (this._stopped) return;
 				try {
-					item.render(callback);
+					item.render(callback as any);
 				} catch (err) {
 					app.log.error(err);
 				}

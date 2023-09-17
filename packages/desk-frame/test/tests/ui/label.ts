@@ -1,16 +1,17 @@
+import { describe, expect, test, useTestContext } from "@desk-framework/test";
 import {
 	app,
 	UICell,
 	UICloseLabel,
-	UIExpandedLabel,
+	UICloseLabelStyle,
 	UIHeading1Label,
 	UIHeading2Label,
 	UIHeading3Label,
 	UILabel,
+	UILabelStyle,
 	UIParagraphLabel,
-	UIStyle,
+	UIParagraphLabelStyle,
 } from "../../../dist/index.js";
-import { describe, expect, test, useTestContext } from "@desk-framework/test";
 
 describe("UILabel", (scope) => {
 	scope.beforeEach(() => {
@@ -25,10 +26,8 @@ describe("UILabel", (scope) => {
 	});
 
 	test("Sub type constructors", () => {
-		let expanded = new UIExpandedLabel("foo");
-		expect(expanded.shrinkwrap).toBe(false);
 		let close = new UICloseLabel("foo");
-		expect(close.style).toBe(UIStyle.CloseLabel);
+		expect(close.labelStyle).toBe(UICloseLabelStyle);
 
 		let [h1, h2, h3] = [
 			new UIHeading1Label("foo"),
@@ -40,7 +39,7 @@ describe("UILabel", (scope) => {
 		expect(h3.headingLevel).toBe(3);
 
 		let p = new UIParagraphLabel("foo");
-		expect(p.style.getIds().pop()).toMatchRegExp(/paragraph/);
+		expect(p.labelStyle).toBe(UIParagraphLabelStyle);
 	});
 
 	test("Preset with properties", () => {
@@ -84,15 +83,15 @@ describe("UILabel", (scope) => {
 	});
 
 	test("Rendered with styles (using withText)", async (t) => {
-		let style = new UIStyle("Custom1", undefined, {
-			textStyle: { bold: true },
-		});
-		let MyLabel1 = UILabel.withText("one", style);
+		let MyLabel1 = UILabel.withText(
+			"one",
+			UILabelStyle.override({ bold: true }),
+		);
 		let MyLabel2 = UILabel.withText("two", { bold: true });
 		app.render(new UICell(new MyLabel1(), new MyLabel2()));
 		let match = await t.expectOutputAsync(100, {
 			type: "label",
-			style: { textStyle: { bold: true } },
+			styles: { bold: true },
 		});
 		expect(match.elements).toBeArray(2);
 	});
@@ -100,14 +99,14 @@ describe("UILabel", (scope) => {
 	test("Rendered with styles", async (t) => {
 		let MyLabel = UILabel.with({
 			text: "foo",
-			textStyle: { bold: true },
-			dimensions: { width: 100 },
+			width: 100,
+			labelStyle: { bold: true },
 		});
 		let label = new MyLabel();
 		app.render(label);
 		await t.expectOutputAsync(100, {
 			text: "foo",
-			style: { dimensions: { width: 100 }, textStyle: { bold: true } },
+			styles: { width: 100, bold: true },
 		});
 	});
 

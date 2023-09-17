@@ -101,7 +101,7 @@ export function strf(
 		result = format;
 	} else {
 		// translate first if not already a LazyString
-		result = LazyString.prototype.translate.apply(format);
+		result = LazyString.prototype.translate.apply(format ?? "");
 	}
 
 	// format string if values are provided, then cache

@@ -1,14 +1,14 @@
+import { describe, expect, test, useTestContext } from "@desk-framework/test";
 import {
-	bound,
 	JSX,
-	app,
+	ManagedObject,
 	UICell,
 	UIColor,
-	ManagedObject,
-	ViewComposite,
 	UIColumn,
+	ViewComposite,
+	app,
+	bound,
 } from "../../../dist/index.js";
-import { describe, expect, test, useTestContext } from "@desk-framework/test";
 
 describe("JSX", () => {
 	test("Single component", () => {
@@ -18,12 +18,10 @@ describe("JSX", () => {
 	});
 
 	test("Single component with preset", () => {
-		let MyCell = (
-			<cell borderColor={UIColor["@blue"]} textColor={UIColor["@red"]} />
-		);
+		let MyCell = <cell padding={8} textColor={UIColor["@red"]} />;
 		let cell = new MyCell();
 		expect(cell).toBeInstanceOf(UICell);
-		expect(cell).toHaveProperty("borderColor").toBe(UIColor["@blue"]);
+		expect(cell).toHaveProperty("padding").toBe(8);
 		expect(cell).toHaveProperty("textColor").toBe(UIColor["@red"]);
 	});
 

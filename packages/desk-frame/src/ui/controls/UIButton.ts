@@ -187,8 +187,8 @@ export class UIButtonStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<primarybutton>`
  */
 export class UIPrimaryButton extends UIButton {
-	constructor() {
-		super();
+	constructor(label?: StringConvertible) {
+		super(label);
 		this.buttonStyle = UIPrimaryButtonStyle;
 	}
 }
@@ -217,9 +217,9 @@ export class UIPrimaryButtonStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<plainbutton>`
  */
 export class UIPlainButton extends UIButton {
-	constructor() {
-		super();
-		this.buttonStyle = UIPrimaryButtonStyle;
+	constructor(label?: StringConvertible) {
+		super(label);
+		this.buttonStyle = UIPlainButtonStyle;
 	}
 }
 
@@ -247,8 +247,8 @@ export class UIPlainButtonStyle extends UITheme.BaseStyle<
  * **JSX tag:** `<iconbutton>`
  */
 export class UIIconButton extends UIButton {
-	constructor() {
-		super();
+	constructor(label?: StringConvertible) {
+		super(label);
 		this.buttonStyle = UIIconButtonStyle;
 	}
 }

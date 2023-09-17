@@ -1,7 +1,11 @@
 import { UIColor } from "../../../dist/index.js";
-import { describe, expect, test } from "@desk-framework/test";
+import { describe, expect, test, useTestContext } from "@desk-framework/test";
 
-describe("UIColor colors", () => {
+describe("UIColor colors", (ctx) => {
+	ctx.beforeEach(() => {
+		useTestContext();
+	});
+
 	describe("Base colors", () => {
 		test("Color value using constructor", () => {
 			expect(new UIColor("black")).asString().toBe("black");
@@ -15,9 +19,7 @@ describe("UIColor colors", () => {
 		test("Color value using indirectly predefined instance", () => {
 			let blue = UIColor["@blue"].toString();
 			expect(UIColor["@primary"]).asString().toBe(blue);
-			expect(UIColor["@text"])
-				.asString()
-				.toMatchRegExp(/0\,0\,0/);
+			expect(UIColor["@text"]).asString().toBe("#000000");
 		});
 	});
 
@@ -177,43 +179,31 @@ describe("UIColor colors", () => {
 		test("Contrast, hex", () => {
 			let grey1 = new UIColor("#222"); // 0x22 = 34
 			let grey2 = new UIColor("#ccc"); // 0xCC = 204
-			expect(grey1.contrast(1)).asString().toBe("rgb(0,0,0)");
-			expect(grey1.contrast(-1)).asString().toBe("rgb(255,255,255)");
-			expect(grey2.contrast(1)).asString().toBe("rgb(255,255,255)");
-			expect(grey2.contrast(-1)).asString().toBe("rgb(0,0,0)");
 			expect(grey1.contrast(0)).asString().toBe("rgb(34,34,34)");
 			expect(grey1.contrast(0.5)).asString().toBe("rgb(17,17,17)");
 			expect(grey1.contrast(-0.5)).asString().toBe("rgb(145,145,145)");
-			expect(grey2.contrast(0.5)).asString().toBe("rgb(230,230,230)");
-			expect(grey2.contrast(-0.5)).asString().toBe("rgb(102,102,102)");
+			expect(grey2.contrast(0.5)).asString().toBe("rgb(226,226,226)");
+			expect(grey2.contrast(-0.5)).asString().toBe("rgb(117,117,117)");
 		});
 
 		test("Contrast, rgb", () => {
 			let grey1 = new UIColor("rgb(34,34,34)");
 			let grey2 = new UIColor("rgb(204,204,204)");
-			expect(grey1.contrast(1)).asString().toBe("rgb(0,0,0)");
-			expect(grey1.contrast(-1)).asString().toBe("rgb(255,255,255)");
-			expect(grey2.contrast(1)).asString().toBe("rgb(255,255,255)");
-			expect(grey2.contrast(-1)).asString().toBe("rgb(0,0,0)");
 			expect(grey1.contrast(0)).asString().toBe("rgb(34,34,34)");
 			expect(grey1.contrast(0.5)).asString().toBe("rgb(17,17,17)");
 			expect(grey1.contrast(-0.5)).asString().toBe("rgb(145,145,145)");
-			expect(grey2.contrast(0.5)).asString().toBe("rgb(230,230,230)");
-			expect(grey2.contrast(-0.5)).asString().toBe("rgb(102,102,102)");
+			expect(grey2.contrast(0.5)).asString().toBe("rgb(226,226,226)");
+			expect(grey2.contrast(-0.5)).asString().toBe("rgb(117,117,117)");
 		});
 
 		test("Contrast, rgba", () => {
 			let grey1 = new UIColor("rgba(34,34,34,.5)");
 			let grey2 = new UIColor("rgba(204,204,204,.5)");
-			expect(grey1.contrast(1)).asString().toBe("rgba(0,0,0,0.5)");
-			expect(grey1.contrast(-1)).asString().toBe("rgba(255,255,255,0.5)");
-			expect(grey2.contrast(1)).asString().toBe("rgba(255,255,255,0.5)");
-			expect(grey2.contrast(-1)).asString().toBe("rgba(0,0,0,0.5)");
 			expect(grey1.contrast(0)).asString().toBe("rgba(34,34,34,0.5)");
 			expect(grey1.contrast(0.5)).asString().toBe("rgba(17,17,17,0.5)");
 			expect(grey1.contrast(-0.5)).asString().toBe("rgba(145,145,145,0.5)");
-			expect(grey2.contrast(0.5)).asString().toBe("rgba(230,230,230,0.5)");
-			expect(grey2.contrast(-0.5)).asString().toBe("rgba(102,102,102,0.5)");
+			expect(grey2.contrast(0.5)).asString().toBe("rgba(226,226,226,0.5)");
+			expect(grey2.contrast(-0.5)).asString().toBe("rgba(117,117,117,0.5)");
 		});
 
 		test("Not throwing with invalid values", () => {

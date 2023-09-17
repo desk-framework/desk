@@ -61,10 +61,10 @@ export namespace RenderContext {
 	 * Type definition for the callback that's used for asynchronous rendering
 	 * @see {@link RenderContext.Renderable.render}
 	 */
-	export type RenderCallback = (
-		output?: Output,
-		afterRender?: (out?: Output) => void,
-	) => RenderCallback;
+	export type RenderCallback<TElement = unknown> = (
+		output?: Output<TElement>,
+		afterRender?: (out?: Output<TElement>) => void,
+	) => RenderCallback<TElement>;
 
 	/**
 	 * An identifier that specifies a global rendering mode, part of {@link RenderContext.PlacementOptions}

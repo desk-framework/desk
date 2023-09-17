@@ -32,9 +32,10 @@ export class UIToggle extends UIComponent {
 	}
 
 	/** Creates a new toggle view object with the specified label */
-	constructor(label?: StringConvertible) {
+	constructor(label?: StringConvertible, state?: boolean) {
 		super();
 		this.label = label;
+		this.state = !!state;
 
 		_boundFormContext.bindTo(this, "formContext");
 		new UIToggleObserver().observe(this);
@@ -68,7 +69,7 @@ export class UIToggle extends UIComponent {
 	}
 
 	/** The current toggle state, true for toggle 'on' state */
-	state = false;
+	state;
 
 	/** The toggle label to be displayed, if any */
 	label?: StringConvertible;

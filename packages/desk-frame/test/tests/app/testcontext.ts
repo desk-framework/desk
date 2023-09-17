@@ -14,6 +14,7 @@ import {
 	ManagedObject,
 	UIPrimaryButton,
 	ViewComposite,
+	UITheme,
 } from "../../../dist/index.js";
 
 describe("TestContext", () => {
@@ -237,7 +238,7 @@ describe("TestContext", () => {
 				);
 				protected override delegateViewEvent(
 					event: ManagedEvent<ManagedObject, unknown, string>,
-				): boolean | Promise<void> {
+				) {
 					return super.delegateViewEvent(event);
 				}
 				onCellFocused() {
@@ -273,7 +274,7 @@ describe("TestContext", () => {
 
 		test("Simple alert dialog", async (t) => {
 			let app = useTestContext();
-			let p = app.showAlertDialogAsync("This is a test", "Test", "OK");
+			let p = app.showAlertDialogAsync("This is a test", "OK");
 			(await t.expectOutputAsync(500, { type: "button", text: "OK" }))
 				.getSingle()
 				.click();
@@ -285,12 +286,7 @@ describe("TestContext", () => {
 			let app = useTestContext((options) => {
 				options.renderFrequency = 5;
 			});
-			let p = app.showConfirmationDialogAsync(
-				"This is a test",
-				"Test",
-				"Foo",
-				"Bar",
-			);
+			let p = app.showConfirmDialogAsync("This is a test", "Foo", "Bar");
 			(await t.expectOutputAsync(500, { type: "button", text: "Bar" }))
 				.getSingle()
 				.click();
@@ -306,10 +302,10 @@ describe("TestContext", () => {
 			app.render(button);
 			await t.expectOutputAsync(100, { type: "button" });
 			let p = app.showModalMenuAsync(
-				[
+				new UITheme.MenuOptions([
 					{ key: "one", text: "One" },
 					{ key: "two", text: "Two" },
-				],
+				]),
 				button,
 			);
 			(await t.expectOutputAsync(500, { text: "Two" })).getSingle().click();

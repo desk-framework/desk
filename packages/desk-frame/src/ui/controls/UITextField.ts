@@ -32,8 +32,10 @@ export class UITextField extends UIComponent {
 	}
 
 	/** Creates a new text field view instance */
-	constructor() {
+	constructor(placeholder?: StringConvertible, value?: string) {
 		super();
+		this.placeholder = placeholder;
+		this.value = value || "";
 		_boundFormContext.bindTo(this, "formContext");
 		new UITextFieldObserver().observe(this);
 	}
@@ -83,10 +85,10 @@ export class UITextField extends UIComponent {
 	 * - This field can be preset to initialize the input text.
 	 * - This field can be bound, to update and/or initialize the text field with a bound property value.
 	 */
-	value = "";
+	value: string;
 
 	/** The text field placeholder text */
-	placeholder?: StringConvertible = undefined;
+	placeholder?: StringConvertible;
 
 	/**
 	 * True if multiline input mode should be enabled
