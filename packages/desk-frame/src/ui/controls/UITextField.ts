@@ -56,7 +56,7 @@ export class UITextField extends UIComponent {
 			| "enterKeyHint"
 			| "disableSpellCheck"
 			| "disabled"
-			| "readonly"
+			| "readOnly"
 			| "width"
 			| "textFieldStyle"
 		> & {
@@ -120,7 +120,7 @@ export class UITextField extends UIComponent {
 	disabled = false;
 
 	/** True if the text field should appear like a label */
-	readonly = false;
+	readOnly = false;
 
 	/** Target width of the text field, in pixels or CSS length with unit */
 	width?: string | number = undefined;

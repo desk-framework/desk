@@ -12,7 +12,7 @@ export interface OutputSelectFilter {
 	/** True if the element must be disabled, false if it must not */
 	disabled?: boolean;
 	/** True if the element must be readonly, false if it must not */
-	readonly?: boolean;
+	readOnly?: boolean;
 	/** True if the element must be selected, false if it must not */
 	selected?: boolean;
 	/** True if the element must be focused, false if it must not */
@@ -48,7 +48,7 @@ function _matchElement(select: OutputSelectFilter, elt: TestOutputElement) {
 		(typeof select.type === "function" &&
 			!(elt.output?.source instanceof select.type)) ||
 		(select.disabled !== undefined && !!elt.disabled !== !!select.disabled) ||
-		(select.readonly !== undefined && !!elt.readonly !== !!select.readonly) ||
+		(select.readOnly !== undefined && !!elt.readOnly !== !!select.readOnly) ||
 		(select.selected !== undefined && !!elt.selected !== !!select.selected) ||
 		(select.checked !== undefined && !!elt.checked !== !!select.checked) ||
 		(select.focused !== undefined && !!elt.hasFocus() !== !!select.focused) ||

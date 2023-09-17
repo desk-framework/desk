@@ -9,8 +9,8 @@ import { WebHashActivationPath } from "./path/WebHashActivationPath.js";
 import { WebHistoryActivationPath } from "./path/WebHistoryActivationPath.js";
 import { WebRenderer } from "./renderer/WebRenderer.js";
 import { WebViewportContext } from "./renderer/WebViewportContext.js";
-import { MessageDialog } from "./style/MessageDialog.js";
-import { ModalMenu } from "./style/ModalMenu.js";
+import { MessageDialog, MessageDialogStyles } from "./style/MessageDialog.js";
+import { ModalMenu, ModalMenuStyles } from "./style/ModalMenu.js";
 import { WebTheme } from "./style/WebTheme.js";
 
 /**
@@ -51,14 +51,14 @@ export class WebContextOptions extends ConfigOptions {
 	 * - These styles can be changed directly on this object. Refer to {@link ModalMenuStyles} for details.
 	 * @see {@link ModalMenuStyles}
 	 */
-	modalMenuStyles = ModalMenu.styles;
+	modalMenuStyles: ModalMenuStyles = ModalMenu.styles;
 
 	/**
 	 * Options for the appearance of the default modal message dialog view
 	 * - These styles can be changed directly on this object. Refer to {@link MessageDialogStyles} for details.
 	 * @see {@link MessageDialogStyles}
 	 */
-	messageDialogStyles = MessageDialog.styles;
+	messageDialogStyles: MessageDialogStyles = MessageDialog.styles;
 
 	/** Breakpoint (in logical pixels) below which {@link ViewportContext.narrow} and {@link ViewportContext.short} are set */
 	smallBreakpoint = 590;

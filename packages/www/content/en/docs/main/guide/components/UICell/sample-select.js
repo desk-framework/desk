@@ -1,19 +1,16 @@
 const app = desk.useWebContext();
-const cellStyle = desk.UIStyle.Cell.extend(
+const SelectableCellStyle = desk.UICellStyle.extend(
 	{
-		decoration: {
-			borderThickness: 1,
-			borderColor: desk.UIColor["@separator"],
-		},
+		borderThickness: 1,
+		borderColor: desk.UIColor["@separator"],
 	},
 	{
-		selected: {
-			decoration: { dropShadow: 0.5 },
-		},
+		[desk.UITheme.STATE_SELECTED]: true,
+		decoration: { dropShadow: 0.5 },
 	},
 );
 const myCell = desk.UICell.with(
-	{ onClick: "+Select", style: cellStyle },
+	{ onClick: "+Select", cellStyle: SelectableCellStyle },
 	desk.UILabel.withText(
 		desk.bound.boolean("selected").select("Selected", "Not selected"),
 	),

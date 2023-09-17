@@ -7,27 +7,16 @@ import { app } from "../app/index.js";
  * An object that represents an icon that can be used on labels or buttons
  */
 export class UIIconResource {
-	/** An instance of {@link UIIconResource} that references a blank icon */
 	static readonly ["@blank"] = new UIIconResource("@blank");
-	/** An instance of {@link UIIconResource} that references the close theme icon */
 	static readonly ["@close"] = new UIIconResource("@close");
-	/** An instance of {@link UIIconResource} that references the check theme icon */
 	static readonly ["@check"] = new UIIconResource("@check");
-	/** An instance of {@link UIIconResource} that references the menu theme icon */
 	static readonly ["@menu"] = new UIIconResource("@menu");
-	/** An instance of {@link UIIconResource} that references the more theme icon */
 	static readonly ["@more"] = new UIIconResource("@more");
-	/** An instance of {@link UIIconResource} that references the plus theme icon */
 	static readonly ["@plus"] = new UIIconResource("@plus");
-	/** An instance of {@link UIIconResource} that references the minus theme icon */
 	static readonly ["@minus"] = new UIIconResource("@minus");
-	/** An instance of {@link UIIconResource} that references the chevronDown theme icon */
 	static readonly ["@chevronDown"] = new UIIconResource("@chevronDown");
-	/** An instance of {@link UIIconResource} that references the chevronUp theme icon */
 	static readonly ["@chevronUp"] = new UIIconResource("@chevronUp");
-	/** An instance of {@link UIIconResource} that references the chevronNext theme icon */
 	static readonly ["@chevronNext"] = new UIIconResource("@chevronNext");
-	/** An instance of {@link UIIconResource} that references the chevronBack theme icon */
 	static readonly ["@chevronBack"] = new UIIconResource("@chevronBack");
 
 	/**

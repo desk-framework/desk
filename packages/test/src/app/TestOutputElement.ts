@@ -29,7 +29,7 @@ export class TestOutputElement {
 	disabled?: boolean;
 
 	/** True if text input has been marked as readonly */
-	readonly?: boolean;
+	readOnly?: boolean;
 
 	/** True if a button or cell element is selected */
 	selected?: boolean;
@@ -253,7 +253,7 @@ export class TestOutputElement {
 		if (this.chevron) result.chevron = this.chevron;
 		if (this.imageUrl) result.imageUrl = this.imageUrl;
 		if (this.disabled) result.disabled = true;
-		if (this.readonly) result.readonly = true;
+		if (this.readOnly) result.readOnly = true;
 		if (this.selected) result.selected = true;
 		if (this.checked) result.checked = true;
 		if (this.type === "textfield") result.value = this.value;

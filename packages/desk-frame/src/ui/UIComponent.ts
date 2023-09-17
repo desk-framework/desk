@@ -290,7 +290,7 @@ export namespace UIComponent {
 
 	/**
 	 * Options for the appearance of UI components
-	 * - The {@link DecorationStyleType.css css} property can be used to include miscellaneous CSS attributes, at your own risk.
+	 * - The `css` property can be used to include miscellaneous CSS attributes, at your own risk.
 	 * @see {@link UICellStyle}
 	 * @see {@link UIButtonStyle}
 	 * @see {@link UIImageStyle}

@@ -30,63 +30,34 @@ const STR_CLEAR = "transparent";
  * UIColor["@primary"].brighten(0.2).text()
  */
 export class UIColor {
-	/** An instance of {@link UIColor} that references a fully transparent color */
 	static readonly ["@clear"] = new UIColor(STR_CLEAR);
-	/** An instance of {@link UIColor} that references the black theme color */
 	static readonly ["@black"] = new UIColor("@black");
-	/** An instance of {@link UIColor} that references the darkerGray theme color */
 	static readonly ["@darkerGray"] = new UIColor("@darkerGray");
-	/** An instance of {@link UIColor} that references the darkGray theme color */
 	static readonly ["@darkGray"] = new UIColor("@darkGray");
-	/** An instance of {@link UIColor} that references the gray theme color */
 	static readonly ["@gray"] = new UIColor("@gray");
-	/** An instance of {@link UIColor} that references the lightGray theme color */
 	static readonly ["@lightGray"] = new UIColor("@lightGray");
-	/** An instance of {@link UIColor} that references the white theme color */
 	static readonly ["@white"] = new UIColor("@white");
-	/** An instance of {@link UIColor} that references the slate theme color */
 	static readonly ["@slate"] = new UIColor("@slate");
-	/** An instance of {@link UIColor} that references the lightSlate theme color */
 	static readonly ["@lightSlate"] = new UIColor("@lightSlate");
-	/** An instance of {@link UIColor} that references the red theme color */
 	static readonly ["@red"] = new UIColor("@red");
-	/** An instance of {@link UIColor} that references the orange theme color */
 	static readonly ["@orange"] = new UIColor("@orange");
-	/** An instance of {@link UIColor} that references the yellow theme color */
 	static readonly ["@yellow"] = new UIColor("@yellow");
-	/** An instance of {@link UIColor} that references the lime theme color */
 	static readonly ["@lime"] = new UIColor("@lime");
-	/** An instance of {@link UIColor} that references the green theme color */
 	static readonly ["@green"] = new UIColor("@green");
-	/** An instance of {@link UIColor} that references the turquoise theme color */
 	static readonly ["@turquoise"] = new UIColor("@turquoise");
-	/** An instance of {@link UIColor} that references the cyan theme color */
 	static readonly ["@cyan"] = new UIColor("@cyan");
-	/** An instance of {@link UIColor} that references the blue theme color */
 	static readonly ["@blue"] = new UIColor("@blue");
-	/** An instance of {@link UIColor} that references the violet theme color */
 	static readonly ["@violet"] = new UIColor("@violet");
-	/** An instance of {@link UIColor} that references the purple theme color */
 	static readonly ["@purple"] = new UIColor("@purple");
-	/** An instance of {@link UIColor} that references the magenta theme color */
 	static readonly ["@magenta"] = new UIColor("@magenta");
-	/** An instance of {@link UIColor} that references the primary theme color */
 	static readonly ["@primary"] = new UIColor("@primary");
-	/** An instance of {@link UIColor} that references the primaryBackground theme color */
 	static readonly ["@primaryBackground"] = new UIColor("@primaryBackground");
-	/** An instance of {@link UIColor} that references the accent theme color */
 	static readonly ["@accent"] = new UIColor("@accent");
-	/** An instance of {@link UIColor} that references the background theme color */
 	static readonly ["@background"] = new UIColor("@background");
-	/** An instance of {@link UIColor} that references the pageBackground theme color */
 	static readonly ["@pageBackground"] = new UIColor("@pageBackground");
-	/** An instance of {@link UIColor} that references the text theme color */
 	static readonly ["@text"] = new UIColor("@text");
-	/** An instance of {@link UIColor} that references the separator theme color */
 	static readonly ["@separator"] = new UIColor("@separator");
-	/** An instance of {@link UIColor} that references the controlBase theme color */
 	static readonly ["@controlBase"] = new UIColor("@controlBase");
-	/** An instance of {@link UIColor} that references the modalShade theme color */
 	static readonly ["@modalShade"] = new UIColor("@modalShade");
 
 	/**

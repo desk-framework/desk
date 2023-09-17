@@ -244,7 +244,7 @@ export namespace UITheme {
 	export type StyleMapType<
 		TBaseStyle extends BaseStyle<string, any>,
 		TDefinition = BaseStyle.DefinitionType<TBaseStyle>,
-	> = Map<new () => TBaseStyle, StyleSelectorList<TDefinition>>;
+	> = Map<StyleClassType<TBaseStyle>, StyleSelectorList<TDefinition>>;
 
 	/**
 	 * Type definition for a list of styles that can be applied to a UI component
@@ -258,14 +258,23 @@ export namespace UITheme {
 	/**
 	 * Type definition for values that can be used to apply styles to a UI component
 	 * - Valid values include a subclass of {@link UITheme.BaseStyle} (such as {@link UIButtonStyle}), a style override (see {@link UITheme.BaseStyle.override}), a style definition object (with style properties such as `background`, `opacity`, `bold`, etc., determined by the styles included in the specific subclass of {@link UITheme.BaseStyle}).
-	 * - This type is used for properties such as {@link UIButton.buttonStyle} and {@link UIToggle.toggleLabelStyle}.
+	 * - This type is used for properties such as {@link UIButton.buttonStyle} and {@link UIToggle.labelStyle}.
 	 * @see {@link UITheme.BaseStyle}
 	 */
 	export type StyleConfiguration<TBaseStyle> =
-		| (new () => TBaseStyle)
+		| StyleClassType<TBaseStyle>
 		| BaseStyle.StyleOverrides<TBaseStyle>
 		| BaseStyle.DefinitionType<TBaseStyle>
 		| undefined;
+
+	/**
+	 * Type definition for a base style class, or a class that extends a base style class
+	 * - This type matches both built-in style classes (e.g. {@link UIButtonStyle}), as well as subclasses that are created by extending one of these classes — either by using the {@link UITheme.BaseStyle.extend} method, or by defining a subclass directly using the `extends` keyword.
+	 */
+	export type StyleClassType<TBaseStyle> = (new () => TBaseStyle) & {
+		extend: (typeof BaseStyle)["extend"];
+		override: (typeof BaseStyle)["override"];
+	};
 
 	/**
 	 * A base class for defining styles that can be applied to UI components
@@ -318,12 +327,9 @@ export namespace UITheme {
 		 * @returns A subclass of {@link BaseStyle} that includes the specified styles
 		 */
 		static extend<TypeString extends string, TDefinition>(
-			this: new () => BaseStyle<TypeString, TDefinition>,
+			this: StyleClassType<BaseStyle<TypeString, TDefinition>>,
 			...styles: Readonly<StyleSelectorList<TDefinition>>
-		): typeof this & {
-			extend: (typeof BaseStyle)["extend"];
-			override: (typeof BaseStyle)["override"];
-		} {
+		): typeof this {
 			return class extends this {
 				override getStyles() {
 					return [...super.getStyles(), ...styles];
@@ -337,7 +343,7 @@ export namespace UITheme {
 		 * @returns A style override object that can be used to apply the specified styles to a UI component (e.g. {@link UIButton.buttonStyle})
 		 */
 		static override<TypeString extends string, TDefinition>(
-			this: new () => BaseStyle<TypeString, TDefinition>,
+			this: StyleClassType<BaseStyle<TypeString, TDefinition>>,
 			...styles: Readonly<TDefinition | undefined>[]
 		): BaseStyle.StyleOverrides<BaseStyle<TypeString, TDefinition>> {
 			return {
@@ -396,7 +402,7 @@ export namespace UITheme {
 		 * - This object is produced by {@link BaseStyle.override()} and accepted as a valid value for the {@link UITheme.StyleConfiguration} type.
 		 */
 		export type StyleOverrides<TBaseStyle> = {
-			[BaseStyle.OVERRIDES_BASE]: new () => TBaseStyle;
+			[BaseStyle.OVERRIDES_BASE]: StyleClassType<TBaseStyle>;
 			overrides: Array<
 				Readonly<BaseStyle.DefinitionType<TBaseStyle>> | undefined
 			>;

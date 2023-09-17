@@ -216,7 +216,7 @@ export namespace UIContainer {
 
 	/**
 	 * Options for the appearance of container separators
-	 * @see {@link UIContainer.Layout.separator}
+	 * @see {@link UIContainer.Layout}
 	 */
 	export type SeparatorOptions = {
 		/** True for vertical line, or width-only spacer */

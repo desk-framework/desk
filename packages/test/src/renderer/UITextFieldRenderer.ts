@@ -20,7 +20,7 @@ export class UITextFieldRenderer extends TestBaseObserver<UITextField> {
 				"placeholder",
 				"value",
 				"disabled",
-				"readonly",
+				"readOnly",
 				"width",
 				"textFieldStyle",
 			);
@@ -38,7 +38,7 @@ export class UITextFieldRenderer extends TestBaseObserver<UITextField> {
 					this.scheduleUpdate(this.element);
 					return;
 				case "disabled":
-				case "readonly":
+				case "readOnly":
 				case "width":
 				case "textFieldStyle":
 					this.scheduleUpdate(undefined, this.element);
@@ -75,7 +75,7 @@ export class UITextFieldRenderer extends TestBaseObserver<UITextField> {
 		if (textField) {
 			// set state
 			element.disabled = textField.disabled;
-			element.readonly = textField.readonly;
+			element.readOnly = textField.readOnly;
 
 			// set styles
 			element.styleClass =

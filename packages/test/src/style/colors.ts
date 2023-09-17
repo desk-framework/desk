@@ -1,5 +1,6 @@
 import { UIColor } from "desk-frame";
 
+/** @internal Default set of colors */
 export const colors: [name: string, color: UIColor][] = [
 	["black", new UIColor("#000000")],
 	["darkerGray", new UIColor("#333333")],

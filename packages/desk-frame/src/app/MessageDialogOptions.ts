@@ -3,8 +3,8 @@ import { ConfigOptions, LazyString, StringConvertible } from "../core/index.js";
 /**
  * A representation of the contents of an alert or confirm dialog
  * - Objects of this type are used by {@link UITheme.AlertDialogController} or {@link UITheme.ConfirmDialogController} to display a modal dialog view.
- * @see {@link GlobalContext.showAlertDialog}
- * @see {@link GlobalContext.showConfirmDialog}
+ * @see {@link GlobalContext.showAlertDialogAsync}
+ * @see {@link GlobalContext.showConfirmDialogAsync}
  * @see {@link UITheme.AlertDialogController}
  * @see {@link UITheme.ConfirmDialogController}
  */

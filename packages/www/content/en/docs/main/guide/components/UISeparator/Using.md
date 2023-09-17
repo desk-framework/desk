@@ -12,10 +12,9 @@ assets:
 
 ## Definition {#definition}
 
-Separators are represented by the {@link UISeparator} class, which inherits functionality from the {@link UIControl} and {@link UIComponent} abstract classes.
+Separators are represented by the {@link UISeparator} class, which inherits functionality from the {@link UIComponent} abstract class.
 
 - {@ref UISeparator}
-- {@ref UIControl}
 - {@ref UIComponent}
 
 ## Appearance {#appearance}
@@ -56,20 +55,16 @@ To create a _vertical_ line, set the {@link UISeparator.vertical vertical} prope
 
 The following properties can be preset using `UISeparator.with({ ... })` or JSX `<separator ...>`.
 
-| Property                                            | Type                                                                |
-| :-------------------------------------------------- | :------------------------------------------------------------------ |
-| {@link UIComponent.style style}                     | Instance of {@link UIStyle} or a theme style name starting with `@` |
-| {@link UIComponent.dimensions dimensions}           | An object with {@link UIStyle.Definition.Dimensions} properties     |
-| {@link UIComponent.position position}               | An object with {@link UIStyle.Definition.Position} properties       |
-| {@link UIControl.decoration decoration}             | An object with {@link UIStyle.Definition.Decoration} properties     |
-| {@link UIComponent.hidden hidden}                   | Boolean, or binding                                                 |
-| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                                                  |
-| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                                                  |
-| {@link UIControl.shrinkwrap shrinkwrap}             | Boolean, or binding                                                 |
-| {@link UISeparator.color color}                     | {@link UIColor}, string, or binding                                 |
-| {@link UISeparator.thickness thickness}             | Number, string with CSS unit, or binding                            |
-| {@link UISeparator.margin margin}                   | Number, string with CSS unit, or binding                            |
-| {@link UISeparator.vertical vertical}               | Boolean, or binding                                                 |
+| Property                                            | Type                                     |
+| :-------------------------------------------------- | :--------------------------------------- |
+| {@link UIComponent.hidden hidden}                   | Boolean, or binding                      |
+| {@link UIComponent.position position}               | {@link UIComponent.Position}, or binding |
+| {@link UIComponent.accessibleRole accessibleRole}   | String, or binding                       |
+| {@link UIComponent.accessibleLabel accessibleLabel} | String, or binding                       |
+| {@link UISeparator.color color}                     | {@link UIColor}, string, or binding      |
+| {@link UISeparator.thickness thickness}             | Number, string with CSS unit, or binding |
+| {@link UISeparator.margin margin}                   | Number, string with CSS unit, or binding |
+| {@link UISeparator.vertical vertical}               | Boolean, or binding                      |
 
 ## Events {#events}
 

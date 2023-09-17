@@ -91,7 +91,7 @@ export class UIToggle extends UIComponent {
 	toggleStyle: UITheme.StyleConfiguration<UIToggleStyle> = undefined;
 
 	/** The style to be applied to the toggle label */
-	labelStyle: UITheme.StyleConfiguration<UIToggleStyle> = undefined;
+	labelStyle: UITheme.StyleConfiguration<UIToggleLabelStyle> = undefined;
 }
 
 /** @internal Toggle UI component observer to manage the input value automatically */

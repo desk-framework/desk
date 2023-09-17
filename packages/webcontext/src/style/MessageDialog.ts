@@ -9,6 +9,7 @@ import {
 	UIColor,
 	UIContainer,
 	UILabel,
+	UILabelStyle,
 	UIParagraphLabelStyle,
 	UIPrimaryButtonStyle,
 	UIRow,
@@ -50,7 +51,7 @@ export class MessageDialogStyles {
 	 * The cell style used for the outer dialog container
 	 * - The default style includes properties for dimensions,  background, border radius, and drop shadow
 	 */
-	ContainerStyle = UICellStyle.extend({
+	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
 		background: UIColor["@pageBackground"],
 		borderRadius: 12,
 		dropShadow: 0.8,
@@ -64,7 +65,7 @@ export class MessageDialogStyles {
 	 * The cell style used for the block of messages
 	 * - The default style only includes padding
 	 */
-	MessageCellStyle = UICellStyle.extend({
+	MessageCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
 		padding: 16,
 	});
 
@@ -72,7 +73,7 @@ export class MessageDialogStyles {
 	 * The cell style used for the block of buttons
 	 * - The default style includes properties for padding and background
 	 */
-	ButtonCellStyle = UICellStyle.extend({
+	ButtonCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
 		background: UIColor["@background"],
 		padding: 16,
 	});
@@ -81,34 +82,37 @@ export class MessageDialogStyles {
 	 * The label style used for the first message label
 	 * - The default style includes centered, bold text, with a maximum width of 480 pixels.
 	 */
-	FirstLabelStyle = UIParagraphLabelStyle.extend({
-		bold: true,
-		textAlign: "center",
-		maxWidth: 480,
-		css: { cursor: "default" },
-	});
+	FirstLabelStyle: UITheme.StyleClassType<UILabelStyle> =
+		UIParagraphLabelStyle.extend({
+			bold: true,
+			textAlign: "center",
+			maxWidth: 480,
+			css: { cursor: "default" },
+		});
 
 	/**
 	 * The label style used for all labels except the first
 	 * - The default style includes centered text, with a maximum width of 480 pixels.
 	 */
-	LabelStyle = UIParagraphLabelStyle.extend({
-		textAlign: "center",
-		maxWidth: 480,
-		css: { cursor: "default" },
-	});
+	LabelStyle: UITheme.StyleClassType<UILabelStyle> =
+		UIParagraphLabelStyle.extend({
+			textAlign: "center",
+			maxWidth: 480,
+			css: { cursor: "default" },
+		});
 
 	/**
 	 * The button style used for all buttons except the confirm button
 	 * - This property defaults to {@link UIButtonStyle} itself.
 	 */
-	ButtonStyle = UIButtonStyle;
+	ButtonStyle: UITheme.StyleClassType<UIButtonStyle> = UIButtonStyle;
 
 	/**
 	 * The button style used for the confirm button
 	 * - This property defaults to {@link UIPrimaryButtonStyle} itself.
 	 */
-	ConfirmButtonStyle = UIPrimaryButtonStyle;
+	ConfirmButtonStyle: UITheme.StyleClassType<UIButtonStyle> =
+		UIPrimaryButtonStyle;
 
 	/**
 	 * Options for the layout of the row of buttons

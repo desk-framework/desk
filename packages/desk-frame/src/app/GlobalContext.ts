@@ -419,7 +419,7 @@ export class GlobalContext extends ManagedObject {
  * **Rendering** — Use the following methods to render views.
  *
  * - {@ref GlobalContext.showAlertDialogAsync()}
- * - {@ref GlobalContext.showConfirmationDialogAsync()}
+ * - {@ref GlobalContext.showConfirmDialogAsync()}
  * - {@ref GlobalContext.showModalMenuAsync()}
  * - {@ref GlobalContext.render()}
  * - {@ref GlobalContext.animateAsync()}

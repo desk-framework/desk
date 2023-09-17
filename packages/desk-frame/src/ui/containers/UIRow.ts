@@ -34,7 +34,7 @@ export class UIRow extends UIContainer {
 
 	/**
 	 * Alignment of content along the horizontal axis
-	 * - If this property is set, its value overrides `distribution` from the {@link layout} object.
+	 * - If this property is set, its value overrides `distribution` from the {@link UIContainer.layout} object.
 	 */
 	align?: UIContainer.Layout["distribution"] = undefined;
 }

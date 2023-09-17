@@ -32,7 +32,7 @@ export class UIColumn extends UIContainer {
 
 	/**
 	 * Alignment of content along the horizontal axis
-	 * - If this property is set, its value overrides {@link UIContainer.Layout.gravity layout.gravity}.
+	 * - If this property is set, its value overrides {@link UIContainer.Layout layout.gravity}.
 	 */
 	align?: UIContainer.Layout["gravity"] = undefined;
 }

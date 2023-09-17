@@ -46,7 +46,7 @@ export class ModalMenuStyles {
 	 * The cell style used for the outer menu container
 	 * - The default style includes properties for dimensions, padding, background, border radius, and drop shadow
 	 */
-	ContainerStyle = UICellStyle.extend({
+	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
 		background: UIColor["@background"],
 		borderRadius: 12,
 		padding: { y: 8 },
@@ -60,7 +60,7 @@ export class ModalMenuStyles {
 	 * The cell style used for each menu item
 	 * - The default style includes properties for padding, cursor, and (hover/focus) background color
 	 */
-	ItemStyle = UICellStyle.extend(
+	ItemStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend(
 		{
 			padding: { x: 16 },
 			css: { cursor: "pointer" },
@@ -81,13 +81,13 @@ export class ModalMenuStyles {
 	 * The label style used for each menu item label
 	 * - This property defaults to {@link UILabelStyle} itself.
 	 */
-	LabelStyle = UILabelStyle;
+	LabelStyle: UITheme.StyleClassType<UILabelStyle> = UILabelStyle;
 
 	/**
 	 * The label style used for each menu item hint
 	 * - The default style includes a smaller font size and reduced opacity
 	 */
-	HintStyle = UILabelStyle.extend({
+	HintStyle: UITheme.StyleClassType<UILabelStyle> = UILabelStyle.extend({
 		opacity: 0.5,
 		fontSize: 12,
 		shrink: 0,
