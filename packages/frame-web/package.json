@@ -1,6 +1,6 @@
 {
-	"name": "@desk-framework/webcontext",
-	"version": "4.0.0-dev2",
+	"name": "@desk-framework/frame-web",
+	"version": "4.0.0-dev3",
 	"publishConfig": {
 		"tag": "next"
 	},

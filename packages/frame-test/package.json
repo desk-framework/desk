@@ -1,6 +1,6 @@
 {
-	"name": "@desk-framework/test",
-	"version": "4.0.0-dev2",
+	"name": "@desk-framework/frame-test",
+	"version": "4.0.0-dev3",
 	"publishConfig": {
 		"tag": "next"
 	},
