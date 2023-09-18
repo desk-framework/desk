@@ -28,7 +28,10 @@
 		"trailingComma": "all",
 		"endOfLine": "lf"
 	},
-	"dependencies": {
+	"peerDependencies": {
 		"@desk-framework/frame-core": "next"
+	},
+	"devDependencies": {
+		"@desk-framework/frame-core": "file:../frame-core"
 	}
 }

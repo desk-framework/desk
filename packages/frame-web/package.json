@@ -47,7 +47,12 @@
 		"lib"
 	],
 	"dependencies": {
-		"@desk-framework/frame-core": "next",
 		"tslib": "^2.6.2"
+	},
+	"peerDependencies": {
+		"@desk-framework/frame-core": "next"
+	},
+	"devDependencies": {
+		"@desk-framework/frame-core": "file:../frame-core"
 	}
 }
