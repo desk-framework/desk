@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/frame-core",
-	"version": "4.0.0-dev4",
+	"version": "4.0.0-dev5",
 	"publishConfig": {
 		"tag": "next"
 	},
