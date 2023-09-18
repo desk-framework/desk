@@ -4,7 +4,9 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"private": true,
+	"type": "module",
 	"scripts": {
+		"version": "node scripts/set-version && npm run install:core && npm run build:core && npm run install:test && npm run build:test && npm run test:test && npm run test:core && npm run install:web && npm run build:web && node scripts/commit-version",
 		"postinstall": "concurrently npm:install:core npm:install:test npm:install:web npm:install:www",
 		"install:core": "cd packages/frame-core && npm install",
 		"install:test": "cd packages/frame-test && npm install",
