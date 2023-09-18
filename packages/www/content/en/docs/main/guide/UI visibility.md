@@ -15,7 +15,6 @@ applies_to:
   - UIColumn
   - UIForm
   - UIScrollContainer
-  - UIControl
   - UISeparator
   - UISpacer
   - UIButton
@@ -48,7 +47,7 @@ In most cases, this property is _preset_ to bind it to a view activity property.
 
 ```ts
 UICell.with(
-	{ hidden: bound.not("showFoo") }
+	{ hidden: bound.not("showFoo") },
 	// ... cell content here
 );
 ```
@@ -82,8 +81,8 @@ const MyView = UICell.with(
 	UIConditional.with(
 		{ state: bound.boolean("showFoo") },
 		// ... UI components here
-		UIColumn.with(UILabel.withText("Exists when showFoo is true"))
-	)
+		UIColumn.with(UILabel.withText("Exists when showFoo is true")),
+	),
 );
 ```
 
@@ -116,7 +115,7 @@ class MyActivity extends PageViewActivity {
 		// ...
 	}
 
-	onHandleContainerClick(e: UIComponentEvent<UIColumn>) {
+	onHandleContainerClick(e: ViewEvent<UIColumn>) {
 		// find the current input value
 		// for a text field within the clicked column
 		let textField = e.source.findViewContent(UITextField)[0];
@@ -142,14 +141,14 @@ To remove the view, clear the {@link UIViewRenderer.view} property by setting it
 
 ```ts
 const separateView = UICell.with(
-	UIRow.with(UILabel.withText("Attached separately"))
+	UIRow.with(UILabel.withText("Attached separately")),
 );
 
 const body = UICell.with(
 	UIViewRenderer.with({
 		// display view from 'separate' property
 		view: bound("separate"),
-	})
+	}),
 );
 
 class MyView extends PageViewActivity {

@@ -7,7 +7,7 @@ sort: -15
 applies_to:
   - View
   - ViewComposite
-	- ViewComposite.define
+  - ViewComposite.define
   - JSX
 ---
 
@@ -36,8 +36,8 @@ const MyCard = ViewComposite.define(
 		UICell.with(
 			// use preset properties in the composed view:
 			UIRow.with(UILabel.withText(p.title)),
-			UIColumn.with(...content)
-		)
+			UIColumn.with(...content),
+		),
 );
 ```
 
@@ -51,20 +51,20 @@ The static `.with(...)` method is used to create a _preset_ view constructor. Th
 
 ```ts
 const myView = UICell.with(
-	{ background: UIColor.Yellow },
-	UIRow.with(UILabel.withText("Hello, world!"))
+	{ background: UIColor["@yellow"] },
+	UIRow.with(UILabel.withText("Hello, world!")),
 );
 ```
 
 Since the result of `.with(...)` is of the same class type, the resulting constructor can be used to define reusable view components.
 
 ```ts
-const YellowCell = UICell.with({ background: UIColor.Yellow });
+const YellowCell = UICell.with({ background: UIColor["@yellow"] });
 
 const myView = YellowCell.with(
 	// content can only be preset once,
 	// but properties can be added multiple times
-	UIRow.with(UILabel.withText("Hello, world!"))
+	UIRow.with(UILabel.withText("Hello, world!")),
 );
 ```
 

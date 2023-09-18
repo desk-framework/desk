@@ -7,7 +7,6 @@ nav_parent: using
 applies_to:
   - UIList
   - UIContainer
-  - UISelectionController
 ---
 
 ## Data types {#data}
@@ -46,7 +45,7 @@ Any part of the UI that should be repeated for each element in a list can be wra
 
 - {@ref UIList}
 
-The {@link UIList} component automatically creates an instance of the contained view, attached to an object (the adapter, i.e. an instance of {@link UIList.ItemAdapter}) that provides an `item` property.
+The {@link UIList} component automatically creates an instance of the contained view, attached to an object (the controller, i.e. an instance of {@link UIList.ItemController}) that provides an `item` property.
 
 From within the list item view, use bindings to access the list item value or any nested object properties.
 
@@ -58,15 +57,15 @@ const view = UICell.with(
 		UIRow.with(
 			// within the row, a name label and button
 			UILabel.withText(bound.string("item.name")),
-			UIOutlineButton.withLabel("Remove", "RemoveItem")
-		)
-	)
+			UIOutlineButton.withLabel("Remove", "RemoveItem"),
+		),
+	),
 );
 ```
 
 ## Handling list item events {#events}
 
-When a {@link UIList.ItemAdapter} object forwards an event, it sets the {@link ManagedEvent.delegate} property to the adapter object itself. In practice, that means that you can handle events that were originally emitted from _within_ a list item in the containing view activity as usual, and refer to `delegate.item` to get a reference to the respective item object or value.
+When a {@link UIList.ItemController} object forwards an event, it sets the {@link ManagedEvent.delegate} property to the adapter object itself. In practice, that means that you can handle events that were originally emitted from _within_ a list item in the containing view activity as usual, and refer to `delegate.item` to get a reference to the respective item object or value.
 
 You can use {@link UIList.ItemEvent} as the (generic) type for the event handler's parameter, as illustrated below.
 
@@ -98,8 +97,8 @@ const view = UICell.with(
 		UILabel.withText(bound.string("item.name")),
 
 		// override the default container type:
-		UIRow
-	)
+		UIRow,
+	),
 );
 ```
 
@@ -123,8 +122,8 @@ const view = UICell.with(
 		// when there are no items at all
 		UIConditional.with(
 			{ state: bound.not("someList.count") },
-			UICenterRow.with(UILabel.withText("The list is empty"))
-		)
-	)
+			UICenterRow.with(UILabel.withText("The list is empty")),
+		),
+	),
 );
 ```

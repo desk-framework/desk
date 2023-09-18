@@ -1,0 +1,34 @@
+{
+	"name": "@desk-framework/test",
+	"version": "4.0.0-dev2",
+	"publishConfig": {
+		"tag": "next"
+	},
+	"description": "Desk framework: test library",
+	"author": "Jelmer Cormont",
+	"license": "MIT",
+	"homepage": "https://desk-framework.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/desk-framework/desk"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"clean": "rimraf dist .test-run",
+		"prebuild": "npm run clean",
+		"build": "tsc -p src",
+		"test": "tsc -p test && node .test-run/test",
+		"check-format": "prettier --check \"{src,test}/**/*.{ts,tsx}\""
+	},
+	"prettier": {
+		"useTabs": true,
+		"trailingComma": "all",
+		"endOfLine": "lf"
+	},
+	"dependencies": {
+		"@desk-framework/frame-core": "next"
+	}
+}

@@ -1,4 +1,10 @@
-import { bound, JSX, UIColor, UIIcon, UIStyle } from "desk-frame";
+import {
+	bound,
+	JSX,
+	UIColor,
+	UIIconResource,
+	UIStyle,
+} from "@desk-framework/frame-core";
 
 const styles = {
 	textField: UIStyle.TextField.extend(
@@ -8,19 +14,19 @@ const styles = {
 				minWidth: "none",
 			},
 			decoration: {
-				background: UIColor.Transparent,
+				background: UIColor["@clear"],
 				textColor: "inherit",
 				padding: { y: 4 },
-				borderColor: UIColor.Separator,
+				borderColor: UIColor["@separator"],
 				borderThickness: { bottom: 1 },
 				borderRadius: 0,
 			},
 		},
 		{
 			focused: {
-				decoration: { borderColor: UIColor.Primary },
+				decoration: { borderColor: UIColor["@primary"] },
 			},
-		}
+		},
 	),
 	result: UIStyle.Cell.extend(
 		{
@@ -39,11 +45,11 @@ const styles = {
 			},
 			focused: {
 				decoration: {
-					borderColor: UIColor.Primary,
+					borderColor: UIColor["@primary"],
 					borderThickness: 2,
 				},
 			},
-		}
+		},
 	),
 };
 
@@ -62,7 +68,7 @@ export default (
 				>
 					Search...
 				</borderlesstextfield>
-				<iconbutton icon={UIIcon.Close} onClick="Close" />
+				<iconbutton icon={UIIconResource["@close"]} onClick="Close" />
 			</row>
 		</cell>
 		<spacer height={16} />

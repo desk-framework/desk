@@ -13,7 +13,7 @@ applies_to:
   - ManagedEvent
   - ManagedChangeEvent
   - DelegatedEvent
-  - UIComponentEvent
+  - ViewEvent
   - Observer
 ---
 
@@ -248,7 +248,7 @@ myObject.bar.emitChange("Test"); // handled by onBarChange()
 
 Events that are the result of user interactions, such as button clicks or changes to the contents of a text input field, are represented by events that are emitted by the corresponding {@link UIComponent}.
 
-The {@link UIComponentEvent} type can be used to refer to {@link ManagedEvent} instances that have their **source** property set to a {@link UIComponent}. Other than that, UI events are simply instances of {@link ManagedEvent}, with names such as `Click`, `FocusIn`, or `Change`.
+The {@link ViewEvent} type can be used to refer to {@link ManagedEvent} instances that have their **source** property set to a {@link View} object of a specific type. Other than that, UI events are simply instances of {@link ManagedEvent}, with names such as `Click`, `FocusIn`, or `Change`.
 
 To find out which events are emitted by different types of UI components, refer to the **Events** section of the corresponding guide for each UI component. You can find guides for all UI components on the following page.
 
@@ -272,8 +272,8 @@ As illustrated by the example below, handling UI events is easy — thanks to th
 const body = UICell.with(
 	UIRow.with(
 		UITextField.with({ onChange: "SearchFieldChange" }),
-		UIPrimaryButton.withLabel("Search", "GoSearch")
-	)
+		UIPrimaryButton.withLabel("Search", "GoSearch"),
+	),
 );
 
 class MyActivity extends PageViewActivity {
@@ -283,7 +283,7 @@ class MyActivity extends PageViewActivity {
 	searchText = "";
 
 	/** Event handler, called when search field text changes */
-	onSearchFieldChange(e: UIComponentEvent<UITextField>) {
+	onSearchFieldChange(e: ViewEvent<UITextField>) {
 		this.searchText = e.source.value;
 	}
 
@@ -310,7 +310,7 @@ In the example above, the `SearchFieldChange` event is emitted multiple times:
 However, not every view object _needs_ to emit the event unmodified. In particular, the following view classes create a new event, keeping the original `source` property, but utilizing the {@link ManagedEvent.delegate} property to add a reference to themselves as well. This can be used by the final handler to get more information from the containing view.
 
 - The {@link UIForm} and {@link UIFormController} views add a reference to themselves, allowing UI event handlers to get easy access to the form context.
-- The {@link UIList.ItemAdapter} view composite — created automatically for each list item by {@link UIList}, adds a reference to itself as well. This allows UI event handlers to get easy access to the list item (data).
+- The {@link UIList.ItemController} view composite — created automatically for each list item by {@link UIList}, adds a reference to itself as well. This allows UI event handlers to get easy access to the list item (data).
 
 In both cases, the {@link ManagedEvent.inner} property is set to the original event, which you can use to find _nested_ delegate views if needed.
 
@@ -340,7 +340,7 @@ class MyActivity extends PageViewActivity {
 }
 ```
 
-The following example shows an event handler for a button that's part of a list item view. Assuming list items are of type `SomeItem`, which are made available by the (implicit) {@link UIList.ItemAdapter} view through its `item` property, the event handler's parameter could be typed as `UIList.ItemEvent<SomeItem>`.
+The following example shows an event handler for a button that's part of a list item view. Assuming list items are of type `SomeItem`, which are made available by the (implicit) {@link UIList.ItemController} view through its `item` property, the event handler's parameter could be typed as `UIList.ItemEvent<SomeItem>`.
 
 ```ts
 class SomeItem extends ManagedObject {
