@@ -1,4 +1,4 @@
-import { Binding, StringConvertible } from "../../core/index.js";
+import { Binding, StringConvertible } from "../../base/index.js";
 import { UIComponent } from "../UIComponent.js";
 import { UITheme } from "../UITheme.js";
 

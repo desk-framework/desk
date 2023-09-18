@@ -1,4 +1,4 @@
-import { Binding, strf, StringConvertible } from "../../core/index.js";
+import { Binding, strf, StringConvertible } from "../../base/index.js";
 import type { UIColor } from "../UIColor.js";
 import { UIComponent } from "../UIComponent.js";
 import { UIIconResource } from "../UIIconResource.js";

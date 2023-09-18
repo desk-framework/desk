@@ -1,4 +1,4 @@
-import { ManagedEvent } from "../../core/index.js";
+import { ManagedEvent } from "../../base/index.js";
 import type { View } from "../../app/index.js";
 import { UIFormContext } from "../UIFormContext.js";
 import { UIColumn } from "./UIColumn.js";

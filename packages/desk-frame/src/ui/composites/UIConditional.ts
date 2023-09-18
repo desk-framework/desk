@@ -1,5 +1,5 @@
 import { ViewClass, ViewComposite } from "../../app/index.js";
-import type { ManagedEvent } from "../../core/index.js";
+import type { ManagedEvent } from "../../base/index.js";
 import type { UIComponent } from "../UIComponent.js";
 
 /**

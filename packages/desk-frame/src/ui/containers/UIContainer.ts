@@ -3,7 +3,7 @@ import {
 	ManagedEvent,
 	ManagedList,
 	Observer,
-} from "../../core/index.js";
+} from "../../base/index.js";
 import type {
 	RenderContext,
 	View,

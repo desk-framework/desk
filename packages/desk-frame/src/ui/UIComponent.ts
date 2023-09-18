@@ -1,5 +1,5 @@
 import { app, RenderContext, View, ViewClass } from "../app/index.js";
-import { Binding, StringConvertible } from "../core/index.js";
+import { Binding, StringConvertible } from "../base/index.js";
 import { err, ERROR } from "../errors.js";
 import type { UIColor } from "./UIColor.js";
 

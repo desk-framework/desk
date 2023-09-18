@@ -3,7 +3,7 @@ import {
 	LazyString,
 	ManagedObject,
 	StringConvertible,
-} from "../core/index.js";
+} from "../base/index.js";
 import { err, ERROR, errorHandler, setErrorHandler } from "../errors.js";
 import { ActivationContext } from "./ActivationContext.js";
 import { ServiceContext } from "./ServiceContext.js";

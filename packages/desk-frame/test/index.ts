@@ -2,7 +2,7 @@ import { formatTestResults, runTestsAsync } from "@desk-framework/test";
 import * as fs from "fs/promises";
 
 // import tests to run `describe` functions
-import "./tests/core/index.js";
+import "./tests/base/index.js";
 import "./tests/app/index.js";
 import "./tests/ui/index.js";
 

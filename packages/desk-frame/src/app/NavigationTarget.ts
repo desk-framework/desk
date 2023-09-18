@@ -1,4 +1,4 @@
-import { ManagedObject, StringConvertible } from "../core/index.js";
+import { ManagedObject, StringConvertible } from "../base/index.js";
 import { Activity } from "./Activity.js";
 
 /**

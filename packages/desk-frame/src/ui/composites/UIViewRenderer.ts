@@ -1,5 +1,5 @@
 import { RenderContext, View, ViewClass } from "../../app/index.js";
-import { Binding, ManagedEvent, Observer } from "../../core/index.js";
+import { Binding, ManagedEvent, Observer } from "../../base/index.js";
 
 /**
  * A view object that dynamically renders a referenced (bound) view

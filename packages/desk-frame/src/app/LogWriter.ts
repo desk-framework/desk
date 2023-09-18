@@ -1,4 +1,4 @@
-import { GlobalEmitter, LazyString, ManagedEvent } from "../core/index.js";
+import { GlobalEmitter, LazyString, ManagedEvent } from "../base/index.js";
 import { AppException } from "./AppException.js";
 
 /** Helper function that puts together event data for a log message */

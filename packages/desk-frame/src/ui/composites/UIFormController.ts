@@ -1,5 +1,5 @@
 import { ViewClass, ViewComposite } from "../../app/index.js";
-import { Binding, ManagedEvent } from "../../core/index.js";
+import { Binding, ManagedEvent } from "../../base/index.js";
 import { UIFormContext } from "../UIFormContext.js";
 
 /**

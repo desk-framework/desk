@@ -1,5 +1,5 @@
 import type { GlobalContext } from "./GlobalContext.js";
-import { ManagedList, ManagedObject } from "../core/index.js";
+import { ManagedList, ManagedObject } from "../base/index.js";
 import { ActivationPath } from "./ActivationPath.js";
 import { Activity } from "./Activity.js";
 

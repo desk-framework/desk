@@ -1,7 +1,7 @@
 import {
 	NullableArray,
 	removeFromNullableArray,
-} from "../core/NullableArray.js";
+} from "../base/NullableArray.js";
 import { errorHandler } from "../errors.js";
 import { ConfigOptions } from "../index.js";
 import { AppException } from "./AppException.js";

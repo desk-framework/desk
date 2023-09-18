@@ -1,5 +1,5 @@
 import { RenderContext, View } from "../../app/index.js";
-import { ManagedEvent } from "../../core/index.js";
+import { ManagedEvent } from "../../base/index.js";
 import { UIComponent } from "../UIComponent.js";
 import { UIContainer } from "./UIContainer.js";
 

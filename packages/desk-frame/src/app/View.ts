@@ -3,7 +3,7 @@ import {
 	isBinding,
 	ManagedEvent,
 	ManagedObject,
-} from "../core/index.js";
+} from "../base/index.js";
 import { invalidArgErr } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 

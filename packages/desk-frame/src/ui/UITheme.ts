@@ -1,5 +1,5 @@
 import { app, MessageDialogOptions, type RenderContext } from "../app/index.js";
-import { ConfigOptions, type StringConvertible } from "../core/index.js";
+import { ConfigOptions, type StringConvertible } from "../base/index.js";
 import type { UIColor } from "./UIColor.js";
 import type { UIComponent } from "./UIComponent.js";
 import type { UIIconResource } from "./UIIconResource.js";

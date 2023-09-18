@@ -4,7 +4,7 @@ import {
 	ManagedObject,
 	Observer,
 	StringConvertible,
-} from "../core/index.js";
+} from "../base/index.js";
 import { NavigationTarget } from "./NavigationTarget.js";
 import { ActivationPath } from "./ActivationPath.js";
 import { err, ERROR } from "../errors.js";

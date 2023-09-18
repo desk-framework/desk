@@ -1,4 +1,4 @@
-import { ManagedObject } from "../core/index.js";
+import { ManagedObject } from "../base/index.js";
 import { Activity } from "./Activity.js";
 
 /**

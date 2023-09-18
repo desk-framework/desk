@@ -1,6 +1,6 @@
-import { ManagedList } from "../core/ManagedList.js";
-import { ManagedObject } from "../core/ManagedObject.js";
-import { Observer } from "../core/Observer.js";
+import { ManagedList } from "../base/ManagedList.js";
+import { ManagedObject } from "../base/ManagedObject.js";
+import { Observer } from "../base/Observer.js";
 import { ManagedChangeEvent } from "../index.js";
 import { Service } from "./Service.js";
 

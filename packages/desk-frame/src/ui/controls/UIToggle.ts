@@ -3,7 +3,7 @@ import {
 	Observer,
 	StringConvertible,
 	strf,
-} from "../../core/index.js";
+} from "../../base/index.js";
 import { UIComponent } from "../UIComponent.js";
 import { UIFormContext, _boundFormContext } from "../UIFormContext.js";
 import { UITheme } from "../UITheme.js";

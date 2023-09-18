@@ -1,4 +1,4 @@
-import { ManagedEvent, ManagedObject, Observer } from "../core/index.js";
+import { ManagedEvent, ManagedObject, Observer } from "../base/index.js";
 import { errorHandler, invalidArgErr } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";

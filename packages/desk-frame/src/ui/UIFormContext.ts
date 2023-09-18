@@ -1,4 +1,4 @@
-import { bound, ManagedObject, StringConvertible } from "../core/index.js";
+import { bound, ManagedObject, StringConvertible } from "../base/index.js";
 import { AppException } from "../app/index.js";
 
 /** Error that's used when a required property is missing */

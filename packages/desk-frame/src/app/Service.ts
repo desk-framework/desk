@@ -1,4 +1,4 @@
-import { ManagedObject } from "../core/ManagedObject.js";
+import { ManagedObject } from "../base/ManagedObject.js";
 import { ServiceContext } from "./ServiceContext.js";
 
 /**

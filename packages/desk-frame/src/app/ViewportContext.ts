@@ -1,4 +1,4 @@
-import { ManagedObject } from "../core/index.js";
+import { ManagedObject } from "../base/index.js";
 
 /**
  * Interface definition for an object that contains information about the user's viewport, e.g. browser window

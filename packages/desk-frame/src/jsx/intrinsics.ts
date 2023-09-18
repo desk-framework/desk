@@ -1,4 +1,4 @@
-import { Binding } from "../core/index.js";
+import { Binding } from "../base/index.js";
 import {
 	UIAnimatedCell,
 	UIAnimationController,

@@ -4,7 +4,7 @@ import {
 	ViewClass,
 	ViewComposite,
 } from "../../app/index.js";
-import type { ManagedEvent } from "../../core/ManagedEvent.js";
+import type { ManagedEvent } from "../../base/ManagedEvent.js";
 import type { UIComponent } from "../UIComponent.js";
 
 let _nextUpdateId = 1;

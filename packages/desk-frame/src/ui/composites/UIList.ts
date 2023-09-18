@@ -6,7 +6,7 @@ import {
 	ManagedList,
 	ManagedObject,
 	Observer,
-} from "../../core/index.js";
+} from "../../base/index.js";
 import { ERROR, err } from "../../errors.js";
 import type { UIComponent } from "../UIComponent.js";
 import { UIColumn, UIContainer } from "../containers/index.js";

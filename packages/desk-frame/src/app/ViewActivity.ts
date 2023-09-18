@@ -1,4 +1,4 @@
-import { bound, ManagedEvent, ManagedObject, Observer } from "../core/index.js";
+import { bound, ManagedEvent, ManagedObject, Observer } from "../base/index.js";
 import { errorHandler } from "../errors.js";
 import { Activity } from "./Activity.js";
 import { app } from "./GlobalContext.js";
