@@ -10,6 +10,7 @@ export const enum DeclaredItemType {
 }
 
 export type DeclaredItem = {
+	fileName: string;
 	type: DeclaredItemType;
 	id: string;
 	name: string;
@@ -36,4 +37,14 @@ export type DeclaredItem = {
 	isDeprecated?: boolean;
 	deprecation?: string;
 	hideConstructor?: boolean;
+};
+
+export type DeclaredItemMembers = {
+	construct?: DeclaredItem;
+	static: DeclaredItem[];
+	types: DeclaredItem[];
+	nonstatic: DeclaredItem[];
+	inherited: DeclaredItem[];
+	staticInherited: DeclaredItem[];
+	deprecated: DeclaredItem[];
 };

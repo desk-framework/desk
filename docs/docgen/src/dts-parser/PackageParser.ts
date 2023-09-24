@@ -1,9 +1,102 @@
 import { readFileSync } from "node:fs";
+import * as path from "node:path";
 import { glob } from "glob";
 import { FileParser, ParsedNode, NodeType } from "./FileParser.js";
-import { DeclaredItem, DeclaredItemType } from "./DeclaredItem.js";
+import {
+	DeclaredItem,
+	DeclaredItemMembers,
+	DeclaredItemType,
+} from "./DeclaredItem.js";
 
 export class PackageParser {
+	static findIn(packages: PackageParser[], id?: string) {
+		if (!id) return undefined;
+		for (let p of packages) {
+			let found = p.findItem(id);
+			if (found) return found;
+		}
+	}
+
+	static findMembersFor(
+		packages: PackageParser[],
+		entry: DeclaredItem,
+		noDedupRemove?: boolean,
+	): DeclaredItemMembers {
+		if (!entry) throw Error("No index entry");
+
+		// find ancestor to get inherited entries first
+		let ancestor = this.findIn(packages, entry.inherits);
+		let inherited: Partial<DeclaredItemMembers> = ancestor
+			? this.findMembersFor(packages, ancestor, true)
+			: {};
+
+		// filter out deprecated entries, add to separate array
+		let deprecated: DeclaredItem[] = [];
+		let members = (
+			entry.members?.map((id) => this.findIn(packages, id)) || []
+		).filter((a): a is DeclaredItem => {
+			if (a && a.isDeprecated) deprecated.push(a);
+			return !(!a || a.isDeprecated);
+		});
+
+		/** A helper function to remove duplicate inherited names */
+		function dedup(...list: DeclaredItem[]) {
+			let result: DeclaredItem[] = [];
+			for (let entry of list) {
+				let dup = members.find((m) => m.name === entry!.name);
+				if (!dup) {
+					// no duplicate found, add inherited item
+					result.push(entry);
+				} else if (
+					!noDedupRemove &&
+					!dup.abstract &&
+					(entry.abstract || entry.isStatic)
+				) {
+					// duplicate has no description, remove it instead
+					members = members.filter((m) => m !== dup);
+					result.push(entry);
+				}
+			}
+			return result;
+		}
+
+		// combine inherited members and remove overrides with no jsdoc
+		let staticInherited = dedup(
+			...(inherited.static || []),
+			...(inherited.staticInherited || []),
+		);
+		let nonstaticInherited = dedup(
+			...(inherited.nonstatic || []),
+			...(inherited.inherited || []),
+		);
+
+		// return lists of (inherited) member entries
+		return {
+			construct:
+				members.find((a) => a.name === "constructor") || inherited.construct,
+			static: members.filter(
+				(a) =>
+					a?.isStatic &&
+					a.type !== DeclaredItemType.TypeItem &&
+					a.type !== DeclaredItemType.InterfaceItem &&
+					a.type !== DeclaredItemType.ClassItem,
+			),
+			types: members.filter(
+				(a) =>
+					a?.isStatic &&
+					(a.type === DeclaredItemType.TypeItem ||
+						a.type === DeclaredItemType.InterfaceItem ||
+						a.type === DeclaredItemType.ClassItem),
+			),
+			nonstatic: members.filter(
+				(a) => a && a.name !== "constructor" && !a.isStatic,
+			),
+			inherited: nonstaticInherited,
+			staticInherited,
+			deprecated,
+		};
+	}
+
 	constructor(
 		public id: string,
 		public inputGlob: string,
@@ -28,7 +121,11 @@ export class PackageParser {
 		for (let file of files) {
 			if (this._debugOutput) console.log(`Parsing ${file} ...`);
 			let content = readFileSync(file, "utf8").toString();
-			let parser = new FileParser(file, content, this._debugOutput);
+			let parser = new FileParser(
+				path.resolve(file),
+				content,
+				this._debugOutput,
+			);
 			this._addNode(parser.parse());
 		}
 		return this;
@@ -72,6 +169,7 @@ export class PackageParser {
 				"Name/signature mismatch: " + node.name + " / " + node.signature,
 			);
 		}
+		let jsdoc = node.jsdoc;
 		let id: string | undefined;
 		let entry: DeclaredItem | undefined;
 		if (node.name && node.signature) {
@@ -79,11 +177,23 @@ export class PackageParser {
 			id = (prefix + node.name).replace(/\.\[/, "[");
 			if (node.modifiers?.includes("private")) return;
 			if (node.name.startsWith("_") && this._warn) {
-				this._allWarnings.push("Exposed private name: " + id);
+				this._allWarnings.push(
+					"Exposed private name: " + id + " in " + node.fileName,
+				);
 			}
 			if (this._index.has(id)) {
-				if (node.jsdoc && this._warn) {
-					this._allWarnings.push("Pointless JSDoc override: " + id);
+				if (jsdoc && this._warn) {
+					let existing = this._index.get(id)!;
+					this._allWarnings.push(
+						"Pointless JSDoc override:\n> " +
+							node.fileName +
+							":\n  " +
+							node.signature +
+							"\n< " +
+							existing.fileName +
+							":\n  " +
+							existing.signature,
+					);
 				}
 				if (node.nodes) {
 					for (let n of node.nodes)
@@ -141,7 +251,12 @@ export class PackageParser {
 			} else {
 				if (this._warn) {
 					this._allWarnings.push(
-						"Unknown item type: " + id + " " + NodeType[node.type],
+						"Unknown item type: " +
+							id +
+							" " +
+							NodeType[node.type] +
+							" in " +
+							node.fileName,
 					);
 				}
 				return;
@@ -154,6 +269,7 @@ export class PackageParser {
 
 			// add to index
 			entry = {
+				fileName: node.fileName,
 				id,
 				type,
 				title,
@@ -167,7 +283,7 @@ export class PackageParser {
 				isProtected: node.modifiers?.includes("protected"),
 				signature: node.signature,
 				parent: parent?.id,
-				...this._parseJSDoc(node.jsdoc),
+				...this._parseJSDoc(jsdoc),
 			};
 			this._index.set(id, entry);
 			if (parent) {

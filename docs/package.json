@@ -9,7 +9,9 @@
 		"build": "cd docgen && npm run build",
 		"check-format": "prettier --check \"scripts/**/*.js\"",
 		"postcheck-format": "cd docgen && npm run check-format",
-		"check": "rimraf dist && node scripts/check.js"
+		"validate": "node scripts/validate.js",
+		"generate": "rimraf content/en/_docgen_ && node scripts/generate.js",
+		"merge": "rimraf ../_site && node scripts/merge.js"
 	},
 	"prettier": {
 		"useTabs": true,

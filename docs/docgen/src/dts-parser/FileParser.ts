@@ -19,6 +19,7 @@ export enum NodeType {
 }
 
 export type ParsedNode = {
+	fileName: string;
 	type: NodeType;
 	name?: string;
 	jsdoc?: string;
@@ -48,7 +49,7 @@ type ParseResult =
 
 export class FileParser {
 	constructor(
-		fileName: string,
+		public fileName: string,
 		fileContent: string,
 		enableDebugOutput?: boolean,
 	) {
@@ -82,6 +83,7 @@ export class FileParser {
 
 		if (!members) return this._throwParseError(cur);
 		return this._accept(cur, {
+			fileName: this.fileName,
 			type: NodeType.Root,
 			nodes: members,
 		});
@@ -144,6 +146,7 @@ export class FileParser {
 			cur++;
 
 			return this._accept(cur, {
+				fileName: this.fileName,
 				type: NodeType.TypeDefinition,
 				name,
 				signature,
@@ -170,6 +173,7 @@ export class FileParser {
 			let signature = Tokenizer.toSource(this._tokens.slice(start, cur));
 
 			return this._accept(cur, {
+				fileName: this.fileName,
 				type: NodeType.TypeDefinition,
 				name,
 				signature,
@@ -211,6 +215,7 @@ export class FileParser {
 			)
 				cur++;
 			return this._accept(cur + 1, {
+				fileName: this.fileName,
 				type: keyword === "import" ? NodeType.Import : NodeType.Export,
 			});
 		}
@@ -241,6 +246,7 @@ export class FileParser {
 		cur++;
 
 		return this._accept(cur, {
+			fileName: this.fileName,
 			type: NodeType.Namespace,
 			name,
 			signature,
@@ -283,6 +289,7 @@ export class FileParser {
 		cur = parsedBody.next;
 
 		return this._accept(cur, {
+			fileName: this.fileName,
 			type: NodeType.ClassDefinition,
 			name,
 			signature,
@@ -302,6 +309,7 @@ export class FileParser {
 			// check if done
 			if (this.expectToken(cur, TokenType.Symbol, "}")) {
 				return this._accept(cur + 1, {
+					fileName: this.fileName,
 					type: NodeType.BodyMembers,
 					nodes: members,
 				});
@@ -397,6 +405,7 @@ export class FileParser {
 		}
 
 		return this._accept(cur, {
+			fileName: this.fileName,
 			type: NodeType.PropertyDefinition,
 			name,
 			signature: Tokenizer.toSource(this._tokens.slice(start, cur)),
@@ -459,6 +468,7 @@ export class FileParser {
 		}
 
 		return this._accept(cur, {
+			fileName: this.fileName,
 			type: NodeType.MethodDefinition,
 			name,
 			signature: Tokenizer.toSource(this._tokens.slice(start, cur)),
@@ -477,6 +487,7 @@ export class FileParser {
 			// check if done
 			if (this.expectToken(cur, TokenType.Symbol, ")")) {
 				return this._accept(cur + 1, {
+					fileName: this.fileName,
 					type: NodeType.ParamsDefinition,
 					paramNames,
 				});
@@ -531,6 +542,7 @@ export class FileParser {
 		if (!this.expectToken(cur, TokenType.Symbol, ">"))
 			return this._throwParseError(cur, ">");
 		return this._accept(cur + 1, {
+			fileName: this.fileName,
 			type: NodeType.TypeParamsDefinition,
 		});
 	}
@@ -575,6 +587,7 @@ export class FileParser {
 
 		if (found) {
 			return this._accept(cur, {
+				fileName: this.fileName,
 				type: NodeType.TypeList,
 			});
 		}
@@ -590,6 +603,7 @@ export class FileParser {
 			// check if done
 			if (this.expectToken(cur, TokenType.Symbol, ">")) {
 				return this._accept(cur + 1, {
+					fileName: this.fileName,
 					type: NodeType.Type,
 				});
 			}
@@ -631,7 +645,7 @@ export class FileParser {
 			cur = parsedDefaultType.next;
 		}
 
-		return this._accept(cur, { type: NodeType.Type });
+		return this._accept(cur, { fileName: this.fileName, type: NodeType.Type });
 	}
 
 	expectType(cur: number): ParseResult {
@@ -693,7 +707,11 @@ export class FileParser {
 			// check for | &
 			if (this.expectToken(cur, TokenType.Symbol, "|")) cur++;
 			else if (this.expectToken(cur, TokenType.Symbol, "&")) cur++;
-			else return this._accept(cur, { type: NodeType.Type });
+			else
+				return this._accept(cur, {
+					fileName: this.fileName,
+					type: NodeType.Type,
+				});
 		}
 	}
 
@@ -711,7 +729,10 @@ export class FileParser {
 			this.expectToken(cur, TokenType.String) ||
 			this.expectToken(cur, TokenType.Number)
 		) {
-			return this._accept(cur + 1, { type: NodeType.Type });
+			return this._accept(cur + 1, {
+				fileName: this.fileName,
+				type: NodeType.Type,
+			});
 		}
 
 		// check for constructors (i.e. 'new (...) => X')
@@ -729,7 +750,10 @@ export class FileParser {
 				!this.expectToken(parsedContent.next + 1, TokenType.Symbol, "=>")
 			) {
 				// accept as bracketed type
-				return this._accept(parsedContent.next + 1, { type: NodeType.Type });
+				return this._accept(parsedContent.next + 1, {
+					fileName: this.fileName,
+					type: NodeType.Type,
+				});
 			}
 
 			let parsedParams = this.expectParams(cur);
@@ -743,7 +767,10 @@ export class FileParser {
 				if (!parsedReturnType)
 					return this._throwParseError(cur, "arrow function return type");
 				cur = parsedReturnType.next;
-				return this._accept(cur, { type: NodeType.Type });
+				return this._accept(cur, {
+					fileName: this.fileName,
+					type: NodeType.Type,
+				});
 			}
 			return this._throwParseError(cur, ")");
 		}
@@ -753,7 +780,10 @@ export class FileParser {
 			let parsedBody = this.expectBody(cur);
 			if (!parsedBody) return;
 			cur = parsedBody.next;
-			return this._accept(cur, { type: NodeType.Type });
+			return this._accept(cur, {
+				fileName: this.fileName,
+				type: NodeType.Type,
+			});
 		}
 
 		// check for array with types
@@ -765,7 +795,10 @@ export class FileParser {
 				cur = parsedTypes.next;
 			}
 			if (!this.expectToken(cur, TokenType.Symbol, "]")) return;
-			return this._accept(cur + 1, { type: NodeType.Type });
+			return this._accept(cur + 1, {
+				fileName: this.fileName,
+				type: NodeType.Type,
+			});
 		}
 
 		// check for single identifier
@@ -784,7 +817,10 @@ export class FileParser {
 		let parsedTypeParams = this.expectTypeParams(cur);
 		if (parsedTypeParams) cur = parsedTypeParams.next;
 
-		return this._accept(cur, { type: NodeType.Type });
+		return this._accept(cur, {
+			fileName: this.fileName,
+			type: NodeType.Type,
+		});
 	}
 
 	expectToken(cur: number, type: TokenType, content?: string) {

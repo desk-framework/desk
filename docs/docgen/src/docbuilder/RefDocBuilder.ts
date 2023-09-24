@@ -1,5 +1,5 @@
 import { encode } from "html-entities";
-import { DeclaredItem, PackageParser } from "../index.js";
+import { DeclaredItem, DeclaredItemType, PackageParser } from "../index.js";
 import { DocBuilder } from "./DocBuilder.js";
 import { DocItem } from "./DocItem.js";
 
@@ -32,6 +32,17 @@ const SIGNATURE_KEYWORDS = [
 	"readonly",
 ];
 
+const REF_TYPES: { [type in DeclaredItemType]?: string } = {
+	namespace: "class",
+	class: "class",
+	interface: "type",
+	type: "type",
+	method: "function",
+	function: "function",
+	property: "var",
+	variable: "var",
+};
+
 export class RefDocBuilder extends DocBuilder {
 	static fromPackages(...packages: PackageParser[]) {
 		let result = new RefDocBuilder();
@@ -45,29 +56,31 @@ export class RefDocBuilder extends DocBuilder {
 
 	addPackage(p: PackageParser) {
 		this.packages.push(p);
-		this.warnings.push(...p.getWarnings());
+		for (let w of p.getWarnings()) this.warn(w);
 		let index = p.getIndex();
 		for (let item of index.values()) {
 			if (!item.isPage) continue;
-			this.addDeclarationItem(p, item);
+			this.addDeclarationItem(p, item).appendContent("{@import :ref}");
+			this.addCrossRefItem(p, item);
 		}
 	}
 
 	addDeclarationItem(p: PackageParser, decl: DeclaredItem) {
-		let docItem = new DocItem(decl.id);
-		this.items.push(docItem);
+		let docItem = new DocItem(decl.id, undefined, undefined, "ref");
+		this.addItem(docItem);
 		docItem.data.package = p.id;
-		docItem.data.id = decl.id;
-		docItem.data.ref_title = decl.title;
 		docItem.data.parent = decl.parent;
+		docItem.data.lang = "en-US";
+		docItem.data.template = "ref";
+		docItem.data.title = decl.id;
 		if (decl.related?.length) docItem.data.related = decl.related;
+		if (decl.id.indexOf(".") < 0) docItem.data.package_index = p.id;
 
-		// make nicer document title
+		// make nicer heading title
 		let title = decl.id.replace(/.*[\.\[]/, "").replace(/[\[\]]/g, "");
 		if (title === "constructor" && decl.parent) {
 			title = "new " + decl.parent;
 		}
-		docItem.data.title = title;
 
 		// compile tags and set as property
 		let doctags = "";
@@ -78,109 +91,169 @@ export class RefDocBuilder extends DocBuilder {
 		if (doctags) docItem.data.doctags = doctags;
 
 		// format signature and set as property
-		let signature = this._formatSignature(decl);
+		let signature = this._formatSignature(p, decl);
 		docItem.data.signature = signature;
 
 		// format cross-ref link block and set as property
-		let refBlock = "{@link " + decl.id + " " + decl.name + "}";
+		let refTitle = decl.title;
+		if (refTitle.indexOf("}") >= 0) {
+			this.warn("Title contains '}' character:", refTitle, "in", decl.fileName);
+			refTitle = decl.id;
+		}
+		let refBlock = "{@link " + decl.id + " " + refTitle + "}";
 		if (doctags) refBlock += " " + doctags;
-		let abstract = this._expandLinks(decl.abstract, decl);
+		let abstract = this._expandLinks(decl.abstract, p, decl);
 		refBlock += "<span>" + abstract + "</span>";
+		docItem.data.ref_title = refTitle;
 		docItem.data.ref_block = refBlock;
+		docItem.data.ref_type = REF_TYPES[decl.type];
 
 		// add title
-		docItem.addContent("# " + title);
+		docItem.appendContent("# " + title);
 
 		// add abstract text, if any
-		if (abstract) docItem.addContent("> " + abstract);
+		if (abstract) docItem.appendContent("> " + abstract);
 
 		// add tags, if any
-		if (doctags) docItem.addContent("{@include doctags}");
+		if (doctags) docItem.appendContent("{@include doctags}");
 
 		// add signature (pulled from property)
 		if (signature) {
-			docItem.addContent(
+			docItem.appendContent(
 				'<pre class="apisignature">{@include signature}</pre>',
 			);
 		}
 
 		// add deprecation warning if needed
 		if (decl.deprecation) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Deprecated",
 				"deprecation",
-				this._expandLinks(decl.deprecation, decl),
+				this._expandLinks(decl.deprecation, p, decl),
 			);
 		}
 
 		// add summary and/or notes
 		if (decl.summary) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Summary",
 				"summary",
-				this._expandLinks(decl.summary, decl),
+				this._expandLinks(decl.summary, p, decl),
 			);
 		}
 		if (decl.notes) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Notes",
 				"notes",
-				this._expandLinks(decl.notes, decl),
+				this._expandLinks(decl.notes, p, decl),
 			);
 		}
 
 		// add function/method information
 		if (decl.params?.length) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Parameters",
 				"params",
-				decl.params.map((s) => "- " + this._expandLinks(s, decl)).join("\n"),
+				decl.params.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
 		if (decl.returns) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Return value",
 				"returns",
-				this._expandLinks(decl.returns, decl),
+				this._expandLinks(decl.returns, p, decl),
 			);
 		}
 		if (decl.throws?.length) {
-			docItem.addSection(
+			docItem.appendSection(
 				3,
 				"Errors",
 				"throws",
-				decl.throws.map((s) => "- " + this._expandLinks(s, decl)).join("\n"),
+				decl.throws.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
 
 		// add description
 		if (decl.description) {
-			docItem.addSection(
+			docItem.appendSection(
 				2,
 				"Description",
 				"description",
-				this._expandLinks(decl.description, decl),
+				this._expandLinks(decl.description, p, decl),
 			);
 		}
 
 		// add examples
 		if (decl.examples?.length) {
-			docItem.addSection(
+			docItem.appendSection(
 				2,
 				decl.examples.length > 1 ? "Examples" : "Example",
 				"examples",
 				decl.examples.join("\n\n"),
 			);
 		}
+
+		return docItem;
 	}
 
-	/** Format given signature string, making keywords bold and adding links to other entries */
-	private _formatSignature(declaration: DeclaredItem) {
+	addCrossRefItem(p: PackageParser, decl: DeclaredItem) {
+		let docItem = new DocItem(decl.id + ":ref");
+		this.addItem(docItem);
+		docItem.data.package = p.id;
+
+		// add all types of class/interface members
+		let members = PackageParser.findMembersFor(this.packages, decl);
+		const addMemberSection = (id: string, entries: DeclaredItem[]) => {
+			let text = entries
+				.map((entry) =>
+					entry.isPage ? `- {@link ${entry.id}}` : `- **${entry.title}**`,
+				)
+				.join("\n");
+			docItem.appendSection(2, `{@text ${id.toUpperCase()}}`, id, text);
+		};
+
+		if (
+			members.construct &&
+			!decl.hideConstructor &&
+			!members.construct.hideConstructor
+		) {
+			addMemberSection("constructor", [members.construct]);
+		}
+		if (members.types?.length) {
+			addMemberSection("typemembers", members.types);
+		}
+		if (members.static?.length) {
+			addMemberSection("staticmembers", members.static);
+		}
+		if (members.nonstatic?.length) {
+			addMemberSection("instancemembers", members.nonstatic);
+		}
+		if (members.inherited?.length) {
+			addMemberSection("inherited", members.inherited);
+		}
+		if (members.deprecated?.length) {
+			addMemberSection("deprecated", members.deprecated);
+		}
+
+		// add 'Related' section with links
+		if (decl.related?.length || decl.parent) {
+			let relatedList =
+				(decl.parent ? `- {@link ${decl.parent}}\n` : "") +
+				(decl.related
+					?.map((s) => "- " + this._expandLinks(s, p, decl))
+					.join("\n") || "");
+			docItem.appendSection(2, "{@text RELATED}", "related", relatedList);
+		}
+
+		return docItem;
+	}
+
+	private _formatSignature(p: PackageParser, declaration: DeclaredItem) {
 		let signature =
 			(declaration.signature || "") +
 			(declaration.extendsNames || []).map((s) => "\n" + s).join("");
@@ -194,10 +267,11 @@ export class RefDocBuilder extends DocBuilder {
 				// find IDs in the index
 				.map((part) => {
 					if (/^[A-Z]/.test(part)) {
-						for (let p of this.packages) {
-							let found = p.findItem(part, declaration);
-							if (found) return "{@link " + found.id + " " + part + "}";
-						}
+						let found =
+							p.findItem(part, declaration) ||
+							PackageParser.findIn(this.packages, part);
+						if (found && found.isPage && found.id !== declaration.id)
+							return "{@link " + found.id + " " + part + "}";
 					}
 					return SIGNATURE_KEYWORDS.includes(part)
 						? `<b>${part}</b>`
@@ -207,20 +281,22 @@ export class RefDocBuilder extends DocBuilder {
 		);
 	}
 
-	/** Change link tags in specified text to fully qualified ones, so that they refer to doc items, too */
-	private _expandLinks(text: string | undefined, declaration: DeclaredItem) {
+	private _expandLinks(
+		text: string | undefined,
+		p: PackageParser,
+		declaration: DeclaredItem,
+	) {
 		return (text || "").replace(
-			/\{@link\s+([^\s\}\(\)]+)([^\}]*)\}/g,
+			/\{@link\s+([\w\.]+)([^\}]*)\}/g,
 			(s, id, rest) => {
-				for (let p of this.packages) {
-					let found = p.findItem(id, declaration);
-					if (found) {
-						if (rest === "()") rest = " " + id + "()";
-						if (!rest && found.id !== id) rest = " " + id;
-						return "{@link " + found.id + rest + "}";
-					}
+				let found =
+					p.findItem(id, declaration) ||
+					PackageParser.findIn(this.packages, id);
+				if (found) {
+					if (rest === "()") rest = " " + id + "()";
+					if (!rest && found.id !== id) rest = " " + id;
+					return "{@link " + found.id + rest + "}";
 				}
-				this.warnings.push(`Invalid link: ${s} in ${declaration.id}`);
 				return s;
 			},
 		);

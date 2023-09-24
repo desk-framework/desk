@@ -28,7 +28,9 @@
 		"check-format:test": "cd packages/frame-test && npm run check-format",
 		"check-format:web": "cd packages/frame-web && npm run check-format",
 		"check-format:docs": "cd docs && npm run check-format",
-		"check-docs": "cd docs && npm run check"
+		"check-docs": "cd docs && npm run validate",
+		"generate-docs": "cd docs && npm run generate",
+		"merge-docs": "cd docs && npm run merge"
 	},
 	"prettier": {
 		"useTabs": true

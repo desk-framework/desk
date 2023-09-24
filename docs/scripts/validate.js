@@ -8,7 +8,7 @@ if (name !== "@desk-framework/docs") {
 	process.exit(1);
 }
 
-// parse packages and create a reference docs builder
+// parse packages and build doc items
 const parse = (id, glob) => new PackageParser(id, glob).parse();
 const builder = RefDocBuilder.fromPackages(
 	parse("frame-core", "node_modules/@desk-framework/frame-core/dist/**/*.d.ts"),
@@ -16,13 +16,9 @@ const builder = RefDocBuilder.fromPackages(
 	parse("frame-web", "node_modules/@desk-framework/frame-web/dist/**/*.d.ts"),
 );
 
-// output markdown files
-builder.writeItems("./dist/ref");
-
-// check for warnings (treat as errors)
-if (builder.warnings.length > 0) {
-	for (let warning of builder.warnings) {
-		console.error(`ERROR: ${warning}`);
-	}
+// validate links
+let errors = await builder.validateAsync();
+if (errors.length > 0) {
+	for (let msg of errors) console.error(`ERROR: ${msg}`);
 	process.exit(1);
 }
