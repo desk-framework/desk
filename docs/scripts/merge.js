@@ -15,23 +15,28 @@ let builder = await new DocBuilder()
 	.setTemplate("docs", await import("../templates/en/docs.js"))
 	.setTemplate("ref", await import("../templates/en/ref.js"))
 	.setTagText({
+		DOCS: "Documentation",
 		CONSTRUCTOR: "Constructor",
 		TYPEMEMBERS: "Type Members",
 		STATICMEMBERS: "Static Members",
 		INSTANCEMEMBERS: "Instance Members",
-		INHERITED: "Inherited",
+		INHERITED: "Inherited Members",
 		DEPRECATED: "Deprecated",
 		RELATED: "Related",
 	})
 	.readItems("./content/en/_docgen_/*.md")
 	.merge(
-		new DocBuilder().readItems("./content/en/docs/*.md", {
+		new DocBuilder().readItems("./content/en/docs/**/*.md", {
 			lang: "en-US",
 			template: "docs",
 		}),
 	)
 	.merge(SourceDocBuilder.fromSource("./content/en/samples/*.ts", "ts"))
+	.buildMenu()
 	.writeHtmlAsync("../_site/docs/en");
+
+// write JSON index file for search app
+await builder.writeJsonIndexAsync("../_site/docs/en/index.json", "/docs/en");
 
 // display warnings (as errors)
 let errors = builder.getWarnings();

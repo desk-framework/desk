@@ -54,7 +54,7 @@ function getHref(from: DocItem, to: DocItem) {
 	return to.outFile;
 }
 
-/** A template function for wrapping a HTML page */
+/** A function for wrapping HTML content into a page template */
 export type DocItemTemplateFunction = (
 	html: string,
 	data: Record<string, any>,
@@ -65,7 +65,6 @@ export type DocItemTemplateFunction = (
 export interface DocItemHtmlDelegate {
 	warn(...msg: string[]): void;
 	lookup(id: string): DocItem | undefined;
-	query(property: string, value: any): DocItem[];
 	getTagText(id: string): string;
 	getTemplate(id: string): DocItemTemplateFunction;
 }
@@ -90,7 +89,7 @@ export class DocItem {
 
 		// set output folder, must be a single word
 		this.outFolder = outFolder || "";
-		if (/\W/.test(this.outFolder)) {
+		if (/[^\w\-]/.test(this.outFolder)) {
 			throw Error("Invalid output folder for " + id + ": " + outFolder);
 		}
 	}
@@ -125,10 +124,42 @@ export class DocItem {
 		this._content += content || "";
 	}
 
-	appendSection(level: number, h: string, id: string, content: string) {
+	appendSection(level: number, h: string, id?: string, content?: string) {
+		let suffix = id ? " {#" + id + "}" : "";
 		this.appendContent(
-			"#".repeat(level) + " " + h + " {#" + id + "}\n\n" + content,
+			"#".repeat(level) + " " + h + suffix + "\n\n" + (content || ""),
 		);
+	}
+
+	getMenuItems(delegate: DocItemHtmlDelegate) {
+		if (Array.isArray(this.data.menu)) {
+			return this.data.menu.map((s) => String(s));
+		}
+
+		// build menu from headings, imports, and `+` links
+		let result: string[] = [];
+		let lines = this._content.split("\n");
+		for (let line of lines) {
+			let hMatch = line.match(/^\#{2,3}\s+(.*)\s+\{\#(.*)\}\s*$/);
+			if (hMatch) {
+				result.push("#" + hMatch[2] + " " + hMatch[1]);
+				continue;
+			}
+			let importMatch = line.match(/^\s*\{@import\s+([^\}]+)\}\s*$/);
+			if (importMatch) {
+				let importId = importMatch[1]!.trim().replace(/\?$/, "");
+				if (importId.startsWith(":")) importId = this.id + importId;
+				let found = delegate.lookup(importId);
+				if (found) result.push(...found.getMenuItems(delegate));
+				continue;
+			}
+			let linkRE = /\{@link\s+([\w\-\.]+)\s*\+/g;
+			let linkMatch: RegExpExecArray | null;
+			while ((linkMatch = linkRE.exec(line))) {
+				result.push(linkMatch[1]!);
+			}
+		}
+		return result;
 	}
 
 	toMarkdown() {
@@ -147,6 +178,8 @@ export class DocItem {
 	async toHtmlAsync(delegate: DocItemHtmlDelegate) {
 		let collated = await this._collateAsync(delegate);
 		let html = await marked.parse(collated);
+		this.data.menu_html = this._getMenuHtml(delegate);
+		this.data.breadcrumb_html = this._getBreadcrumbHtml(delegate);
 		if (!this.data.lang) delegate.warn("No language set for", this.id);
 		if (!this.data.title) delegate.warn("No title set for", this.id);
 		if (this.data.template) {
@@ -160,25 +193,111 @@ export class DocItem {
 		});
 	}
 
-	private async _collateAsync(delegate: DocItemHtmlDelegate) {
+	async getFieldHtmlAsync(field: string, delegate: DocItemHtmlDelegate) {
+		let text = this.data[field] || "";
+		text = this._replaceIncludeTags(text);
+		text = this._replaceLinks(text, delegate, true);
+		text = this._replaceTagsText(text, delegate);
+		text = this._replaceDoctags(text);
+		let html = await marked.parseInline(text);
+		return minify(html, { collapseWhitespace: true });
+	}
+
+	private _getMenuHtml(delegate: DocItemHtmlDelegate) {
+		const makeLink = (menuItem: DocItem, menuId: string, current?: boolean) => {
+			if (menuId.startsWith("#")) {
+				let idx = menuId.indexOf(" ");
+				let href = getHref(this, menuItem) + menuId.slice(0, idx);
+				let title = menuId.slice(idx + 1);
+				return `<li class="menu-item menu-item--heading"><a href="${href}">${title}</a></li>`;
+			}
+			let found = delegate.lookup(menuId);
+			let href = found ? getHref(this, found) : "#";
+			let title = found?.data.menu_title || found?.data.title || menuId;
+			let className =
+				"menu-item menu-item--" + (found?.data.menu_type || "doc");
+			if (current) className += " menu-item--current";
+			let attr = `class="${className}"`;
+			if (current) attr += ` id="current-menu-item"`;
+			return `<li ${attr}"><a href="${href}">${title}</a></li>\n`;
+		};
+
+		// warn if no menu parent is set
+		if (!this.data.menu_parent && !this.data.menu_root) {
+			delegate.warn("Orphaned document:", this.id);
+		}
+
+		// add all parents and siblings (upwards)
+		let item: DocItem | undefined = this;
+		let result = "";
+		while (item) {
+			let isRoot = !!item.data.menu_root;
+			let parentId = item.data.menu_parent;
+			let parent = delegate.lookup(parentId);
+			let parentMenu = parent?.data.menu || [item.id];
+			let itemResult = "";
+			for (let siblingId of parentMenu) {
+				let isCurrent = siblingId === this.id;
+				if (!isRoot) {
+					// add list item for this document
+					itemResult += makeLink(parent || item, siblingId, isCurrent);
+				}
+				if (isCurrent) {
+					// add list items for children of current
+					itemResult +=
+						`<ul>\n` +
+						(item.data.menu || [])
+							.map((id: string) => makeLink(this, id))
+							.join("") +
+						`</ul>\n`;
+				} else if (siblingId === item.id) {
+					// add previous list (nested)
+					itemResult += result;
+				}
+			}
+			item = parent;
+			result = isRoot ? itemResult : `<ul class="menu">\n${itemResult}</ul>\n`;
+		}
+
+		// parse header text and includes, if any
+		result = this._replaceIncludeTags(result);
+		result = this._replaceTagsText(result, delegate);
+		return result;
+	}
+
+	private _getBreadcrumbHtml(delegate: DocItemHtmlDelegate) {
+		let parentId = this.data.menu_parent;
+		let parent = delegate.lookup(parentId);
+		let title = parent?.data.menu_title || parent?.data.title;
+		let result = parentId ? `{@link ${parentId} ${title}}` : "";
+		result = this._replaceTagsText(result, delegate);
+		result = this._replaceLinks(result, delegate);
+		return result;
+	}
+
+	private async _collateAsync(
+		delegate: DocItemHtmlDelegate,
+		noReplace?: boolean,
+	) {
 		let lines = (this._content || "").split("\n");
-		lines = this._expandLinkBlocks(lines, delegate);
-		lines = lines.map((line) => {
-			line = this._replaceIncludeTags(line);
-			line = this._replaceQuery(line, delegate);
-			line = this._replaceLinks(line, delegate);
-			line = this._replaceTagsText(line, delegate);
-			line = this._replaceDoctags(line);
-			return this._replaceHeadings(line);
-		});
 		lines = await this._expandImports(lines, delegate);
 		let beforeItem = delegate.lookup(this.id + ":before");
 		if (beforeItem) {
-			lines.unshift(await beforeItem._collateAsync(delegate), "");
+			lines.unshift(await beforeItem._collateAsync(delegate, true), "");
 		}
 		let afterItem = delegate.lookup(this.id + ":after");
 		if (afterItem) {
-			lines.push("", await afterItem._collateAsync(delegate));
+			lines.push("", await afterItem._collateAsync(delegate, true));
+		}
+		lines = this._expandLinkBlocks(lines, delegate);
+		if (!noReplace) {
+			lines = lines.map((line) => {
+				line = this._replaceIncludeTags(line);
+				line = this._replaceLinks(line, delegate);
+				line = this._replaceTagsText(line, delegate);
+				line = this._replaceDoctags(line);
+				return this._replaceHeadings(line);
+			});
 		}
 		return lines.join("\n");
 	}
@@ -196,8 +315,8 @@ export class DocItem {
 				if (!found && !optional) {
 					delegate.warn("Unresolved @import:", importId, "in", this.id);
 				}
-				let content = await found?._collateAsync(delegate);
-				result.push(content || "");
+				let content = await found?._collateAsync(delegate, true);
+				result.push(...(content ? content.split("\n") : ""));
 			} else {
 				result.push(line);
 			}
@@ -209,7 +328,7 @@ export class DocItem {
 		let result: string[] = [];
 		let inRefList = false;
 		for (let line of lines) {
-			let refMatch = line.match(/^-\s*\{@link\s+([\w\.]+)([^\}]*)\}\s*$/);
+			let refMatch = line.match(/^-\s*\{@link\s+([\w\-\.]+)([^\}]*)\}\s*$/);
 			if (refMatch) {
 				if (!inRefList) result.push('<ul class="refblock_list">');
 				inRefList = true;
@@ -221,10 +340,16 @@ export class DocItem {
 						"from list in",
 						this.id,
 					);
+				} else if (found.data.ref_block) {
+					let refBlock = found.data.ref_block;
+					let refClass = "refblock refblock--" + found.data.ref_type;
+					result.push(`<li class="${refClass}">${refBlock}</li>`);
+				} else {
+					let refLink = `{@link ${found.id} ${found.data.title || found.id}}`;
+					let abstract = found.data.abstract || "";
+					let refBlock = refLink + `<span>${abstract}</span>`;
+					result.push(`<li class="refblock refblock--doc">${refBlock}</li>`);
 				}
-				let refBlock = found?.data.ref_block || "";
-				let refClass = "refblock refblock--" + found?.data.ref_type;
-				result.push(`<li class="${refClass}">${refBlock}</li>`);
 			} else {
 				if (inRefList) result.push("</ul>");
 				inRefList = false;
@@ -233,17 +358,6 @@ export class DocItem {
 		}
 		if (inRefList) result.push("</ul>");
 		return result;
-	}
-
-	private _replaceQuery(line: string, delegate: DocItemHtmlDelegate) {
-		return line.replace(
-			/^\s*\{@query\s+(\w+)\s+([^\}]+)\}\s*$/,
-			(s, property, value) =>
-				delegate
-					.query(property, value)
-					.map((item) => `- {@link ${item.id}}`)
-					.join("\n"),
-		);
 	}
 
 	private _replaceHeadings(line: string) {
@@ -261,10 +375,15 @@ export class DocItem {
 		);
 	}
 
-	private _replaceLinks(line: string, delegate: DocItemHtmlDelegate) {
+	private _replaceLinks(
+		line: string,
+		delegate: DocItemHtmlDelegate,
+		textOnly?: boolean,
+	) {
 		return line.replace(/\{@link\s+([\w\-\.]+)([^\}]*)\}/g, (s, id, rest) => {
 			let linkText = rest ? (rest === "()" ? id + "()" : rest) : id;
 			linkText = encode(linkText.trim());
+			if (textOnly) return linkText;
 			let found = delegate.lookup(id);
 			if (!found) {
 				delegate.warn("Unresolved @link:", id, "in", this.id);

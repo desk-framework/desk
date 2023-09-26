@@ -80,6 +80,12 @@ export class RefDocBuilder extends DocBuilder {
 		let title = decl.id.replace(/.*[\.\[]/, "").replace(/[\[\]]/g, "");
 		if (title === "constructor" && decl.parent) {
 			title = "new " + decl.parent;
+		} else if (decl.type === DeclaredItemType.ClassItem) {
+			title = "class " + title;
+		} else if (decl.type === DeclaredItemType.InterfaceItem) {
+			title = "interface " + title;
+		} else if (decl.type === DeclaredItemType.TypeItem) {
+			title = "type " + title;
 		}
 
 		// compile tags and set as property
@@ -95,6 +101,8 @@ export class RefDocBuilder extends DocBuilder {
 		docItem.data.signature = signature;
 
 		// format cross-ref link block and set as property
+		let abstract = this._expandLinks(decl.abstract, p, decl);
+		docItem.data.abstract = abstract;
 		let refTitle = decl.title;
 		if (refTitle.indexOf("}") >= 0) {
 			this.warn("Title contains '}' character:", refTitle, "in", decl.fileName);
@@ -102,11 +110,12 @@ export class RefDocBuilder extends DocBuilder {
 		}
 		let refBlock = "{@link " + decl.id + " " + refTitle + "}";
 		if (doctags) refBlock += " " + doctags;
-		let abstract = this._expandLinks(decl.abstract, p, decl);
 		refBlock += "<span>" + abstract + "</span>";
 		docItem.data.ref_title = refTitle;
 		docItem.data.ref_block = refBlock;
 		docItem.data.ref_type = REF_TYPES[decl.type];
+		docItem.data.menu_type = REF_TYPES[decl.type];
+		docItem.data.menu_title = title;
 
 		// add title
 		docItem.appendContent("# " + title);
@@ -129,7 +138,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Deprecated",
-				"deprecation",
+				undefined,
 				this._expandLinks(decl.deprecation, p, decl),
 			);
 		}
@@ -139,7 +148,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Summary",
-				"summary",
+				undefined,
 				this._expandLinks(decl.summary, p, decl),
 			);
 		}
@@ -147,7 +156,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Notes",
-				"notes",
+				undefined,
 				this._expandLinks(decl.notes, p, decl),
 			);
 		}
@@ -157,7 +166,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Parameters",
-				"params",
+				undefined,
 				decl.params.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
@@ -165,7 +174,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Return value",
-				"returns",
+				undefined,
 				this._expandLinks(decl.returns, p, decl),
 			);
 		}
@@ -173,7 +182,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				3,
 				"Errors",
-				"throws",
+				undefined,
 				decl.throws.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
@@ -183,7 +192,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				2,
 				"Description",
-				"description",
+				undefined,
 				this._expandLinks(decl.description, p, decl),
 			);
 		}
@@ -193,7 +202,7 @@ export class RefDocBuilder extends DocBuilder {
 			docItem.appendSection(
 				2,
 				decl.examples.length > 1 ? "Examples" : "Example",
-				"examples",
+				undefined,
 				decl.examples.join("\n\n"),
 			);
 		}
@@ -207,12 +216,15 @@ export class RefDocBuilder extends DocBuilder {
 		docItem.data.package = p.id;
 
 		// add all types of class/interface members
+		// (use `+` link to add items to the menu)
 		let members = PackageParser.findMembersFor(this.packages, decl);
 		const addMemberSection = (id: string, entries: DeclaredItem[]) => {
 			let text = entries
-				.map((entry) =>
-					entry.isPage ? `- {@link ${entry.id}}` : `- **${entry.title}**`,
-				)
+				.map((entry) => {
+					if (!entry.isPage) return `- **${entry.title}**`;
+					let isChild = entry.parent === decl.id;
+					return `- {@link ${entry.id}${isChild ? "+" : ""}}`;
+				})
 				.join("\n");
 			docItem.appendSection(2, `{@text ${id.toUpperCase()}}`, id, text);
 		};
@@ -233,11 +245,11 @@ export class RefDocBuilder extends DocBuilder {
 		if (members.nonstatic?.length) {
 			addMemberSection("instancemembers", members.nonstatic);
 		}
-		if (members.inherited?.length) {
-			addMemberSection("inherited", members.inherited);
-		}
 		if (members.deprecated?.length) {
 			addMemberSection("deprecated", members.deprecated);
+		}
+		if (members.inherited?.length) {
+			addMemberSection("inherited", members.inherited);
 		}
 
 		// add 'Related' section with links
@@ -247,7 +259,7 @@ export class RefDocBuilder extends DocBuilder {
 				(decl.related
 					?.map((s) => "- " + this._expandLinks(s, p, decl))
 					.join("\n") || "");
-			docItem.appendSection(2, "{@text RELATED}", "related", relatedList);
+			docItem.appendSection(2, "{@text RELATED}", undefined, relatedList);
 		}
 
 		return docItem;
@@ -287,7 +299,7 @@ export class RefDocBuilder extends DocBuilder {
 		declaration: DeclaredItem,
 	) {
 		return (text || "").replace(
-			/\{@link\s+([\w\.]+)([^\}]*)\}/g,
+			/\{@link\s+([\w\-\.]+)([^\}]*)\}/g,
 			(s, id, rest) => {
 				let found =
 					p.findItem(id, declaration) ||

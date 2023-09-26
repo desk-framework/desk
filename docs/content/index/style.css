@@ -7,6 +7,7 @@ html {
 	font-size: 16px;
 }
 body {
+	--header-height: 4.5rem;
 	--background-color: #fff;
 	--text-color: #000;
 	--text-color-fade1: #333;
@@ -14,7 +15,7 @@ body {
 	--reverse-text-color: #fff;
 	--code-bg-color: rgba(0, 0, 0, 0.05);
 	--pre-bg-color: rgba(0, 0, 0, 0.035);
-	--border-color: rgba(0, 0, 0, 0.15);
+	--border-color: #ddd;
 	--block-bg-color: #e8eeff;
 	--primary-boldest: #04a;
 	--secondary-boldest: #828;
@@ -31,7 +32,7 @@ body {
 	--header-text: #fff;
 	--navbar-icon-color: #888;
 	--nav-hover-background: #eee;
-	--nav-category-text: #29b;
+	--nav-heading-text: #29b;
 	--nav-current-background: rgba(210, 140, 240, 0.3);
 	--nav-current-text: #606;
 	--doctag-base: #555;
@@ -52,7 +53,7 @@ body {
 		--reverse-text-color: #333;
 		--code-bg-color: rgba(255, 255, 255, 0.15);
 		--pre-bg-color: rgba(255, 255, 255, 0.1);
-		--border-color: rgba(255, 255, 255, 0.35);
+		--border-color: #333;
 		--block-bg-color: #152a3f;
 		--primary-boldest: #8ae;
 		--secondary-boldest: #d6d;
@@ -62,7 +63,7 @@ body {
 		--hljs-color4: #8ae;
 		--hljs-color5: #ae2;
 		--nav-hover-background: #333;
-		--nav-category-text: #4cf;
+		--nav-heading-text: #4cf;
 		--nav-current-background: rgba(92, 8, 128, 0.3);
 		--nav-current-text: #f6f;
 		--doctag-base: #999;
@@ -88,7 +89,7 @@ h1 {
 	letter-spacing: -0.01em;
 	font-size: 3rem;
 	line-height: 1.2em;
-	margin: 1.25rem 0 0.75rem;
+	margin: 4rem 0 0.75rem;
 }
 h2 {
 	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
@@ -201,7 +202,7 @@ article blockquote::before {
 	top: 1rem;
 	left: 1rem;
 	inset: 1rem auto auto 1rem;
-	font-family: "Material Icons";
+	font-family: "Material Icons Outlined";
 	font-size: 18px;
 	line-height: 1;
 	color: var(--primary-boldest);
@@ -220,13 +221,6 @@ a:hover {
 }
 .style--dim {
 	opacity: 0.5;
-}
-h1 + blockquote {
-	background: none;
-	padding: 0;
-	font-weight: 300;
-	font-size: 1.3rem;
-	line-height: 1.5;
 }
 .displaytitle {
 	font-size: 3.5rem;
@@ -391,7 +385,8 @@ article iframe + pre {
 
 .docpage_header,
 .docpage_footer {
-	height: 4.5rem;
+	position: relative;
+	height: var(--header-height);
 	z-index: 1000;
 	display: flex;
 	flex-direction: row;
@@ -406,6 +401,8 @@ article iframe + pre {
 }
 
 .docpage_footer {
+	z-index: 100;
+	background: var(--background-color);
 	border-top: 1px solid var(--border-color);
 }
 
@@ -464,13 +461,53 @@ article.docpage {
 
 .docpage_searchbar,
 .docpage_navbar {
+	flex: 0 0 28%;
+	max-width: 24rem;
+	min-width: 0;
 	position: sticky;
 	top: 0;
-	flex: 0 0 25%;
-	max-width: 20rem;
-	max-height: calc(100vh - 4rem);
+	height: calc(100vh - var(--header-height));
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	text-align: start;
+}
+
+.docpage_navbar_header {
+	flex: 0 0 var(--header-height);
+	padding: 0 0 0 1.5rem;
+	border-bottom: 1px solid var(--border-color);
+	display: flex;
+	align-items: center;
+}
+
+.docpage_navbar_header a {
+	flex: 1 1 auto;
+}
+
+.docpage_navbar_pane {
+	position: relative;
 	overflow: hidden auto;
-	padding: 1rem 0 0 0;
+	padding: 1rem 0 3rem 0;
+	flex-grow: 1;
+}
+
+.docpage_navbar_footer {
+	position: absolute;
+	top: 100%;
+	height: var(--header-height);
+	left: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	padding: 0 1.5rem;
+	border-top: 1px solid var(--border-color);
+}
+
+.docpage_navbar_footer a {
+	padding: 0.5rem 1rem;
+	color: var(--text-color-fade1) !important;
+	text-decoration: none;
 }
 
 .docpage_searchbar code,
@@ -482,13 +519,9 @@ article.docpage {
 	background: none;
 	color: inherit;
 	border: none;
-	position: absolute;
 	padding: 0.5rem;
-	top: 1.5rem;
-	right: 0;
-	inset: 1.5rem 0 auto auto;
 	color: var(--navbar-icon-color);
-	font-family: "Material Icons";
+	font-family: "Material Icons Outlined";
 	font-size: 22px;
 	display: inline-block;
 	line-height: 1.2;
@@ -499,80 +532,100 @@ article.docpage {
 	display: none;
 }
 
-.navbar_title {
-	display: block;
-	margin: 1.25rem 1.5rem;
-	color: inherit;
+ul.menu ul {
+	margin: 0 0 0 2rem;
 }
 
-.navbar_list li {
+li.menu-item {
+	position: relative;
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
 
-.navbar_list a,
-.navbar_list span {
+li.menu-item > a {
 	display: block;
-	padding: 0.35rem 0 0.35rem 1.5rem;
+	padding: 0.35rem 0 0.35rem 3.5rem;
 	color: inherit;
 	transition: background-color 0.2s ease;
 }
 
-.navbar_list a:hover {
+li.menu-item--heading > a {
+	font-weight: 500;
+	padding: 0.35rem 0 0.35rem 1.5rem;
+	margin-top: 0.35rem;
+	color: var(--nav-heading-text);
+}
+
+li.menu-item--heading + li.menu-item--heading > a {
+	margin-top: 0;
+}
+
+ul > ul > li.menu-item--heading > a {
+	color: inherit;
+}
+
+li.menu-item > a:hover {
 	background: var(--nav-hover-background);
 	text-decoration: none;
 }
 
-.navbar_list .nav_uplink {
-	color: var(--text-color-fade1);
-	font-weight: 500;
-}
-
-.navbar_list li.category > span {
-	border-top: 1px solid var(--nav-category-text);
-	color: var(--nav-category-text);
-	font-weight: 500;
-	font-size: 0.875rem;
-}
-
-.navbar_list li.category > ul {
-	margin: 0.5rem 0 1rem;
-}
-
-.navbar_list li.current > a {
+li.menu-item--current > a,
+li.menu-item--current > a:hover {
 	font-weight: 500;
 	background: var(--nav-current-background);
 	color: var(--nav-current-text);
 }
 
-.navbar_toclist a {
-	padding-left: 2.5rem;
+li.menu-item--current + ul {
+	overflow: hidden;
+	border-inline-end: 1px solid var(--nav-current-background);
 }
 
-.docpage_breadcrumb {
-	position: relative;
-}
-
-.docpage_breadcrumb > a {
-	display: inline-block;
-}
-
-.docpage_breadcrumb > a::after {
-	content: "chevron_right";
-	font-family: "Material Icons";
+li.menu-item > a::before {
+	position: absolute;
+	left: 1.5rem;
+	top: 0;
+	font-family: "Material Icons Outlined";
 	font-display: block;
 	font-size: 18px;
 	display: inline-block;
-	line-height: 1;
-	padding: 0 0.5rem;
-	vertical-align: sub;
-	color: inherit;
+	line-height: 2rem;
+}
+li.menu-item--doc > a::before {
+	content: "description";
+}
+li.menu-item--class > a::before {
+	content: "tab";
+}
+li.menu-item--type > a::before {
+	content: "tab_unselected";
+}
+li.menu-item--function > a::before {
+	content: "label";
+}
+li.menu-item--var > a::before {
+	content: "bookmark_border";
 }
 
-.docpage_breadcrumb_menubutton,
-.docpage_breadcrumb_searchbutton {
+.docpage_breadcrumb {
 	display: none;
+}
+
+article h1 + blockquote {
+	background: none;
+	padding: 0;
+}
+
+article h1 + blockquote > p {
+	margin: 0;
+	font-weight: 300;
+	font-size: 1.3rem;
+	line-height: 1.5;
+}
+
+article h1 + blockquote::before {
+	content: "";
 }
 
 .apisignature {
@@ -611,7 +664,7 @@ article.docpage {
 	background-repeat: no-repeat;
 }
 .refblock > a::before {
-	font-family: "Material Icons";
+	font-family: "Material Icons Outlined";
 	font-display: block;
 	font-size: 18px;
 	display: inline-block;
@@ -669,6 +722,14 @@ article.docpage {
 }
 
 @media screen and (max-width: 900px) {
+	h1 {
+		margin-top: 1rem;
+	}
+
+	article.docpage {
+		max-width: none;
+	}
+
 	.header_links a {
 		margin: 0 0.75rem;
 	}
@@ -679,35 +740,37 @@ article.docpage {
 	}
 
 	.docpage_breadcrumb {
-		padding: 0 0 0 2.5rem;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.docpage_breadcrumb > a {
+		flex: 1 1 auto;
+		display: inline-block;
+		padding: 0.35rem 0.5rem;
 	}
 
 	.docpage_breadcrumb_menubutton {
 		background: none;
 		color: inherit;
 		border: none;
-		position: absolute;
 		padding: 0.5rem;
-		top: -0.5rem;
-		left: -0.5rem;
-		inset: -0.5rem auto auto -0.5rem;
-		font-family: "Material Icons";
+		font-family: "Material Icons Outlined";
 		font-display: block;
 		font-size: 22px;
 		display: inline-block;
 		line-height: 1.2;
+		cursor: pointer;
 	}
 
 	.docpage_breadcrumb_searchbutton {
 		background: none;
 		color: inherit;
 		border: none;
-		position: absolute;
 		padding: 0.5rem;
-		top: -0.5rem;
-		right: -0.5rem;
-		inset: -0.5rem -0.5rem auto auto;
-		font-family: "Material Icons";
+		font-family: "Material Icons Outlined";
 		font-display: block;
 		font-size: 22px;
 		display: inline-block;
@@ -716,7 +779,8 @@ article.docpage {
 	}
 
 	.docpage.show_navbar .docpage_navbar {
-		display: block;
+		position: relative;
+		display: flex;
 		max-width: none;
 		flex-basis: 100%;
 	}
@@ -729,14 +793,17 @@ article.docpage {
 	}
 
 	.docpage.show_navbar .docpage_content,
-	.docpage.show_search .docpage_content {
+	.docpage.show_search .docpage_content,
+	.docpage.show_navbar .docpage_navbar_footer,
+	.docpage.show_search .docpage_navbar_footer,
+	.docpage.show_navbar .docpage_footer,
+	.docpage.show_search .docpage_footer {
 		display: none;
 	}
 
 	.navbar_searchbutton {
 		top: 1.5rem;
 		right: 3rem;
-		inset: 1.5rem 3rem auto auto;
 		color: inherit;
 	}
 
@@ -744,12 +811,8 @@ article.docpage {
 		background: none;
 		color: inherit;
 		border: none;
-		position: absolute;
 		padding: 0.5rem;
-		top: 1.5rem;
-		right: 0.5rem;
-		inset: 1.5rem 0.5rem auto auto;
-		font-family: "Material Icons";
+		font-family: "Material Icons Outlined";
 		font-display: block;
 		font-size: 22px;
 		display: inline-block;

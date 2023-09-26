@@ -10,19 +10,6 @@ export class DocBuilder {
 		return this._index.get(id);
 	}
 
-	/** Returns all documents with matching data property */
-	query(property: string, value: any): DocItem[] {
-		return [...this._index.values()]
-			.filter((item) => item.data[property] == value)
-			.sort((a, b) => {
-				let aId = a.id.toLowerCase();
-				let bId = b.id.toLowerCase();
-				if (aId < bId) return -1;
-				if (aId > bId) return 1;
-				return 0;
-			});
-	}
-
 	/** Add a warning message to be displayed at the end */
 	warn(...msg: string[]) {
 		this._warnings.push(msg.join(" "));
@@ -79,6 +66,25 @@ export class DocBuilder {
 			await item.toHtmlAsync(this);
 		}
 		return this._warnings.slice();
+	}
+
+	/** Sets menu parent on each item that is referenced from another item using `+` link */
+	buildMenu() {
+		for (let item of this._items) {
+			if (item.id.indexOf(":") >= 0) continue;
+			let menuItems = item.getMenuItems(this);
+			item.data.menu = menuItems;
+			for (let itemId of menuItems) {
+				if (itemId.startsWith("#")) continue;
+				let found = this._index.get(itemId);
+				if (!found) {
+					this.warn("Missing menu item:", itemId, "in", item.id);
+					continue;
+				}
+				found.data.menu_parent = item.id;
+			}
+		}
+		return this;
 	}
 
 	/** Merge all items from another builder into this one, overwriting content (if any) and merging data */
@@ -156,6 +162,27 @@ export class DocBuilder {
 			}
 			seen[fileName] = true;
 		}
+		return this;
+	}
+
+	/** Write a JSON index of all content to the specified file */
+	async writeJsonIndexAsync(outFile: string, baseUrl: string) {
+		if (!baseUrl.endsWith("/")) baseUrl += "/";
+		let index: any[] = [];
+		for (let item of this._items) {
+			if (item.id.indexOf(":") >= 0) continue;
+			let url =
+				baseUrl +
+				(item.outFolder ? item.outFolder + "/" : "") +
+				item.getSanitizedId() +
+				".html";
+			index.push([
+				url,
+				item.data.title,
+				await item.getFieldHtmlAsync("abstract", this),
+			]);
+		}
+		this._writeFile(outFile, JSON.stringify(index));
 		return this;
 	}
 
