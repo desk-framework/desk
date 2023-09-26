@@ -1,4 +1,6 @@
-(function () {
+(function docs_initPage() {
+	window.docs_initPage = docs_initPage;
+
 	// scroll current menu item into view
 	function scrollMenuItem() {
 		let currentMenuItem = document.getElementById("current-menu-item");
@@ -31,16 +33,9 @@
 	// show and hide search (app)
 	function showSearch() {
 		document.body.className = "docpage show_search";
-
-		// TODO: show app
-
-		// // use querySelector and focus instead of using requestFocus
-		// // because otherwise this doesn't work on mobile
-		// let input = document.querySelector(
-		// 	"#docpage-searchbar input",
-		// );
-		// input.value = "";
-		// input.focus();
+		let input = document.querySelector("#docpage-searchbar input");
+		input.value = "";
+		input.focus();
 	}
 	document.getElementById("breadcrumb-searchbutton").onclick = showSearch;
 	document.getElementById("navbar-searchbutton").onclick = showSearch;

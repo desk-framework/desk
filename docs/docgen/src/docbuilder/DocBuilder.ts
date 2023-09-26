@@ -177,9 +177,10 @@ export class DocBuilder {
 				item.getSanitizedId() +
 				".html";
 			index.push([
-				url,
-				item.data.title,
+				item.id,
+				item.data.menu_title || item.data.title,
 				await item.getFieldHtmlAsync("abstract", this),
+				url,
 			]);
 		}
 		this._writeFile(outFile, JSON.stringify(index));

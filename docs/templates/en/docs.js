@@ -34,6 +34,7 @@ export const template = async (html, data) => `
 			</div>
 		</div>
 		<div class="docpage_wrapper">
+			<div class="docpage_searchbar" id="docpage-searchbar"></div>
 			<div class="docpage_navbar" id="docpage-navbar">
 				<div class="docpage_navbar_header">
 					<a href="/docs/en/">Documentation (v4.0)</a>
@@ -65,6 +66,8 @@ export const template = async (html, data) => `
 			</span>
 		</div>
 		<script src="/script.js"></script>
+		<script src=\"/lib/desk-framework-web.es2018.iife.min.js\"></script>
+		<script src="/bundle.js"></script>
 	</body>
 </html>
 `;

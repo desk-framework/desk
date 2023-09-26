@@ -12,6 +12,8 @@ if (name !== "@desk-framework/docs") {
 let builder = await new DocBuilder()
 	.copyAssets("./content/index/*", "../_site")
 	.copyAssets("./content/en/assets/**/*", "../_site/docs/en/assets")
+	.copyAssets("../packages/frame-web/lib/**/*", "../_site/lib")
+	.copyAssets("./app/dist/bundle.js", "../_site")
 	.setTemplate("docs", await import("../templates/en/docs.js"))
 	.setTemplate("ref", await import("../templates/en/ref.js"))
 	.setTagText({

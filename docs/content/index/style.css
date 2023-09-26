@@ -13,6 +13,7 @@ body {
 	--text-color-fade1: #333;
 	--reverse-bg-color: #333;
 	--reverse-text-color: #fff;
+	--code-fg-color: #056;
 	--code-bg-color: rgba(0, 0, 0, 0.05);
 	--pre-bg-color: rgba(0, 0, 0, 0.035);
 	--border-color: #ddd;
@@ -51,6 +52,7 @@ body {
 		--text-color-fade1: #ccc;
 		--reverse-bg-color: #ccc;
 		--reverse-text-color: #333;
+		--code-fg-color: #4cf;
 		--code-bg-color: rgba(255, 255, 255, 0.15);
 		--pre-bg-color: rgba(255, 255, 255, 0.1);
 		--border-color: #333;
@@ -254,6 +256,7 @@ li code {
 	border-radius: 0.25rem;
 	padding: 0 0.2rem;
 	word-break: break-word;
+	color: var(--code-fg-color);
 }
 pre code {
 	padding: 0;
@@ -453,7 +456,7 @@ article.docpage {
 	display: none;
 }
 .docpage.show_search .docpage_searchbar {
-	display: block;
+	display: flex;
 }
 .docpage.show_search .docpage_navbar {
 	display: none;
@@ -548,6 +551,7 @@ li.menu-item > a {
 	padding: 0.35rem 0 0.35rem 3.5rem;
 	color: inherit;
 	transition: background-color 0.2s ease;
+	white-space: nowrap;
 }
 
 li.menu-item--heading > a {
@@ -786,7 +790,7 @@ article h1 + blockquote::before {
 	}
 
 	.docpage.show_search .docpage_searchbar {
-		display: block;
+		display: flex;
 		max-width: none;
 		padding: 1rem 1rem 0 0;
 		flex-basis: 100%;
