@@ -18,12 +18,12 @@ export class GlobalEmitter<TEvent extends ManagedEvent> extends ManagedObject {
 	 */
 	override listen(
 		handler: (this: unknown, event: TEvent) => void | Promise<void>,
-	): this;
+	): void;
 	override listen(): AsyncIterable<TEvent>;
 	override listen(
 		handler?: (this: unknown, event: TEvent) => void | Promise<void>,
-	): this | AsyncIterable<ManagedEvent> {
-		return super.listen(handler as any);
+	) {
+		return super.listen(handler as any) as any;
 	}
 
 	/** Strongly typed version of {@link ManagedObject.emit()} */

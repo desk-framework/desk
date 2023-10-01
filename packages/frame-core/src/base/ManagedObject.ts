@@ -132,7 +132,7 @@ export class ManagedObject {
 	 * Adds a handler for all events emitted by this object
 	 *
 	 * @param handler A function (void return type, or asynchronous) that will be called for all events emitted by this object; the function is called with the `this` value set to the managed object, and a single event argument
-	 * @returns The managed object itself, or an async iterable if no callback function is provided
+	 * @returns If no callback function is provided, an async iterable that can be used instead
 	 *
 	 * @description
 	 * This method adds a permanent listener for all events emitted by this object, in one of two ways. Either a callback function can be provided, or this method returns an async iterable that can be used to iterate over all events.
@@ -163,7 +163,7 @@ export class ManagedObject {
 	 */
 	listen(
 		handler: (this: this, event: ManagedEvent) => Promise<void> | void,
-	): this;
+	): void;
 	listen(): AsyncIterable<ManagedEvent>;
 	listen(handler?: (this: this, event: ManagedEvent) => Promise<void> | void) {
 		// add a single handler if provided
@@ -171,7 +171,7 @@ export class ManagedObject {
 			addTrap(this, $_traps_event, (target, p, event) => {
 				handler.call(this, event)?.catch?.(errorHandler);
 			});
-			return this;
+			return;
 		}
 
 		// return an async iterable for events
