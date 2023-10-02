@@ -95,7 +95,7 @@ export class ViewActivity extends Activity implements RenderContext.Renderable {
 				}
 			}
 		}
-		this.observeAttach("view", new ViewObserver(this));
+		this.autoAttach("view", new ViewObserver(this));
 
 		// observe properties (async) to render/remove automatically
 		class ViewActivityObserver extends Observer<ViewActivity> {
