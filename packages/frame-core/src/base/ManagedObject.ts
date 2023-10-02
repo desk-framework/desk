@@ -8,6 +8,7 @@ import {
 	attachObject,
 	watchAttachProperty,
 	addTrap,
+	$_bindFilter,
 } from "./object_util.js";
 import { ManagedEvent, ManagedChangeEvent } from "./ManagedEvent.js";
 import { Observer } from "./Observer.js";
@@ -95,6 +96,9 @@ export class ManagedObject {
 
 	/** @internal Reference to origin (parent) managed object, if any */
 	declare [$_origin]?: ManagedObject;
+
+	/** @internal A function that's used to filter applicable bindings on this object */
+	declare [$_bindFilter]?: (property: string | symbol) => boolean;
 
 	/** @internal Property getter for non-observable property bindings, overridden on managed lists */
 	[$_get](propertyName: string) {

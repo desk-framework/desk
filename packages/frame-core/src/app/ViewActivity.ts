@@ -1,9 +1,10 @@
 import { bound, ManagedEvent, ManagedObject, Observer } from "../base/index.js";
 import { errorHandler } from "../errors.js";
+import type { UIFormContext } from "../ui/UIFormContext.js";
 import { Activity } from "./Activity.js";
 import { app } from "./GlobalContext.js";
-import { NavigationTarget } from "./NavigationTarget.js";
-import { RenderContext } from "./RenderContext.js";
+import type { NavigationTarget } from "./NavigationTarget.js";
+import type { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";
 
 const _boundRenderer = bound("renderer");
@@ -131,6 +132,9 @@ export class ViewActivity extends Activity implements RenderContext.Renderable {
 
 	/** Placement options for root view output */
 	renderPlacement?: RenderContext.PlacementOptions = undefined;
+
+	/** Default form context used with input elements, if any */
+	formContext?: UIFormContext = undefined;
 
 	/**
 	 * Searches the view hierarchy for view objects of the provided type
