@@ -37,6 +37,7 @@ const REF_TYPES: { [type in DeclaredItemType]?: string } = {
 	class: "class",
 	interface: "type",
 	type: "type",
+	constructor: "constructor",
 	method: "function",
 	function: "function",
 	property: "var",
@@ -73,12 +74,11 @@ export class RefDocBuilder extends DocBuilder {
 		docItem.data.lang = "en-US";
 		docItem.data.template = "ref";
 		docItem.data.title = decl.id;
-		if (decl.related?.length) docItem.data.related = decl.related;
-		if (decl.id.indexOf(".") < 0) docItem.data.package_index = p.id;
+		docItem.data.crumb = decl.parent ? decl.type : "";
 
 		// make nicer heading title
 		let title = decl.id.replace(/.*[\.\[]/, "").replace(/[\[\]]/g, "");
-		if (title === "constructor" && decl.parent) {
+		if (decl.type === DeclaredItemType.ConstructorItem && decl.parent) {
 			title = "new " + decl.parent;
 		} else if (decl.type === DeclaredItemType.ClassItem) {
 			title = "class " + title;
@@ -115,10 +115,10 @@ export class RefDocBuilder extends DocBuilder {
 		docItem.data.ref_block = refBlock;
 		docItem.data.ref_type = REF_TYPES[decl.type];
 		docItem.data.menu_type = REF_TYPES[decl.type];
-		docItem.data.menu_title = title;
+		docItem.data.menu_title = decl.title.replace(/\(.*/, "");
 
 		// add title
-		docItem.appendContent("# " + title);
+		docItem.appendContent("# " + title.replace(/\./g, "\u200B."));
 
 		// add abstract text, if any
 		if (abstract) docItem.appendContent("> " + abstract);
@@ -135,74 +135,58 @@ export class RefDocBuilder extends DocBuilder {
 
 		// add deprecation warning if needed
 		if (decl.deprecation) {
-			docItem.appendSection(
-				3,
-				"Deprecated",
-				undefined,
+			docItem.appendContent(
+				"### Deprecated",
 				this._expandLinks(decl.deprecation, p, decl),
 			);
 		}
 
 		// add summary and/or notes
 		if (decl.summary) {
-			docItem.appendSection(
-				3,
-				"Summary",
-				undefined,
+			docItem.appendContent(
+				"### Summary",
 				this._expandLinks(decl.summary, p, decl),
 			);
 		}
 		if (decl.notes) {
-			docItem.appendSection(
-				3,
-				"Notes",
-				undefined,
+			docItem.appendContent(
+				"### Notes",
 				this._expandLinks(decl.notes, p, decl),
 			);
 		}
 
 		// add function/method information
 		if (decl.params?.length) {
-			docItem.appendSection(
-				3,
-				"Parameters",
-				undefined,
+			docItem.appendContent(
+				"### Parameters",
 				decl.params.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
 		if (decl.returns) {
-			docItem.appendSection(
-				3,
-				"Return value",
-				undefined,
+			docItem.appendContent(
+				"### Return value",
 				this._expandLinks(decl.returns, p, decl),
 			);
 		}
 		if (decl.throws?.length) {
-			docItem.appendSection(
-				3,
-				"Errors",
-				undefined,
+			docItem.appendContent(
+				"### Errors",
 				decl.throws.map((s) => "- " + this._expandLinks(s, p, decl)).join("\n"),
 			);
 		}
 
 		// add description
 		if (decl.description) {
-			docItem.appendSection(
-				2,
-				"Description",
-				undefined,
+			docItem.appendContent(
+				"## Description",
 				this._expandLinks(decl.description, p, decl),
 			);
 		}
 
 		// add examples
 		if (decl.examples?.length) {
-			docItem.appendSection(
-				2,
-				decl.examples.length > 1 ? "Examples" : "Example",
-				undefined,
+			docItem.appendContent(
+				decl.examples.length > 1 ? "## Examples" : "## Example",
 				decl.examples.join("\n\n"),
 			);
 		}
@@ -221,12 +205,11 @@ export class RefDocBuilder extends DocBuilder {
 		const addMemberSection = (id: string, entries: DeclaredItem[]) => {
 			let text = entries
 				.map((entry) => {
-					if (!entry.isPage) return `- **${entry.title}**`;
 					let isChild = entry.parent === decl.id;
-					return `- {@link ${entry.id}${isChild ? "+" : ""}}`;
+					return `- {@link ${entry.id}${isChild ? " +" : ""}}`;
 				})
 				.join("\n");
-			docItem.appendSection(2, `{@text ${id.toUpperCase()}}`, id, text);
+			docItem.appendContent(`## {@text ${id.toUpperCase()}}`, text);
 		};
 
 		if (
@@ -259,7 +242,7 @@ export class RefDocBuilder extends DocBuilder {
 				(decl.related
 					?.map((s) => "- " + this._expandLinks(s, p, decl))
 					.join("\n") || "");
-			docItem.appendSection(2, "{@text RELATED}", undefined, relatedList);
+			docItem.appendContent("## {@text RELATED}", relatedList);
 		}
 
 		return docItem;
@@ -299,7 +282,7 @@ export class RefDocBuilder extends DocBuilder {
 		declaration: DeclaredItem,
 	) {
 		return (text || "").replace(
-			/\{@link\s+([\w\-\.]+)([^\}]*)\}/g,
+			/\{@link\s+([^\s\(\)\}]+)([^\}]*)\}/g,
 			(s, id, rest) => {
 				let found =
 					p.findItem(id, declaration) ||
@@ -307,7 +290,8 @@ export class RefDocBuilder extends DocBuilder {
 				if (found) {
 					if (rest === "()") rest = " " + id + "()";
 					if (!rest && found.id !== id) rest = " " + id;
-					return "{@link " + found.id + rest + "}";
+					id = found.isPage ? found.id : "_";
+					return "{@link " + id + rest + "}";
 				}
 				return s;
 			},

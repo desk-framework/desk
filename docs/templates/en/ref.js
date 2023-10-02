@@ -1,10 +1,5 @@
 import { template as docsTemplate } from "./docs.js";
-export function template(html, data) {
+export function template(html, data, builder) {
 	data.title += " - Reference";
-	html = `
-	<div class="ref">
-		${html}
-	</div>
-	`;
-	return docsTemplate(html, data);
+	return docsTemplate(html, data, builder);
 }

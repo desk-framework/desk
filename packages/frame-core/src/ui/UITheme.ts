@@ -411,10 +411,13 @@ export namespace UITheme {
 	 * - An object of this type should be assigned to {@link UITheme.modalFactory}, which is used by the `app` methods that display modal view components.
 	 */
 	export interface ModalControllerFactory {
+		/** A factory method that returns an instance that implements the {@link AlertDialogController} interface, using the provided dialog options */
 		buildAlertDialog?: (options: MessageDialogOptions) => AlertDialogController;
+		/** A factory method that returns an instance that implements the {@link ConfirmDialogController} interface, using the provided dialog options */
 		buildConfirmDialog?: (
 			options: MessageDialogOptions,
 		) => ConfirmDialogController;
+		/** A factory method that returns an instance that implements the {@link MenuController} interface, using the provided menu options */
 		buildMenu?: (options: MenuOptions) => MenuController;
 	}
 
@@ -434,6 +437,7 @@ export namespace UITheme {
 	 * @see {@link UITheme.ModalControllerFactory}
 	 */
 	export interface ConfirmDialogController {
+		/** Display the dialog */
 		showAsync(
 			place?: Partial<RenderContext.PlacementOptions>,
 		): Promise<{ confirmed: boolean; other?: boolean }>;

@@ -13,6 +13,7 @@
 	// scroll to top using script
 	document.getElementById("back-to-top").onclick = function () {
 		window.scrollTo(0, 0);
+		scrollMenuItem();
 		return false;
 	};
 

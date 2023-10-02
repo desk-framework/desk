@@ -2,6 +2,7 @@ export const enum DeclaredItemType {
 	ClassItem = "class",
 	InterfaceItem = "interface",
 	NamespaceItem = "namespace",
+	ConstructorItem = "constructor",
 	MethodItem = "method",
 	PropertyItem = "property",
 	FunctionItem = "function",

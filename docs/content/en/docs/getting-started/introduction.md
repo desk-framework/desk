@@ -76,7 +76,8 @@ export default (
 );
 ```
 
-> **Note:** For a step-by-step guide that includes the code above, refer to [Building an app](./build.html).
+> **Note**\
+> For a step-by-step guide that includes the code above, refer to [Building an app](./build.html).
 
 **Activities** — Since views only determine what your app _looks like_, you'll need to add activities to determine how it _behaves_.
 
@@ -119,7 +120,7 @@ Services are instances of arbitrary classes, which are made available to the res
 
 - {@link activities}
 - {@link services}
-- {@link views-ui}
+- {@link views}
 
 **Global app context** — The singleton {@link app} object sits at the root of the application hierarchy. It keeps track of activities and services, and handles other important tasks, including:
 

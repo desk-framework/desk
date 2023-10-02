@@ -64,7 +64,7 @@ export default (
 				height: 72,
 				grow: 0,
 				shrink: 0,
-				padding: { start: 8, end: 4 },
+				padding: { start: 8, end: 12 },
 			}}
 		>
 			<row>

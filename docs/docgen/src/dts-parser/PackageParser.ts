@@ -20,14 +20,13 @@ export class PackageParser {
 	static findMembersFor(
 		packages: PackageParser[],
 		entry: DeclaredItem,
-		noDedupRemove?: boolean,
 	): DeclaredItemMembers {
 		if (!entry) throw Error("No index entry");
 
 		// find ancestor to get inherited entries first
 		let ancestor = this.findIn(packages, entry.inherits);
 		let inherited: Partial<DeclaredItemMembers> = ancestor
-			? this.findMembersFor(packages, ancestor, true)
+			? this.findMembersFor(packages, ancestor)
 			: {};
 
 		// filter out deprecated entries, add to separate array
@@ -39,6 +38,9 @@ export class PackageParser {
 			return !(!a || a.isDeprecated);
 		});
 
+		// filter out string property members with no JSDoc
+		members = members.filter((a) => a.isPage || a.name.indexOf('["') < 0);
+
 		/** A helper function to remove duplicate inherited names */
 		function dedup(...list: DeclaredItem[]) {
 			let result: DeclaredItem[] = [];
@@ -47,11 +49,7 @@ export class PackageParser {
 				if (!dup) {
 					// no duplicate found, add inherited item
 					result.push(entry);
-				} else if (
-					!noDedupRemove &&
-					!dup.abstract &&
-					(entry.abstract || entry.isStatic)
-				) {
+				} else if (!dup.abstract && (entry.abstract || entry.isStatic)) {
 					// duplicate has no description, remove it instead
 					members = members.filter((m) => m !== dup);
 					result.push(entry);
@@ -73,7 +71,9 @@ export class PackageParser {
 		// return lists of (inherited) member entries
 		return {
 			construct:
-				members.find((a) => a.name === "constructor") || inherited.construct,
+				members.find(
+					(a) => a.type === DeclaredItemType.ConstructorItem && a.isPage,
+				) || inherited.construct,
 			static: members.filter(
 				(a) =>
 					a?.isStatic &&
@@ -89,7 +89,7 @@ export class PackageParser {
 						a.type === DeclaredItemType.ClassItem),
 			),
 			nonstatic: members.filter(
-				(a) => a && a.name !== "constructor" && !a.isStatic,
+				(a) => a && a.type !== DeclaredItemType.ConstructorItem && !a.isStatic,
 			),
 			inherited: nonstaticInherited,
 			staticInherited,
@@ -169,12 +169,9 @@ export class PackageParser {
 				"Name/signature mismatch: " + node.name + " / " + node.signature,
 			);
 		}
-		let jsdoc = node.jsdoc;
-		let id: string | undefined;
-		let entry: DeclaredItem | undefined;
 		if (node.name && node.signature) {
 			// figure out ID and check for duplicates/errors
-			id = (prefix + node.name).replace(/\.\[/, "[");
+			let id = (prefix + node.name).replace(/\.\[/, "[");
 			if (node.modifiers?.includes("private")) return;
 			if (node.name.startsWith("_") && this._warn) {
 				this._allWarnings.push(
@@ -182,7 +179,7 @@ export class PackageParser {
 				);
 			}
 			if (this._index.has(id)) {
-				if (jsdoc && this._warn) {
+				if (node.jsdoc && this._warn) {
 					let existing = this._index.get(id)!;
 					this._allWarnings.push(
 						"Pointless JSDoc override:\n> " +
@@ -229,7 +226,10 @@ export class PackageParser {
 				type = DeclaredItemType.NamespaceItem;
 				title = "namespace " + title;
 			} else if (node.type === NodeType.MethodDefinition) {
-				type = DeclaredItemType.MethodItem;
+				let isConstructor = node.name === "constructor";
+				type = isConstructor
+					? DeclaredItemType.ConstructorItem
+					: DeclaredItemType.MethodItem;
 				title += "(" + (node.paramNames || []).join(", ") + ")";
 			} else if (node.type === NodeType.PropertyDefinition) {
 				type = DeclaredItemType.PropertyItem;
@@ -268,7 +268,7 @@ export class PackageParser {
 				title = title.replace(/^(interface|type) /, "$1 " + prefix);
 
 			// add to index
-			entry = {
+			let entry: DeclaredItem = {
 				fileName: node.fileName,
 				id,
 				type,
@@ -283,9 +283,10 @@ export class PackageParser {
 				isProtected: node.modifiers?.includes("protected"),
 				signature: node.signature,
 				parent: parent?.id,
-				...this._parseJSDoc(jsdoc),
+				...this._parseJSDoc(node.jsdoc),
 			};
 			this._index.set(id, entry);
+
 			if (parent) {
 				if (!parent.members) parent.members = [];
 				parent.members.push(id);
@@ -297,7 +298,7 @@ export class PackageParser {
 			// hide constructors if needed (either from parent JSDoc or own)
 			if (
 				(entry.hideConstructor || parent?.hideConstructor) &&
-				entry.name === "constructor"
+				entry.type === DeclaredItemType.ConstructorItem
 			) {
 				entry.isPage = false;
 			}
@@ -308,10 +309,14 @@ export class PackageParser {
 				let match = node.extendsNames[0]?.match(/^extends\s+([\w\.]+)/);
 				if (match && match[1]) entry.inherits = match[1];
 			}
-		}
-		if (node.nodes) {
-			for (let n of node.nodes)
-				this._addNode(n, id ? id + "." : "", entry || parent);
+
+			// add child nodes
+			if (node.nodes) {
+				for (let n of node.nodes) this._addNode(n, id + ".", entry);
+			}
+		} else if (node.nodes) {
+			// add child nodes under parent
+			for (let n of node.nodes) this._addNode(n, "", parent);
 		}
 	}
 
@@ -411,7 +416,7 @@ export class PackageParser {
 					break;
 				case "note":
 					(inDescription ? description : inSummary ? summary : notes).push(
-						"\n> " + content + "\n",
+						"\n> **Note**<br>" + content + "\n",
 					);
 					break;
 				default:

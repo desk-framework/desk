@@ -63,7 +63,8 @@ export class DocBuilder {
 	async validateAsync() {
 		// generate HTML but ignore the output
 		for (let item of this._items) {
-			await item.toHtmlAsync(this);
+			if (item.id.indexOf(":") >= 0) continue;
+			await item.toHtmlAsync(this, true);
 		}
 		return this._warnings.slice();
 	}
@@ -80,6 +81,14 @@ export class DocBuilder {
 				if (!found) {
 					this.warn("Missing menu item:", itemId, "in", item.id);
 					continue;
+				}
+				if (found.data.menu_parent && found.data.menu_parent !== item.id) {
+					this.warn(
+						"Duplicate menu parent:",
+						itemId,
+						"of",
+						item.id + " <> " + found.data.menu_parent,
+					);
 				}
 				found.data.menu_parent = item.id;
 			}

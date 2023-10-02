@@ -13,7 +13,7 @@ const marked = new Marked(
 			let html = hljs.highlight(code, { language }).value;
 			let highlighting = 0;
 			let lines = html.split("\n").map((line) => {
-				let hlMatch = line.match(/([+~]){5,}.*(\d+)/);
+				let hlMatch = line.match(/([+~]){5,}.*(\d+)?/);
 				if (hlMatch) {
 					highlighting = hlMatch[2] ? +hlMatch[2] : 1;
 					let type = hlMatch[1] === "+" ? "good" : "bad";
@@ -119,16 +119,9 @@ export class DocItem {
 			content instanceof DocItem ? content._content : content || "";
 	}
 
-	appendContent(content?: string) {
+	appendContent(...content: string[]) {
 		if (!this._content.endsWith("\n\n")) this._content += "\n\n";
-		this._content += content || "";
-	}
-
-	appendSection(level: number, h: string, id?: string, content?: string) {
-		let suffix = id ? " {#" + id + "}" : "";
-		this.appendContent(
-			"#".repeat(level) + " " + h + suffix + "\n\n" + (content || ""),
-		);
+		this._content += content.join("\n\n");
 	}
 
 	getMenuItems(delegate: DocItemHtmlDelegate) {
@@ -153,7 +146,7 @@ export class DocItem {
 				if (found) result.push(...found.getMenuItems(delegate));
 				continue;
 			}
-			let linkRE = /\{@link\s+([\w\-\.]+)\s*\+/g;
+			let linkRE = /\{@link\s+([^\s\(\)\}]+)\s+\+/g;
 			let linkMatch: RegExpExecArray | null;
 			while ((linkMatch = linkRE.exec(line))) {
 				result.push(linkMatch[1]!);
@@ -175,11 +168,12 @@ export class DocItem {
 		);
 	}
 
-	async toHtmlAsync(delegate: DocItemHtmlDelegate) {
+	async toHtmlAsync(delegate: DocItemHtmlDelegate, validate?: boolean) {
 		let collated = await this._collateAsync(delegate);
 		let html = await marked.parse(collated);
-		this.data.menu_html = this._getMenuHtml(delegate);
-		this.data.breadcrumb_html = this._getBreadcrumbHtml(delegate);
+		if (!validate) this.data.menu_html = this._getMenuHtml(delegate);
+		if (!validate)
+			this.data.breadcrumb_html = this._getBreadcrumbHtml(delegate);
 		if (!this.data.lang) delegate.warn("No language set for", this.id);
 		if (!this.data.title) delegate.warn("No title set for", this.id);
 		if (this.data.template) {
@@ -205,17 +199,18 @@ export class DocItem {
 
 	private _getMenuHtml(delegate: DocItemHtmlDelegate) {
 		const makeLink = (menuItem: DocItem, menuId: string, current?: boolean) => {
+			let idx = menuId.indexOf(" ");
+			let title = idx < 0 ? "" : menuId.slice(idx + 1);
+			if (idx >= 0) menuId = menuId.slice(0, idx);
 			if (menuId.startsWith("#")) {
-				let idx = menuId.indexOf(" ");
-				let href = getHref(this, menuItem) + menuId.slice(0, idx);
-				let title = menuId.slice(idx + 1);
+				let href = getHref(this, menuItem) + menuId;
 				return `<li class="menu-item menu-item--heading"><a href="${href}">${title}</a></li>`;
 			}
 			let found = delegate.lookup(menuId);
 			let href = found ? getHref(this, found) : "#";
-			let title = found?.data.menu_title || found?.data.title || menuId;
-			let className =
-				"menu-item menu-item--" + (found?.data.menu_type || "doc");
+			if (!title) title = found?.data.menu_title || found?.data.title || menuId;
+			let type = found?.data.menu_type || "doc";
+			let className = "menu-item menu-item--" + type;
 			if (current) className += " menu-item--current";
 			let attr = `class="${className}"`;
 			if (current) attr += ` id="current-menu-item"`;
@@ -231,23 +226,20 @@ export class DocItem {
 		let item: DocItem | undefined = this;
 		let result = "";
 		while (item) {
-			let isRoot = !!item.data.menu_root;
-			let parentId = item.data.menu_parent;
+			let parentId = item.data.menu_parent || "index";
 			let parent = delegate.lookup(parentId);
-			let parentMenu = parent?.data.menu || [item.id];
+			let parentMenu = parent?.data.menu || [this.id];
 			let itemResult = "";
 			for (let siblingId of parentMenu) {
+				// add list item for this document
 				let isCurrent = siblingId === this.id;
-				if (!isRoot) {
-					// add list item for this document
-					itemResult += makeLink(parent || item, siblingId, isCurrent);
-				}
+				itemResult += makeLink(parent || item, siblingId, isCurrent);
 				if (isCurrent) {
 					// add list items for children of current
 					itemResult +=
-						`<ul>\n` +
+						`<ul class="menu">\n` +
 						(item.data.menu || [])
-							.map((id: string) => makeLink(this, id))
+							.map((id: string) => makeLink(this, id, false))
 							.join("") +
 						`</ul>\n`;
 				} else if (siblingId === item.id) {
@@ -255,8 +247,11 @@ export class DocItem {
 					itemResult += result;
 				}
 			}
+			let isRoot = !parent || parent?.data.menu_root;
+			let className = "menu" + (isRoot ? " menu--root" : "");
+			result = `<ul class="${className}">\n${itemResult}</ul>\n`;
 			item = parent;
-			result = isRoot ? itemResult : `<ul class="menu">\n${itemResult}</ul>\n`;
+			if (isRoot) break;
 		}
 
 		// parse header text and includes, if any
@@ -266,10 +261,11 @@ export class DocItem {
 	}
 
 	private _getBreadcrumbHtml(delegate: DocItemHtmlDelegate) {
-		let parentId = this.data.menu_parent;
+		let parentId = this.data.menu_parent || "";
 		let parent = delegate.lookup(parentId);
 		let title = parent?.data.menu_title || parent?.data.title;
 		let result = parentId ? `{@link ${parentId} ${title}}` : "";
+		if (this.data.crumb) result += " " + this.data.crumb;
 		result = this._replaceTagsText(result, delegate);
 		result = this._replaceLinks(result, delegate);
 		return result;
@@ -328,7 +324,7 @@ export class DocItem {
 		let result: string[] = [];
 		let inRefList = false;
 		for (let line of lines) {
-			let refMatch = line.match(/^-\s*\{@link\s+([\w\-\.]+)([^\}]*)\}\s*$/);
+			let refMatch = line.match(/^-\s*\{@link\s+([^\s\(\)\}]+)([^\}]*)\}\s*$/);
 			if (refMatch) {
 				if (!inRefList) result.push('<ul class="refblock_list">');
 				inRefList = true;
@@ -380,17 +376,20 @@ export class DocItem {
 		delegate: DocItemHtmlDelegate,
 		textOnly?: boolean,
 	) {
-		return line.replace(/\{@link\s+([\w\-\.]+)([^\}]*)\}/g, (s, id, rest) => {
-			let linkText = rest ? (rest === "()" ? id + "()" : rest) : id;
-			linkText = encode(linkText.trim());
-			if (textOnly) return linkText;
-			let found = delegate.lookup(id);
-			if (!found) {
-				delegate.warn("Unresolved @link:", id, "in", this.id);
-			}
-			let href = found ? getHref(this, found) : "#";
-			return `<a href="${href}">${linkText}</a>`;
-		});
+		return line.replace(
+			/\{@link\s+([^\s\(\)\}]+)([^\}]*)\}/g,
+			(s, id, rest) => {
+				let linkText = rest ? (rest === "()" ? id + "()" : rest) : id;
+				linkText = encode(linkText.trim());
+				if (textOnly) return linkText;
+				let found = delegate.lookup(id);
+				if (!found) {
+					delegate.warn("Unresolved @link:", id, "in", this.id);
+				}
+				let href = found ? getHref(this, found) : "#";
+				return `<a href="${href}">${linkText}</a>`;
+			},
+		);
 	}
 
 	private _replaceTagsText(line: string, delegate: DocItemHtmlDelegate) {

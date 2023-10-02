@@ -1,4 +1,4 @@
-export const template = async (html, data) => `
+export const template = async (html, data, builder) => `
 <!DOCTYPE html>
 <html lang="${data.lang || ""}">
 	<head>
@@ -37,7 +37,7 @@ export const template = async (html, data) => `
 			<div class="docpage_searchbar" id="docpage-searchbar"></div>
 			<div class="docpage_navbar" id="docpage-navbar">
 				<div class="docpage_navbar_header">
-					<a href="/docs/en/">Documentation (v4.0)</a>
+					<a href="/docs/en/">Docs (${builder.getTagText("VERSION")})</a>
 					<button id="navbar-searchbutton" class="navbar_searchbutton">search</button>
 					<button id="navbar-closebutton" class="navbar_closebutton">close</button>
 				</div>
@@ -53,17 +53,12 @@ export const template = async (html, data) => `
 				<article class="docpage">
 					<div class="docpage_breadcrumb">
 						<button id="breadcrumb-menubutton" class="docpage_breadcrumb_menubutton">menu</button>
-						${data.breadcrumb_html || ""}
+						<span>${data.breadcrumb_html || ""}</span>
 						<button id="breadcrumb-searchbutton" class="docpage_breadcrumb_searchbutton">search</button>
 					</div>
 					${html}
 				</article>
 			</div>
-		</div>
-		<div class="docpage_footer">
-			<span class="style--dim">
-				&copy; Copyright 2023 — Desk framework contributors
-			</span>
 		</div>
 		<script src="/script.js"></script>
 		<script src=\"/lib/desk-framework-web.es2018.iife.min.js\"></script>

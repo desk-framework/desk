@@ -396,41 +396,6 @@ export class GlobalContext extends ManagedObject {
  *
  * @description
  * Use `app` to access properties and methods of {@link GlobalContext}, e.g. `app.theme` and `app.addActivity(...)`. This instance is available immediately when the application starts, and remains the same throughout its lifetime.
- *
- * ---
- * **Initializing the app** — Use the following methods to initialize the application.
- *
- * - {@ref GlobalContext.addActivity()}
- * - {@ref GlobalContext.addService()}
- *
- * ---
- * **Logging** — Use the `app.log` methods to write messages and data to the application log.
- *
- * - {@ref GlobalContext.log}
- *
- * ---
- * **Navigation** — Use the following methods to move around the application.
- *
- * - {@ref GlobalContext.navigate()}
- * - {@ref GlobalContext.goBack()}
- * - {@ref GlobalContext.getPath()}
- *
- * ---
- * **Rendering** — Use the following methods to render views.
- *
- * - {@ref GlobalContext.showAlertDialogAsync()}
- * - {@ref GlobalContext.showConfirmDialogAsync()}
- * - {@ref GlobalContext.showModalMenuAsync()}
- * - {@ref GlobalContext.render()}
- * - {@ref GlobalContext.animateAsync()}
- *
- * ---
- * **Customization** — Use the following properties and methods to add custom behavior and styles to the application.
- *
- * - {@ref GlobalContext.theme}
- * - {@ref GlobalContext.i18n}
- * - {@ref GlobalContext.addLogHandler()}
- * - {@ref GlobalContext.setErrorHandler()}
  */
 export const app = GlobalContext.instance;
 

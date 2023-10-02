@@ -17,7 +17,8 @@ body {
 	--code-bg-color: rgba(0, 0, 0, 0.05);
 	--pre-bg-color: rgba(0, 0, 0, 0.035);
 	--border-color: #ddd;
-	--block-bg-color: #e8eeff;
+	--block-bg-color: linear-gradient(45deg, #edf, #def);
+	--primary-highlight: #29b;
 	--primary-boldest: #04a;
 	--secondary-boldest: #828;
 	--hljs-color1: #888;
@@ -31,8 +32,9 @@ body {
 	--hljs-high2b: #c30;
 	--header-background: linear-gradient(#000, #246);
 	--header-text: #fff;
+	--navbar-bg-color: #f2f2f2;
 	--navbar-icon-color: #888;
-	--nav-hover-background: #eee;
+	--nav-hover-background: rgba(0, 0, 0, 0.1);
 	--nav-heading-text: #29b;
 	--nav-current-background: rgba(210, 140, 240, 0.3);
 	--nav-current-text: #606;
@@ -54,9 +56,10 @@ body {
 		--reverse-text-color: #333;
 		--code-fg-color: #4cf;
 		--code-bg-color: rgba(255, 255, 255, 0.15);
-		--pre-bg-color: rgba(255, 255, 255, 0.1);
+		--pre-bg-color: #222;
 		--border-color: #333;
-		--block-bg-color: #152a3f;
+		--block-bg-color: linear-gradient(45deg, #414, #124);
+		--primary-highlight: #4cf;
 		--primary-boldest: #8ae;
 		--secondary-boldest: #d6d;
 		--hljs-color1: #ccc;
@@ -64,6 +67,7 @@ body {
 		--hljs-color3: #b7e;
 		--hljs-color4: #8ae;
 		--hljs-color5: #ae2;
+		--navbar-bg-color: #181818;
 		--nav-hover-background: #333;
 		--nav-heading-text: #4cf;
 		--nav-current-background: rgba(92, 8, 128, 0.3);
@@ -91,7 +95,10 @@ h1 {
 	letter-spacing: -0.01em;
 	font-size: 3rem;
 	line-height: 1.2em;
-	margin: 4rem 0 0.75rem;
+	margin: 0 0 0.75rem;
+}
+h1:first-child {
+	margin-top: 1rem;
 }
 h2 {
 	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
@@ -101,6 +108,7 @@ h2 {
 	padding-top: 1.25rem;
 	margin: 0.5rem 0 1rem;
 	counter-reset: tutorial-heading;
+	color: var(--primary-highlight);
 }
 h3 {
 	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
@@ -124,19 +132,6 @@ h4 {
 }
 * + h4 {
 	padding-top: 0.75rem;
-}
-h3.tutorial-heading::before {
-	counter-increment: tutorial-heading;
-	content: counter(tutorial-heading);
-	font-size: 0.875rem;
-	min-width: 1.75rem;
-	line-height: 1.75rem;
-	border-radius: 1.75rem;
-	background: var(--reverse-bg-color);
-	color: var(--reverse-text-color);
-	display: inline-block;
-	text-align: center;
-	margin: 0 0.5rem 0 0;
 }
 p,
 li,
@@ -193,21 +188,6 @@ blockquote > p {
 }
 blockquote > p:last-child {
 	margin-bottom: 0;
-}
-article blockquote {
-	padding: 0.825rem 1rem 0.825rem 2.75rem;
-}
-article blockquote::before {
-	content: "info_outline";
-	display: inline-block;
-	position: absolute;
-	top: 1rem;
-	left: 1rem;
-	inset: 1rem auto auto 1rem;
-	font-family: "Material Icons Outlined";
-	font-size: 18px;
-	line-height: 1;
-	color: var(--primary-boldest);
 }
 a,
 a:active {
@@ -386,8 +366,7 @@ article iframe + pre {
 	text-decoration: none;
 }
 
-.docpage_header,
-.docpage_footer {
+.docpage_header {
 	position: relative;
 	height: var(--header-height);
 	z-index: 1000;
@@ -401,12 +380,6 @@ article iframe + pre {
 
 .docpage_header {
 	background: var(--header-background);
-}
-
-.docpage_footer {
-	z-index: 100;
-	background: var(--background-color);
-	border-top: 1px solid var(--border-color);
 }
 
 .header_links {
@@ -446,7 +419,7 @@ img.docpage_header_logo {
 }
 
 article.docpage {
-	margin: 2rem auto 5rem;
+	margin: 0 auto 5rem;
 	padding: 0 1.5rem;
 	width: 100%;
 	max-width: 50rem;
@@ -474,11 +447,13 @@ article.docpage {
 	flex-direction: column;
 	align-items: stretch;
 	text-align: start;
+	box-shadow: inset -1rem 0 1rem -1rem rgba(0, 0, 0, 0.2);
+	background: var(--navbar-bg-color);
 }
 
 .docpage_navbar_header {
 	flex: 0 0 var(--header-height);
-	padding: 0 0 0 1.5rem;
+	padding: 0 0.5rem 0 1.5rem;
 	border-bottom: 1px solid var(--border-color);
 	display: flex;
 	align-items: center;
@@ -505,6 +480,8 @@ article.docpage {
 	align-items: center;
 	padding: 0 1.5rem;
 	border-top: 1px solid var(--border-color);
+	box-shadow: inset -1rem 0 1rem -1rem rgba(0, 0, 0, 0.2);
+	background: var(--navbar-bg-color);
 }
 
 .docpage_navbar_footer a {
@@ -535,7 +512,7 @@ article.docpage {
 	display: none;
 }
 
-ul.menu ul {
+ul.menu > ul {
 	margin: 0 0 0 2rem;
 }
 
@@ -548,7 +525,8 @@ li.menu-item {
 
 li.menu-item > a {
 	display: block;
-	padding: 0.35rem 0 0.35rem 3.5rem;
+	font-size: 0.875rem;
+	padding: 0.25rem 0 0.25rem 3.5rem;
 	color: inherit;
 	transition: background-color 0.2s ease;
 	white-space: nowrap;
@@ -556,17 +534,17 @@ li.menu-item > a {
 
 li.menu-item--heading > a {
 	font-weight: 500;
-	padding: 0.35rem 0 0.35rem 1.5rem;
-	margin-top: 0.35rem;
+	margin-top: 0.25rem;
+}
+
+ul.menu--root > li.menu-item--heading > a {
+	padding: 0.25rem 0 0.25rem 1.5rem;
 	color: var(--nav-heading-text);
 }
 
-li.menu-item--heading + li.menu-item--heading > a {
+li.menu-item--heading + li.menu-item--heading > a,
+li.menu-item--heading:first-child > a {
 	margin-top: 0;
-}
-
-ul > ul > li.menu-item--heading > a {
-	color: inherit;
 }
 
 li.menu-item > a:hover {
@@ -583,7 +561,7 @@ li.menu-item--current > a:hover {
 
 li.menu-item--current + ul {
 	overflow: hidden;
-	border-inline-end: 1px solid var(--nav-current-background);
+	border-inline-end: 3px solid var(--nav-current-background);
 }
 
 li.menu-item > a::before {
@@ -595,6 +573,10 @@ li.menu-item > a::before {
 	font-size: 18px;
 	display: inline-block;
 	line-height: 2rem;
+	color: var(--navbar-icon-color);
+}
+ul > ul > li.menu-item--heading > a::before {
+	content: "arrow_forward";
 }
 li.menu-item--doc > a::before {
 	content: "description";
@@ -608,11 +590,46 @@ li.menu-item--type > a::before {
 li.menu-item--function > a::before {
 	content: "label";
 }
+li.menu-item--constructor > a::before {
+	content: "new_label";
+}
 li.menu-item--var > a::before {
-	content: "bookmark_border";
+	content: "bookmark";
 }
 
 .docpage_breadcrumb {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--header-height);
+}
+
+.docpage_breadcrumb > span {
+	flex: 1 1 auto;
+	display: inline-block;
+	line-height: 2rem;
+}
+
+.docpage_breadcrumb a {
+	color: inherit;
+}
+
+.docpage_breadcrumb a::after {
+	content: "chevron_right";
+	font-family: "Material Icons Outlined";
+	font-display: block;
+	font-size: 24px;
+	padding: 0 0.5rem;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.docpage_breadcrumb_menubutton {
+	display: none;
+}
+
+.docpage_breadcrumb_searchbutton {
 	display: none;
 }
 
@@ -626,10 +643,6 @@ article h1 + blockquote > p {
 	font-weight: 300;
 	font-size: 1.3rem;
 	line-height: 1.5;
-}
-
-article h1 + blockquote::before {
-	content: "";
 }
 
 .apisignature {
@@ -686,8 +699,11 @@ article h1 + blockquote::before {
 .refblock--function > a::before {
 	content: "label";
 }
+.refblock--constructor > a::before {
+	content: "new_label";
+}
 .refblock--var > a::before {
-	content: "bookmark_border";
+	content: "bookmark";
 }
 
 .refblock > a + .doctag {
@@ -702,7 +718,7 @@ article h1 + blockquote::before {
 .doctag {
 	font-size: 0.875rem;
 	display: inline-block;
-	padding: 0 0.75rem;
+	padding: 0 0.5rem;
 	margin-inline-end: 0.5rem;
 	border-radius: 1rem;
 	background: var(--doctag-base);
@@ -726,10 +742,6 @@ article h1 + blockquote::before {
 }
 
 @media screen and (max-width: 900px) {
-	h1 {
-		margin-top: 1rem;
-	}
-
 	article.docpage {
 		max-width: none;
 	}
@@ -743,24 +755,12 @@ article h1 + blockquote::before {
 		display: none;
 	}
 
-	.docpage_breadcrumb {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.docpage_breadcrumb > a {
-		flex: 1 1 auto;
-		display: inline-block;
-		padding: 0.35rem 0.5rem;
-	}
-
 	.docpage_breadcrumb_menubutton {
 		background: none;
 		color: inherit;
 		border: none;
-		padding: 0.5rem;
+		margin: 0 0 0 -0.5rem;
+		padding: 0.5rem 1rem 0.5rem 0.5rem;
 		font-family: "Material Icons Outlined";
 		font-display: block;
 		font-size: 22px;
@@ -792,16 +792,14 @@ article h1 + blockquote::before {
 	.docpage.show_search .docpage_searchbar {
 		display: flex;
 		max-width: none;
-		padding: 1rem 1rem 0 0;
+		padding: 0 1rem 0 0.5rem;
 		flex-basis: 100%;
 	}
 
 	.docpage.show_navbar .docpage_content,
 	.docpage.show_search .docpage_content,
 	.docpage.show_navbar .docpage_navbar_footer,
-	.docpage.show_search .docpage_navbar_footer,
-	.docpage.show_navbar .docpage_footer,
-	.docpage.show_search .docpage_footer {
+	.docpage.show_search .docpage_navbar_footer {
 		display: none;
 	}
 

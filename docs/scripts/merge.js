@@ -1,6 +1,8 @@
 import { DocBuilder, SourceDocBuilder } from "@desk-framework/docgen";
 import { readFileSync } from "node:fs";
 
+const VERSION = "4.0.0";
+
 // check if in correct folder
 let name = JSON.parse(readFileSync("./package.json").toString()).name;
 if (name !== "@desk-framework/docs") {
@@ -17,13 +19,13 @@ let builder = await new DocBuilder()
 	.setTemplate("docs", await import("../templates/en/docs.js"))
 	.setTemplate("ref", await import("../templates/en/ref.js"))
 	.setTagText({
+		VERSION,
 		DOCS: "Documentation",
 		CONSTRUCTOR: "Constructor",
 		TYPEMEMBERS: "Type Members",
 		STATICMEMBERS: "Static Members",
 		INSTANCEMEMBERS: "Instance Members",
 		INHERITED: "Inherited Members",
-		DEPRECATED: "Deprecated",
 		RELATED: "Related",
 	})
 	.readItems("./content/en/_docgen_/*.md")
@@ -48,4 +50,6 @@ if (errors.length > 0) {
 	}
 	console.error("-- Completed with errors");
 	process.exit(1);
+} else {
+	console.log("Docs merged successfully");
 }
