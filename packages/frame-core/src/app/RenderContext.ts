@@ -57,7 +57,7 @@ export namespace RenderContext {
 	 * Type definition for global rendering placement options
 	 *
 	 * @description
-	 * An object of this type can be provided when rendering a view object. View activities also include a property that's used to provide placement options when rendering, i.e. {@link ViewActivity.renderPlacement}.
+	 * An object of this type can be provided when rendering a view object using {@link GlobalContext.render app.render()}, or {@link RenderContext.DynamicRendererWrapper}.
 	 *
 	 * The following properties determine how root view elements are placed on the screen:
 	 * - `mode` — One of the {@link RenderContext.PlacementMode} options.

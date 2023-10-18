@@ -61,7 +61,7 @@ export class UITheme {
 		return app.theme ? app.theme.modalDialogShadeOpacity : BASE_MODAL_OPACITY;
 	}
 
-	/** Dialog backdrop shader opacity (for {@link DialogViewActivity}), defaults to 0.3 */
+	/** Dialog backdrop shader opacity (used by modal dialog views), defaults to 0.3 */
 	modalDialogShadeOpacity = BASE_MODAL_OPACITY;
 
 	/** Default spacing between components in a row, defaults to 8 */

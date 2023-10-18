@@ -28,20 +28,19 @@ const _boundTheme = bound("theme");
  * @description
  * The activity is one of the main architectural components of a Desk application. It represents a potential 'place' in the application, which can be activated and deactivated when the user navigates around.
  *
- * This class provides infrastructure for path-based routing, based on the application's location, such as the browser URL. However, activities can also be activated and deactivated manually.
+ * This class provides infrastructure for path-based routing, based on the application's location, such as the browser URL. However, activities can also be activated and deactivated manually, or activated immediately when added using {@link GlobalContext.addActivity app.addActivity()}.
  *
  * Activities emit `Active` and `Inactive` change events when state transitions occur.
  *
- * @note The base Activity class does **not** render a view. Use the {@link ViewActivity} class instead for an activity that renders an accompanying view.
- *
- * @see {@link ViewActivity}
+ * This class also provides a {@link view} property, which can be set to a view object. Usually, this property is set in the {@link Activity.ready()} method. Afterwards, if the activity corresponds to a full page or dialog, this method should call {@link app} methods to show the view. The view is automatically unlinked when the activity is deactivated, and the property is set to undefined.
  *
  * @example
  * // Create an activity and activate it:
  * class MyActivity extends Activity {
  *   path = "foo";
- *   protected async afterActiveAsync() {
- *     console.log("MyActivity is now active");
+ *   protected ready() {
+ *     this.view = new body(); // imported from a view file
+ *     app.render(this.view);
  *   }
  * }
  *
@@ -277,7 +276,7 @@ export class Activity extends ManagedObject {
 	 * Delegates events from the current view
 	 * - This method is called automatically when an event is emitted by the current view object.
 	 * - The base implementation calls activity methods starting with `on`, e.g. `onClick` for a `Click` event. The event is passed as a single argument, and the return value should either be `true`, undefined, or a promise (which is awaited just to be able to handle any errors).
-	 * - This method may be overridden to handle events in any other way, e.g. to propagate them by emitting the same event on the ViewActivity instance itself.
+	 * - This method may be overridden to handle events in any other way, e.g. to propagate them by emitting the same event on the activity object itself.
 	 * @param event The event to be delegated (from the view)
 	 * @returns True if an event handler was found, and it returned true; false otherwise.
 	 */

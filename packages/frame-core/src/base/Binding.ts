@@ -71,8 +71,11 @@ export function isBinding<T = any>(value: any): value is Binding<T> {
  *   )
  * );
  *
- * export class MyActivity extends PageViewActivity {
- *   static override ViewBody = BodyView;
+ * export class MyActivity extends Activity {
+ *   protected ready() {
+ *     this.view = new BodyView();
+ *     app.render(this.view);
+ *   }
  *   user = { name: "Foo Bar" };
  *   roles = ["Administrator", "Contributor", "Viewer"];
  *   onRemoveRole(e: UIList.ItemEvent<string>) {
