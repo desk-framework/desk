@@ -61,11 +61,11 @@ describe("Focus management", (scope) => {
 		let out = await t.expectOutputAsync(100, { text: "first", focused: true });
 
 		t.log("Focusing next");
-		out.getSingleComponent(UIButton).requestFocusNext();
+		out.getSingleView(UIButton).requestFocusNext();
 		out = await t.expectOutputAsync(100, { text: "second", focused: true });
 
 		t.log("Focusing previous");
-		out.getSingleComponent(UIButton).requestFocusPrevious();
+		out.getSingleView(UIButton).requestFocusPrevious();
 		out = await t.expectOutputAsync(100, { text: "first", focused: true });
 	});
 

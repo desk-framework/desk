@@ -38,10 +38,7 @@ export type ViewEvent<
  * @see {@link UIComponent}
  * @see {@link ViewComposite}
  */
-export abstract class View
-	extends ManagedObject
-	implements RenderContext.Renderable
-{
+export abstract class View extends ManagedObject {
 	/**
 	 * A method that should be implemented to render a View object
 	 * - The view may be rendered asynchronously, providing output as well as any updates to the provided renderer callback.
