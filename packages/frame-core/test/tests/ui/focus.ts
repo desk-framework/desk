@@ -22,7 +22,7 @@ describe("Focus management", (scope) => {
 	test("Single element, initial focus", async (t) => {
 		let MyCell = UICell.with({ requestFocus: true, allowFocus: true });
 		let cell = new MyCell();
-		app.renderer!.render(cell);
+		app.render(cell);
 		let elt = (await t.expectOutputAsync(100, { type: "cell" })).getSingle();
 		expect(elt.hasFocus()).toBeTruthy();
 	});
@@ -30,7 +30,7 @@ describe("Focus management", (scope) => {
 	test("Single element, request focus", async (t) => {
 		let MyCell = UICell.with({ allowFocus: true });
 		let cell = new MyCell();
-		app.renderer!.render(cell);
+		app.render(cell);
 		await t.expectOutputAsync(100, { type: "cell" });
 		cell.requestFocus();
 		await t.expectOutputAsync(100, { type: "cell", focused: true });
@@ -44,7 +44,7 @@ describe("Focus management", (scope) => {
 			}
 		}
 		let view = new MyView();
-		app.renderer!.render(view);
+		app.render(view);
 		await t.expectOutputAsync(100, { type: "cell" });
 		view.requestFocus();
 		await t.expectOutputAsync(100, { type: "cell", focused: true });
@@ -57,7 +57,7 @@ describe("Focus management", (scope) => {
 		);
 
 		t.log("Focusing first");
-		app.renderer!.render(new MyCell());
+		app.render(new MyCell());
 		let out = await t.expectOutputAsync(100, { text: "first", focused: true });
 
 		t.log("Focusing next");
