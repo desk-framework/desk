@@ -37,26 +37,6 @@ type RefLink<TObject extends ManagedObject> = {
 /** Symbol property that's used to store linked list reference */
 const $_list = Symbol("list");
 
-/** @internal A class that's used to loop over objects in a {@link ManagedList} */
-class ManagedListIterator<T extends ManagedObject> implements Iterator<T> {
-	/** @internal */
-	constructor(private _head?: RefLink<T>) {}
-	next(): IteratorResult<T> {
-		let head = this._head;
-		if (head) {
-			// get current object, is undefined if link was removed
-			let value = head.o;
-			if (value) {
-				// point head to next link already, then return current object
-				this._head = head.n;
-				return { value, done: false };
-			}
-			this._head = undefined;
-		}
-		return { done: true, value: undefined };
-	}
-}
-
 /**
  * A data structure that contains an ordered set of managed objects
  *
@@ -71,9 +51,9 @@ class ManagedListIterator<T extends ManagedObject> implements Iterator<T> {
  *
  * Managed lists are used in many places throughout the framework, such as to reference view objects within a {@link UIContainer} object. Managed lists can also be used by application code to efficiently represent lists of data models or other records.
  *
- * **Attaching list items** — By default, objects aren't attached to the list, so they could be attached to other objects themselves and still be part of a managed list. However, you can enable auto-attaching of objects in a list using the {@link ManagedList.autoAttach()} method — **or** by attaching the list itself to another object. This ensures that objects in a list are only attached to the list itself, and are unlinked when they're removed from the list (and removed from the list when they're no longer attached to it, e.g. when moved to another auto-attaching list).
+ * **Attaching list items** — By default, objects aren't attached to the list, so they could be attached to other objects themselves and still be part of a managed list. However, you can enable auto-attaching of objects in a list using the {@link ManagedList.attachAll()} method — **or** by attaching the list itself to another object. This ensures that objects in a list are only attached to the list itself, and are unlinked when they're removed from the list (and removed from the list when they're no longer attached to it, e.g. when moved to another auto-attaching list).
  *
- * **Events** — Since ManagedList itself inherits from ManagedObject, a list can emit events, too. When any objects are added, moved, or removed, a {@link ManagedList.ChangeEvent} is emitted. In addition, for auto-attaching lists (see {@link ManagedList.autoAttach()}) any events that are emitted by an object are re-emitted on the list itself. The {@link ManagedEvent.source} property can be used to find the object that originally emitted the event.
+ * **Events** — Since ManagedList itself inherits from ManagedObject, a list can emit events, too. When any objects are added, moved, or removed, a {@link ManagedList.ChangeEvent} is emitted. In addition, for auto-attaching lists (see {@link ManagedList.attachAll()}) any events that are emitted by an object are re-emitted on the list itself. The {@link ManagedEvent.source} property can be used to find the object that originally emitted the event.
  *
  * **Nested lists** — Managed lists can contain (and even attach to) other managed lists, which allows for building nested or recursive data structures that fully support bindings and events.
  *
@@ -111,7 +91,7 @@ export class ManagedList<
 			this,
 			$_origin,
 			(t, p, v) => {
-				if (v && this._attach === undefined) this.autoAttach(true);
+				if (v && this._attach === undefined) this.attachAll(true);
 			},
 			() => {
 				// ... and clear the list when unlinked
@@ -137,14 +117,31 @@ export class ManagedList<
 		return idx >= 0 && idx < this[$_list].map.size ? this.get(idx) : undefined;
 	}
 
+	/** Iterator symbol, alias of {@link objects()} method */
+	declare [Symbol.iterator]: () => IterableIterator<T>;
+
 	/**
-	 * Iterator symbol, enables managed lists to work with 'for...of' statements
+	 * Returns an iterable iterator for this list
+	 * - The iterable iterator can be used to iterate over the list using a 'for...of' statement, without being able to modify the list itself (similar to the `Array.values` method).
+	 * - If the list is unlinked, the iterator stops immediately.
 	 * @note The behavior of the iterator is undefined if the object _after_ the current object is removed, moved, or if another object is inserted before it. Removing the _current_ object or any previous objects during iteration is safe.
-	 * @error The iterator throws an error if the list has been unlinked.
 	 */
-	[Symbol.iterator](): Iterator<T> {
-		if (this.isUnlinked()) throw err(ERROR.Object_Unlinked);
-		return new ManagedListIterator(this[$_list].h);
+	objects(): IterableIterator<T> {
+		let head = this[$_list].h;
+		return {
+			[Symbol.iterator]() {
+				return this;
+			},
+			next: (): IteratorResult<T> => {
+				let o = head && head.o;
+				if (!this.isUnlinked() && o) {
+					// point head to next link already, then return current object
+					head = head!.n;
+					return { value: o, done: false };
+				}
+				return { done: true, value: (head = undefined) };
+			},
+		};
 	}
 
 	/**
@@ -177,27 +174,24 @@ export class ManagedList<
 		if (refs.map.has(target)) throw err(ERROR.List_Duplicate);
 
 		// create new link to insert in the list
-		let link: RefLink<T> = { o: target, p: undefined, n: undefined };
-		refs.map.set(target, link);
-
-		// add to the list
+		let link: RefLink<T>;
 		if (before) {
 			// ... before other link
 			let next = refs.map.get(before)!;
 			let prev = next.p;
-			link.p = prev;
-			link.n = next;
+			link = { o: target, p: prev, n: next };
 			next.p = link;
 			if (prev) prev.n = link;
 			else refs.h = link;
 		} else {
 			// ... or after current tail
 			let tail = refs.t;
-			link.p = tail;
+			link = { o: target, p: tail, n: undefined };
 			if (tail) tail.n = link;
 			else refs.h = link;
 			refs.t = link;
 		}
+		refs.map.set(target, link);
 
 		// attach object if needed
 		if (this._attach) this._attachObject(target);
@@ -454,17 +448,19 @@ export class ManagedList<
 	 */
 	take(n: number, startingFrom?: T) {
 		if (this.isUnlinked()) return [];
-		let result: T[] = [];
+		let result: T[] = Array(n);
 		let head: RefLink<T> | undefined = this[$_list].h;
 
 		// if not starting from head, adjust position
 		if (startingFrom) head = this[$_list].map.get(startingFrom);
 
-		// take n elements by pushing onto array
-		for (let i = 0; head && i < n; i++) {
-			result.push(head.o);
+		// take n elements and set on array
+		let i: number;
+		for (i = 0; head && i < n; ) {
+			result[i++] = head.o;
 			head = head.n;
 		}
+		result.length = i;
 		return result;
 	}
 
@@ -513,51 +509,43 @@ export class ManagedList<
 
 	/** Returns the first object in the list for which the provided callback returns true */
 	find(callback: (target: T) => any) {
-		if (this.isUnlinked()) return false;
 		for (let t of this) if (callback(t)) return t;
 	}
 
 	/** Returns true if the provided callback returns true for at least one object in the list */
 	some(callback: (target: T) => any) {
-		if (this.isUnlinked()) return false;
 		for (let t of this) if (callback(t)) return true;
 		return false;
 	}
 
 	/** Returns true if the provided callback returns true for all objects in the list */
 	every(callback: (target: T) => any) {
-		if (this.isUnlinked()) return false;
 		for (let t of this) if (!callback(t)) return false;
 		return true;
 	}
 
-	/** Returns an array of return values of the provided callback for all objects in the list */
+	/**
+	 * Returns an array of return values of the provided callback for all objects in the list
+	 * - If the list is unlinked, this method returns an empty array.
+	 * - The behavior of this method is undefined if the callback modifies the list.
+	 */
 	map<TResult>(callback: (target: T) => TResult) {
-		if (this.isUnlinked()) throw err(ERROR.Object_Unlinked);
 		let result: TResult[] = [];
 		for (let t of this) result.push(callback(t));
 		return result;
 	}
 
-	/** Returns an array with the values of the specified property for all objects in the list. */
-	pluck<K extends keyof T>(propertyName: K) {
-		if (this.isUnlinked()) return [];
-		let result: Array<T[K]> = new Array(this[$_list].map.size);
-		let head = this[$_list].h;
-		for (let i = 0; head; i++) {
-			result[i] = head.o[propertyName];
-			head = head.n;
-		}
-		return result;
-	}
-
-	/** Returns an array that contains all objects in the list */
+	/**
+	 * Returns an array that contains all objects in the list
+	 * - If the list is unlinked, this method returns an empty array.
+	 * - If you only need to iterate over all values, use the {@link objects()} method instead.
+	 */
 	toArray() {
 		if (this.isUnlinked()) return [];
-		let result: T[] = new Array(this[$_list].map.size);
 		let head = this[$_list].h;
-		for (let i = 0; head; i++) {
-			result[i] = head.o;
+		let result: T[] = new Array(this[$_list].map.size);
+		for (let i = 0; head; ) {
+			result[i++] = head.o;
 			head = head.n;
 		}
 		return result;
@@ -604,7 +592,7 @@ export class ManagedList<
 	 *
 	 * @error This method throws an error if the feature can't be enabled or disabled.
 	 */
-	autoAttach(set: boolean, noEventPropagation?: boolean) {
+	attachAll(set: boolean, noEventPropagation?: boolean) {
 		// set property to false ONLY if no attached objects
 		if (!set && this._attach && this[$_list].map.size) {
 			throw err(ERROR.List_AttachState);
@@ -631,7 +619,7 @@ export class ManagedList<
 		attachObject(this, target, new AttachObserver(this, !this._noPropagation));
 	}
 
-	/** True if objects should be attached to this map when added (and no duplicates allowed) */
+	/** True if objects should be attached to this list when added (and no duplicates allowed) */
 	private _attach?: boolean;
 
 	/** True if attached object events should NOT be propagated */
@@ -643,6 +631,9 @@ export class ManagedList<
 	/** @internal Linked list, containing all objects */
 	private readonly [$_list]: LinkedList<T>;
 }
+
+// set iterator to objects() method
+ManagedList.prototype[Symbol.iterator] = ManagedList.prototype.objects;
 
 export namespace ManagedList {
 	/** Type definition for an event that's emitted when elements are added to, removed from, or moved within a list */

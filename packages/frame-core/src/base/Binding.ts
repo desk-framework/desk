@@ -3,7 +3,12 @@ import { LazyString } from "./LazyString.js";
 import { ManagedEvent } from "./ManagedEvent.js";
 import { ManagedObject } from "./ManagedObject.js";
 import type { GlobalEmitter } from "./GlobalEmitter.js";
-import { $_unlinked, watchBinding } from "./object_util.js";
+import {
+	$_bindFilter,
+	$_unlinked,
+	guard,
+	watchBinding,
+} from "./object_util.js";
 
 /** Constant used to check against (new) binding value */
 const NO_VALUE = {};
@@ -66,8 +71,11 @@ export function isBinding<T = any>(value: any): value is Binding<T> {
  *   )
  * );
  *
- * export class MyActivity extends PageViewActivity {
- *   static override ViewBody = BodyView;
+ * export class MyActivity extends Activity {
+ *   protected ready() {
+ *     this.view = new BodyView();
+ *     app.render(this.view);
+ *   }
  *   user = { name: "Foo Bar" };
  *   roles = ["Administrator", "Contributor", "Viewer"];
  *   onRemoveRole(e: UIList.ItemEvent<string>) {
@@ -78,6 +86,19 @@ export function isBinding<T = any>(value: any): value is Binding<T> {
 export class Binding<T = any> {
 	/** Event emitter used by {@link Binding.debug()} */
 	declare static debugEmitter: GlobalEmitter<Binding.DebugEvent>;
+
+	/**
+	 * Restricts bindings that can be bound to (attached parent objects of) the specified object, if the object itself does not include a corresponding property
+	 * @note This method is used automatically on the {@link app} object, since any attempt to bind to a property (e.g. from the view) should at least stop there. For further limitations, call this method with a filter to restrict bindings on any other object.
+	 * @param object The object for which to restrict bindings
+	 * @param filter A function that returns true if a property is allowed to pass, or false if an attempt to bind should result in an unhandled error; if not provided, no properties are allowed
+	 */
+	static limitTo(
+		object: ManagedObject,
+		filter?: (property: string | symbol) => boolean,
+	) {
+		object[$_bindFilter] = filter ? guard(filter) : () => false;
+	}
 
 	/**
 	 * Creates a new binding for given property and default value; use {@link bound()} functions instead
@@ -95,10 +116,8 @@ export class Binding<T = any> {
 		this._apply = !source
 			? function () {}
 			: (register, update) =>
-					register(
-						path,
-						(value, bound) => update(value ?? defaultValue, bound),
-						this._events,
+					register(path, (value, bound) =>
+						update(value ?? defaultValue, bound),
 					);
 
 		// parse source path
@@ -478,7 +497,6 @@ export class Binding<T = any> {
 		register: (
 			path: readonly string[],
 			callback: (value: any, bound: boolean) => void,
-			watchChangeEvents?: boolean,
 		) => void,
 		update: (value: any, bound: boolean) => void,
 	) => void;
@@ -515,9 +533,6 @@ export class Binding<T = any> {
 
 	/** Binding source text */
 	private _source?: string;
-
-	/** True if binding should be updated when a change event is emitted on a bound managed object (if it's the current value of the binding; only set when filters are added) */
-	private _events?: boolean;
 }
 
 Binding.prototype.isManagedBinding = _isManagedBinding;

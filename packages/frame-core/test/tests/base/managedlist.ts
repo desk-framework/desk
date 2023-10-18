@@ -289,13 +289,16 @@ describe("ManagedList", () => {
 			expect(list.includes(a)).toBeFalsy();
 			expect(() => list.add(new NamedObject(""))).toThrowError();
 			expect(() => {
-				for (let _t of list);
-			}).toThrowError();
-			expect(() => list.map(() => {})).toThrowError();
-			expect(list.find(() => {})).toBe(false);
+				let i = 0;
+				for (let _t of list) i++;
+				return i;
+			})
+				.not.toThrowError()
+				.toBe(0);
+			expect(list.map(() => {})).toBeArray(0);
+			expect(list.find(() => {})).toBe(undefined);
 			expect(list.some(() => {})).toBe(false);
-			expect(list.every(() => {})).toBe(false);
-			expect(list.pluck("name")).toBeArray(0);
+			expect(list.every(() => {})).toBe(true);
 		});
 
 		test("Reverse", () => {
@@ -351,6 +354,26 @@ describe("ManagedList", () => {
 				typeof objects,
 			];
 		}
+
+		test("Iterable iterator (objects)", (t) => {
+			let [list1, list2, orig] = makeLists();
+
+			t.log("list1...");
+			let i = 0;
+			for (let t of list1) expect(t).toBe(orig[i++]);
+			expect(i).toBe(orig.length);
+
+			t.log("list2...");
+			i = 0;
+			for (let t of list2) expect(t).toBe(orig[i++]);
+			expect(i).toBe(orig.length);
+
+			t.log("list2.objects...");
+			let iter = list2.objects();
+			i = 0;
+			for (let t of iter) expect(t).toBe(orig[i++]);
+			expect(i).toBe(orig.length);
+		});
 
 		test("get", () => {
 			let [list1, list2] = makeLists();
@@ -477,12 +500,6 @@ describe("ManagedList", () => {
 			expect(list2.map((o) => o)).toBeArray(orig);
 		});
 
-		test("pluck", () => {
-			let [list1, list2] = makeLists();
-			expect(list1.pluck("name")).toBeArray(["a", "b", "c", "d", "e"]);
-			expect(list2.pluck("name")).toBeArray(["a", "b", "c", "d", "e"]);
-		});
-
 		test("toArray and toJSON", () => {
 			let [list1, list2, orig] = makeLists();
 			expect(list1.toArray()).toBeArray(orig);
@@ -510,7 +527,7 @@ describe("ManagedList", () => {
 			for (let t of list) {
 				if (t.name === "d") list.insert(a, t);
 			}
-			expect(list.pluck("name")).toBeArray(["b", "c", "a", "d", "e"]);
+			expect(list.map((a) => a.name)).toBeArray(["b", "c", "a", "d", "e"]);
 		});
 
 		test("Clearing in the middle of an iterator", () => {
@@ -530,7 +547,7 @@ describe("ManagedList", () => {
 			let a = new NamedObject("a");
 			let list = new ManagedList(a);
 			expect(ManagedObject.whence(a)).toBeUndefined();
-			let parent = new ManagedList().autoAttach(true);
+			let parent = new ManagedList().attachAll(true);
 			parent.add(list);
 			expect(ManagedObject.whence(list)).toBe(parent);
 			expect(ManagedObject.whence(a)).toBe(list);
@@ -540,11 +557,11 @@ describe("ManagedList", () => {
 		});
 
 		test("Override auto attach", () => {
-			let list = new ManagedList().autoAttach(false);
+			let list = new ManagedList().attachAll(false);
 			let a = new NamedObject("a");
 			list.add(a);
 			expect(ManagedObject.whence(a)).toBeUndefined();
-			let parent = new ManagedList().autoAttach(true);
+			let parent = new ManagedList().attachAll(true);
 			parent.add(list);
 			expect(ManagedObject.whence(list)).toBe(parent);
 			expect(ManagedObject.whence(a)).toBeUndefined();
@@ -556,13 +573,13 @@ describe("ManagedList", () => {
 		test("Can't override with existing objects", () => {
 			let a = new NamedObject("a");
 			let list = new ManagedList(a);
-			let parent = new ManagedList().autoAttach(true);
+			let parent = new ManagedList().attachAll(true);
 			parent.add(list);
-			expect(() => list.autoAttach(false)).toThrowError();
+			expect(() => list.attachAll(false)).toThrowError();
 		});
 
 		test("Attached objects, before adding", () => {
-			let list = new ManagedList().autoAttach(true);
+			let list = new ManagedList().attachAll(true);
 			let a = new NamedObject("a");
 			list.add(a);
 			expect(ManagedObject.whence(a)).toBe(list);
@@ -570,48 +587,48 @@ describe("ManagedList", () => {
 
 		test("Attached objects, after adding", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			expect(ManagedObject.whence(a)).toBe(list);
 		});
 
 		test("Attached objects are unlinked when removed: remove", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			list.remove(a);
 			expect(a.isUnlinked()).toBeTruthy();
 		});
 
 		test("Attached objects are unlinked when removed: clear", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			list.clear();
 			expect(a.isUnlinked()).toBeTruthy();
 		});
 
 		test("Attached objects are unlinked when removed: unlink", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			list.unlink();
 			expect(a.isUnlinked()).toBeTruthy();
 		});
 
 		test("Objects aren't unlinked when not attached: remove", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(false);
+			let list = new ManagedList(a).attachAll(false);
 			list.remove(a);
 			expect(a.isUnlinked()).toBeFalsy();
 		});
 
 		test("Objects aren't unlinked when not attached: clear", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(false);
+			let list = new ManagedList(a).attachAll(false);
 			list.clear();
 			expect(a.isUnlinked()).toBeFalsy();
 		});
 
 		test("Objects aren't unlinked when not attached: unlink", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(false);
+			let list = new ManagedList(a).attachAll(false);
 			list.unlink();
 			expect(a.isUnlinked()).toBeFalsy();
 		});
@@ -619,7 +636,7 @@ describe("ManagedList", () => {
 		test("Attached objects are moved using replace", () => {
 			let a = new NamedObject("a");
 			let b = new NamedObject("b");
-			let list = new ManagedList(a, b).autoAttach(true);
+			let list = new ManagedList(a, b).attachAll(true);
 			list.replace([b, a]);
 			expect(a.isUnlinked()).toBeFalsy();
 			expect(b.isUnlinked()).toBeFalsy();
@@ -627,7 +644,7 @@ describe("ManagedList", () => {
 
 		test("Remove attached object when unlinked", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			expect(ManagedObject.whence(a)).toBe(list);
 			a.unlink();
 			expect(ManagedObject.whence(a)).toBeUndefined();
@@ -708,7 +725,7 @@ describe("ManagedList", () => {
 
 		test("Object removed event: unlink attached object", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			let observer = new ListEventObserver().observe(list);
 			a.unlink();
 			expect(observer.removed).toBe(1);
@@ -722,10 +739,10 @@ describe("ManagedList", () => {
 
 		test("Object removed event: move attached object", (t) => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			expect(ManagedObject.whence(a)).toBe(list);
 			t.log(list.toArray());
-			let other = new ManagedList().autoAttach(true);
+			let other = new ManagedList().attachAll(true);
 			let observer = new ListEventObserver().observe(list);
 			other.add(a);
 			expect(ManagedObject.whence(a)).toBe(other);
@@ -770,7 +787,7 @@ describe("ManagedList", () => {
 
 		test("List change event: clear (attached)", () => {
 			let a = new NamedObject("a");
-			let list = new ManagedList(a).autoAttach(true);
+			let list = new ManagedList(a).attachAll(true);
 			let observer = new ListEventObserver().observe(list);
 			list.clear();
 			expect(observer.removed).toBe(0);
