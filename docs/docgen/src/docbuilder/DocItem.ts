@@ -13,10 +13,10 @@ const marked = new Marked(
 			let html = hljs.highlight(code, { language }).value;
 			let highlighting = 0;
 			let lines = html.split("\n").map((line) => {
-				let hlMatch = line.match(/([+~]){5,}.*(\d+)?/);
-				if (hlMatch) {
+				let hlMatch = line.match(/([+~]{5,})\W*(\d+)?/);
+				if (hlMatch && hlMatch[1]) {
 					highlighting = hlMatch[2] ? +hlMatch[2] : 1;
-					let type = hlMatch[1] === "+" ? "good" : "bad";
+					let type = hlMatch[1][0] === "+" ? "good" : "bad";
 					return `<span class="hljs--highlight-${type}">`;
 				}
 				if (highlighting) {

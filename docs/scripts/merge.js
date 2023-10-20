@@ -35,7 +35,9 @@ let builder = await new DocBuilder()
 			template: "docs",
 		}),
 	)
-	.merge(SourceDocBuilder.fromSource("./content/en/samples/*.ts", "ts"))
+	.merge(
+		SourceDocBuilder.fromSource("./content/en/samples/**/*.{ts,tsx}", "ts"),
+	)
 	.buildMenu()
 	.writeHtmlAsync("../_site/docs/en");
 

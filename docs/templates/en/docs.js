@@ -1,3 +1,4 @@
+import { encode } from "html-entities";
 export const template = async (html, data, builder) => `
 <!DOCTYPE html>
 <html lang="${data.lang || ""}">
@@ -15,6 +16,7 @@ export const template = async (html, data, builder) => `
 		/>
 		<link rel="stylesheet" href="/style.css?t=${Date.now()}" />
 		<title>Desk framework - ${data.title || data.id || ""}</title>
+		<meta name="description" content="${encode(data.abstract) || ""}" />
 	</head>
 	<body class="docpage">
 		<div class="docpage_header">
