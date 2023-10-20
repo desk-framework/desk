@@ -1,23 +1,25 @@
 import {
+	Binding,
 	ConfigOptions,
 	LazyString,
 	ManagedObject,
 	StringConvertible,
 } from "../base/index.js";
-import { err, ERROR, errorHandler, setErrorHandler } from "../errors.js";
-import { ActivationContext } from "./ActivationContext.js";
-import { ServiceContext } from "./ServiceContext.js";
-import type { Activity } from "./Activity.js";
-import type { I18nProvider } from "./I18nProvider.js";
-import type { NavigationTarget } from "./NavigationTarget.js";
-import type { ActivationPath } from "./ActivationPath.js";
-import type { RenderContext } from "./RenderContext.js";
-import type { ViewportContext } from "./ViewportContext.js";
+import { ERROR, err, errorHandler, setErrorHandler } from "../errors.js";
 import { UITheme } from "../ui/UITheme.js";
-import { Scheduler } from "./Scheduler.js";
+import { ActivationContext } from "./ActivationContext.js";
+import type { ActivationPath } from "./ActivationPath.js";
+import { Activity } from "./Activity.js";
+import type { I18nProvider } from "./I18nProvider.js";
 import { LogWriter } from "./LogWriter.js";
 import { MessageDialogOptions } from "./MessageDialogOptions.js";
+import type { NavigationTarget } from "./NavigationTarget.js";
+import { RenderContext } from "./RenderContext.js";
+import { Scheduler } from "./Scheduler.js";
 import { Service } from "./Service.js";
+import { ServiceContext } from "./ServiceContext.js";
+import type { View } from "./View.js";
+import type { ViewportContext } from "./ViewportContext.js";
 
 /**
  * A singleton class that represents the global application state
@@ -35,9 +37,10 @@ export class GlobalContext extends ManagedObject {
 	private constructor() {
 		if (GlobalContext.instance) throw Error;
 		super();
-		this.observeAttach("services");
-		this.observeAttach("activities");
-		this.observeAttach("renderer");
+		Binding.limitTo(this);
+		this.autoAttach("services");
+		this.autoAttach("activities");
+		this.autoAttach("renderer");
 
 		// define i18n property and handle new objects when set
 		let i18n: I18nProvider | undefined;
@@ -229,45 +232,40 @@ export class GlobalContext extends ManagedObject {
 	 *
 	 * @summary This method can be used to render any view object to the screen (or in-memory test output, when called from a test function), such as a {@link UICell} or {@link ViewComposite} instance.
 	 *
-	 * @note Don't call this method directly with views that are part of {@link ViewActivity} instances; add activities to the global context (using {@link GlobalContext.addActivity app.addActivity()}) and activate them to render the associated view.
-	 *
 	 * @param view The view object to be rendered
-	 * @param place Global view placement options, refer to {@link RenderContext.PlacementOptions}
+	 * @param place Mount element ID, or global view placement options, refer to {@link RenderContext.PlacementOptions}
 	 * @returns A new {@link RenderContext.DynamicRendererWrapper} instance, which can be used to control the rendered view
 	 * @error This method throws an error if the renderer hasn't been initialized yet.
 	 */
-	render(
-		view: RenderContext.Renderable,
-		place?: RenderContext.PlacementOptions,
-	) {
+	render(view: View, place: string | RenderContext.PlacementOptions) {
 		if (!this.renderer) throw err(ERROR.GlobalContext_NoRenderer);
-		return this.renderer.render(view, undefined, place || { mode: "default" });
+		return new RenderContext.DynamicRendererWrapper().render(
+			view,
+			this.renderer.getRenderCallback(),
+			typeof place === "string" ? { mode: "mount", mountId: place } : place,
+		);
 	}
 
 	/**
-	 * Runs an animation on the provided view output element
-	 *
-	 * @summary This method passes a renderer-specific transformation object to an asynchronous function, which may use methods on the transformation object to animate the view output.
-	 * @see {@link RenderContext.OutputTransform}
-	 * @see {@link RenderContext.OutputTransformer}
-	 * @see {@link UITheme.animations}
-	 *
-	 * @param ref The UI component to be animated
-	 * @param transformer An asynchronous function that performs transformations, or a named animation from the current theme
+	 * Displays a full-screen page with the specified content view
+	 * - The page will be displayed until the view is unlinked. Further rendered content will be placed on top, if any.
+	 * @param view The view object to be displayed
 	 * @error This method throws an error if the renderer hasn't been initialized yet.
 	 */
-	async animateAsync(
-		ref: { lastRenderOutput?: RenderContext.Output },
-		animation?: RenderContext.OutputTransformer | `@${string}`,
-	) {
-		if (!this.renderer) throw err(ERROR.GlobalContext_NoRenderer);
-		let out = ref.lastRenderOutput;
-		let t = out && this.renderer.transform(out);
-		let f =
-			typeof animation === "string"
-				? this.theme?.animations.get(animation.slice(1))
-				: animation;
-		if (t && f) await f(t);
+	showPage(view: View) {
+		this.render(view, { mode: "page" });
+	}
+
+	/**
+	 * Displays a modal dialog with the specified content view
+	 * - The dialog will be displayed until the view is unlinked. View events are not handled, so add a listener separately if necessary.
+	 * @param view The view object to be displayed within a modal dialog
+	 * @error This method throws an error if the theme modal dialog controller can't be initialized (i.e. there's no current theme, or the theme doesn't support modal dialog views).
+	 */
+	showDialog(view: View) {
+		let controller = this.theme?.modalFactory?.buildDialog?.(view);
+		if (!controller) throw err(ERROR.GlobalContext_NoModal);
+		controller.show();
 	}
 
 	/**
@@ -352,6 +350,32 @@ export class GlobalContext extends ManagedObject {
 	}
 
 	/**
+	 * Runs an animation on the provided view output element
+	 *
+	 * @summary This method passes a renderer-specific transformation object to an asynchronous function, which may use methods on the transformation object to animate the view output.
+	 * @see {@link RenderContext.OutputTransform}
+	 * @see {@link RenderContext.OutputTransformer}
+	 * @see {@link UITheme.animations}
+	 *
+	 * @param ref The UI component to be animated
+	 * @param transformer An asynchronous function that performs transformations, or a named animation from the current theme
+	 * @error This method throws an error if the renderer hasn't been initialized yet.
+	 */
+	async animateAsync(
+		ref: { lastRenderOutput?: RenderContext.Output },
+		animation?: RenderContext.OutputTransformer | `@${string}`,
+	) {
+		if (!this.renderer) throw err(ERROR.GlobalContext_NoRenderer);
+		let out = ref.lastRenderOutput;
+		let t = out && this.renderer.transform(out);
+		let f =
+			typeof animation === "string"
+				? this.theme?.animations.get(animation.slice(1))
+				: animation;
+		if (t && f) await f(t);
+	}
+
+	/**
 	 * Adds a log sink for the current {@link LogWriter} instance
 	 * @param minLevel The minimum log level for which messages are passed to the handler function
 	 * @param f A handler function, which should accept a single {@link LogWriter.LogMessageData} argument
@@ -377,9 +401,9 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * Adds a hot-reload handler for the provided module handle, to update instances of a particular activity
-	 * - Where supported, hot-reloading the provided module will update instances of the specified activity: updating methods (but not properties), and re-rendering existing views.
+	 * - Where supported, hot-reloading the provided module will update instances of the specified activity: updating methods (but not properties), and calling {@link Activity.ready()}.
 	 * - If hot-reloading isn't supported, e.g. if the application is compiled in production mode, this method does nothing.
-	 * @param module The module that contains the activity to be hot-reloaded
+	 * @param handle The module that contains the activity to be hot-reloaded, or hot-reload handle (e.g. `import.meta.hot`, depending on build system)
 	 * @param ActivityClass The activity that should be updated and re-rendered
 	 */
 	hotReload(handle: any, ActivityClass: new (...args: any[]) => Activity) {

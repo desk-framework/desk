@@ -1,23 +1,22 @@
 import {
-	bound,
-	ManagedEvent,
-	PageViewActivity,
-	app,
-	UIButton,
-	UICell,
-	UILabel,
-	UIViewRenderer,
-	ViewActivity,
-	UITextField,
-	ViewComposite,
-} from "../../../dist/index.js";
-import {
+	TestRenderer,
 	describe,
 	expect,
 	test,
-	TestRenderer,
 	useTestContext,
 } from "@desk-framework/frame-test";
+import {
+	Activity,
+	ManagedEvent,
+	UIButton,
+	UICell,
+	UILabel,
+	UITextField,
+	UIViewRenderer,
+	ViewComposite,
+	app,
+	bound,
+} from "../../../dist/index.js";
 
 describe("UIViewRenderer", (scope) => {
 	scope.beforeEach(() => {
@@ -35,7 +34,7 @@ describe("UIViewRenderer", (scope) => {
 		let MyCell = UICell.with(UILabel.withText("foo"));
 		let viewRenderer = new UIViewRenderer();
 		viewRenderer.view = new MyCell();
-		app.render(viewRenderer);
+		app.showPage(viewRenderer);
 		await t.expectOutputAsync(50, { text: "foo" });
 		expect(viewRenderer.findViewContent(UILabel)).toBeArray(1);
 	});
@@ -45,7 +44,7 @@ describe("UIViewRenderer", (scope) => {
 		let MyCell2 = UICell.with(UILabel.withText("bar"));
 		let viewRenderer = new UIViewRenderer();
 		viewRenderer.view = new MyCell1();
-		app.render(viewRenderer);
+		app.showPage(viewRenderer);
 		await t.expectOutputAsync(50, { text: "foo" });
 		viewRenderer.view = new MyCell2();
 		await t.expectOutputAsync(50, { text: "bar" });
@@ -55,7 +54,7 @@ describe("UIViewRenderer", (scope) => {
 		let MyCell = UICell.with(UILabel.withText("foo"));
 		let viewRenderer = new UIViewRenderer();
 		viewRenderer.view = new MyCell();
-		app.render(viewRenderer);
+		app.showPage(viewRenderer);
 		await t.expectOutputAsync(50, { text: "foo" });
 		viewRenderer.view.unlink();
 		await t.sleep(20);
@@ -67,8 +66,11 @@ describe("UIViewRenderer", (scope) => {
 			UILabel.withText(p.text),
 		);
 		const Preset = CompView.with({ text: "foo" });
-		class MyActivity extends PageViewActivity {
-			static override ViewBody = UIViewRenderer.with({ view: bound("vc") });
+		class MyActivity extends Activity {
+			protected override ready() {
+				this.view = new (UIViewRenderer.with({ view: bound("vc") }))();
+				app.showPage(this.view);
+			}
 			vc = this.attach(new Preset());
 		}
 		app.addActivity(new MyActivity(), true);
@@ -78,37 +80,41 @@ describe("UIViewRenderer", (scope) => {
 	test("Set view and focus", async (t) => {
 		let viewRenderer = new UIViewRenderer();
 		viewRenderer.view = new UITextField();
-		app.render(viewRenderer);
+		app.showPage(viewRenderer);
 		await t.expectOutputAsync(50, { type: "textfield", focused: false });
 		viewRenderer.requestFocus();
 		await t.expectOutputAsync(50, { type: "textfield", focused: true });
 	});
 
-	test("Use activity as view and render", async (t) => {
+	test("Use activity view and render", async (t) => {
 		// activity that will be rendered as nested view
-		class MySecondActivity extends ViewActivity {
-			static override ViewBody = UICell.with(
-				UIButton.withLabel("foo", "+ButtonPress"),
-			);
+		class MySecondActivity extends Activity {
+			protected override ready() {
+				const ViewBody = UICell.with(UIButton.withLabel("foo", "+ButtonPress"));
+				this.view = new ViewBody();
+			}
 			onButtonPress() {
 				t.count("foo-second");
-				this.emit("Foo");
 			}
 		}
 
-		// containing view activity
-		class MyActivity extends PageViewActivity {
-			static override ViewBody = UICell.with(
-				{ accessibleLabel: "outer" },
-				UIViewRenderer.with({ view: bound("second") }),
-			);
+		// containing activity
+		class MyActivity extends Activity {
 			constructor() {
 				super();
-				this.observeAttach("second");
+				this.autoAttach("second");
 				this.second = new MySecondActivity();
 			}
+			protected override ready() {
+				const ViewBody = UICell.with(
+					{ accessibleLabel: "outer" },
+					UIViewRenderer.with({ view: bound("second.view") }),
+				);
+				this.view = new ViewBody();
+				app.showPage(this.view);
+			}
 			declare second?: MySecondActivity;
-			onFoo(e: ManagedEvent) {
+			onButtonPress(e: ManagedEvent) {
 				t.count("foo-outer");
 				if (e.delegate instanceof UIViewRenderer) t.count("delegate");
 			}

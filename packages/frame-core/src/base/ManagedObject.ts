@@ -8,6 +8,7 @@ import {
 	attachObject,
 	watchAttachProperty,
 	addTrap,
+	$_bindFilter,
 } from "./object_util.js";
 import { ManagedEvent, ManagedChangeEvent } from "./ManagedEvent.js";
 import { Observer } from "./Observer.js";
@@ -32,12 +33,12 @@ export function isManagedObject(object: any): object is ManagedObject {
  * **Attaching objects** — Managed objects are meant to be linked together to form a _directed graph_, i.e. a tree structure where one object can be 'attached' to only one other managed object: its parent, origin, or containing object. In turn, several objects can be attached to every object, which makes up a hierarchical structure.
  *
  * - Objects can be attached ad-hoc using the {@link ManagedObject.attach attach()} method. An {@link Observer} or callback function can be used to listen for events (see below) or wait for the object to be unlinked.
- * - Objects can be attached by referencing them from specific observed properties. The property needs to be watched using the {@link ManagedObject.observeAttach observeAttach()} method; afterwards, any object assigned to this property is attached automatically, and then when the referenced object is unlinked, the property is set to undefined. The {@link ManagedObject.observeAttach observeAttach()} method also accepts an observer or callback function.
+ * - Objects can be attached by referencing them from specific observed properties. The property needs to be watched using the {@link ManagedObject.autoAttach autoAttach()} method; afterwards, any object assigned to this property is attached automatically, and then when the referenced object is unlinked, the property is set to undefined. The {@link ManagedObject.autoAttach autoAttach()} method also accepts an observer or callback function.
  * - When an object is unlinked, its attached objects are unlinked as well.
  *
- * **Events** — The {@link ManagedObject.emit emit()} method 'emits' an event from a managed object. Events are instances of {@link ManagedEvent}, which can be handled using a callback provided to the {@link ManagedObject.listen listen()} method, or an {@link Observer} that's currently observing the object. Typically, objects are observed by their parent object (the object they're attached to). This enables event _propagation_, where events emitted by an object such as a {@link UIButton} are handled by a managed object further up the tree — such as a {@link ViewActivity}. Refer to {@link ManagedEvent} for details.
+ * **Events** — The {@link ManagedObject.emit emit()} method 'emits' an event from a managed object. Events are instances of {@link ManagedEvent}, which can be handled using a callback provided to the {@link ManagedObject.listen listen()} method, or an {@link Observer} that's currently observing the object. Typically, objects are observed by their parent object (the object they're attached to). This enables event _propagation_, where events emitted by an object such as a {@link UIButton} are handled by a managed object further up the tree — such as an {@link Activity}. Refer to {@link ManagedEvent} for details.
  *
- * **Property bindings** — Whereas events typically flow 'up' a tree towards containing objects, data from these objects can be _bound_ so that it makes its way 'down'. In practice, this can be used to update properties such as the text of a {@link UILabel} object automatically when a particular property value is set on a containing object such as the {@link ViewActivity}. Refer to {@link Binding} for details.
+ * **Property bindings** — Whereas events typically flow 'up' a tree towards containing objects, data from these objects can be _bound_ so that it makes its way 'down'. In practice, this can be used to update properties such as the text of a {@link UILabel} object automatically when a particular property value is set on a containing object such as the {@link Activity}. Refer to {@link Binding} for details.
  *
  * @example
  * // Attach an object to a parent object, handle events
@@ -96,6 +97,9 @@ export class ManagedObject {
 	/** @internal Reference to origin (parent) managed object, if any */
 	declare [$_origin]?: ManagedObject;
 
+	/** @internal A function that's used to filter applicable bindings on this object */
+	declare [$_bindFilter]?: (property: string | symbol) => boolean;
+
 	/** @internal Property getter for non-observable property bindings, overridden on managed lists */
 	[$_get](propertyName: string) {
 		return (this as any)[propertyName];
@@ -120,7 +124,7 @@ export class ManagedObject {
 	/**
 	 * Emits a change event, an instance of {@link ManagedChangeEvent}
 	 * - Events can be handled using {@link ManagedObject.listen()} or an {@link Observer}. Refer to {@link ManagedEvent} for details.
-	 * - Change events are treated differently, e.g. change events are also handled using the callback passed to {@link ManagedObject.attach attach()} and {@link ManagedObject.observeAttach observeAttach()}, and trigger updates of bound (sub) property values.
+	 * - Change events are treated differently, e.g. change events are also handled using the callback passed to {@link ManagedObject.attach attach()} and {@link ManagedObject.autoAttach autoAttach()}, and trigger updates of bound (sub) property values.
 	 * @param name An event name; an instance of ManagedChangeEvent with the provided name will be created by this method
 	 * @param data Additional data to be set on {@link ManagedEvent.data}
 	 */
@@ -130,14 +134,95 @@ export class ManagedObject {
 
 	/**
 	 * Adds a handler for all events emitted by this object
-	 * @note This method adds a permanent listener. To prevent memory leaks, it may be better to use an {@link Observer} that can be stopped when needed.
+	 *
 	 * @param handler A function (void return type, or asynchronous) that will be called for all events emitted by this object; the function is called with the `this` value set to the managed object, and a single event argument
+	 * @returns If no callback function is provided, an async iterable that can be used instead
+	 *
+	 * @description
+	 * This method adds a permanent listener for all events emitted by this object, in one of two ways. Either a callback function can be provided, or this method returns an async iterable that can be used to iterate over all events.
+	 *
+	 * **Callback function** — If a callback function is provided, it will be called for every event that's emitted by this object. The function is called with the `this` value set to the managed object, and a single event argument. The callback function can be asynchronous, in which case the result is awaited to catch any errors.
+	 *
+	 * **Async iterable** — If no callback function is provided, this method returns an async iterable that can be used to iterate over all events using a `for await...of` loop. The loop body is run for each event, in the order they're emitted, either awaiting new events or continuing execution immediately. The loop stops when the object is unlinked.
+	 *
+	 * @note This method adds a permanent listener. To prevent memory leaks, it may be better to use an {@link Observer} that can be stopped when needed, if the object is expected to outlive the listener.
+	 *
+	 * @example
+	 * // Handle all events using a callback function
+	 * someObject.listen((event) => {
+	 *   if (event.name === "Foo") {
+	 *     // ...handle Foo event
+	 *   }
+	 * });
+	 * // ... (code continues to run)
+	 *
+	 * @example
+	 * // Handle all events using an async iterable
+	 * for await (let event of someObject.listen()) {
+	 *   if (event.name === "Foo") {
+	 *     // ...handle Foo event
+	 *   }
+	 * }
+	 * // ... (code here runs after object is unlinked, or `break`)
 	 */
-	listen(handler: (this: this, event: ManagedEvent) => Promise<void> | void) {
-		addTrap(this, $_traps_event, (target, p, event) => {
-			handler.call(this, event)?.catch?.(errorHandler);
-		});
-		return this;
+	listen(
+		handler: (this: this, event: ManagedEvent) => Promise<void> | void,
+	): void;
+	listen(): AsyncIterable<ManagedEvent>;
+	listen(handler?: (this: this, event: ManagedEvent) => Promise<void> | void) {
+		// add a single handler if provided
+		if (handler) {
+			addTrap(this, $_traps_event, (target, p, event) => {
+				handler.call(this, event)?.catch?.(errorHandler);
+			});
+			return;
+		}
+
+		// return an async iterable for events
+		let self = this;
+		let iterable: AsyncIterable<ManagedEvent> = {
+			[Symbol.asyncIterator]() {
+				let buf: ManagedEvent[] | undefined = [];
+				let waiter: undefined | ((event?: ManagedEvent) => void);
+				addTrap(
+					self,
+					$_traps_event,
+					(target, p, event) => {
+						// handle an event: add to buffer, or resolve a waiter
+						if (waiter) waiter(event);
+						else if (buf) buf.push(event);
+					},
+					() => {
+						// handle unlinking: resolve waiter if any
+						if (waiter) waiter();
+					},
+				);
+				const stop = (): any => {
+					buf = undefined;
+					return Promise.resolve({ done: true });
+				};
+
+				// return the iterator
+				let iterator: AsyncIterator<ManagedEvent> = {
+					async next() {
+						if (!buf) return { done: true } as any;
+						if (buf.length) return { value: buf.shift()! };
+						return new Promise<IteratorResult<ManagedEvent>>((resolve) => {
+							if (self[$_unlinked]) return resolve(stop());
+							waiter = (event) => {
+								waiter = undefined;
+								if (self[$_unlinked]) resolve({ done: true } as any);
+								else resolve({ value: event! });
+							};
+						});
+					},
+					return: stop,
+					throw: stop,
+				};
+				return iterator;
+			},
+		};
+		return iterable;
 	}
 
 	/** Returns true if the object has been unlinked */
@@ -149,8 +234,8 @@ export class ManagedObject {
 	 * Unlinks this managed object
 	 * @summary This method marks the object as 'stale' or 'deleted', which means that the object should no longer be used by the application — even though the object's properties can still be accessed.
 	 *
-	 * - Any objects that have been attached to the unlinked object (using {@link ManagedObject.attach attach()} or {@link ManagedObject.observeAttach observeAttach()}) will also be unlinked.
-	 * - If this object is attached using {@link ManagedObject.observeAttach observeAttach()} (to a 'parent' or containing object), the corresponding property will be set to undefined.
+	 * - Any objects that have been attached to the unlinked object (using {@link ManagedObject.attach attach()} or {@link ManagedObject.autoAttach autoAttach()}) will also be unlinked.
+	 * - If this object is attached using {@link ManagedObject.autoAttach autoAttach()} (to a 'parent' or containing object), the corresponding property will be set to undefined.
 	 * - If this object was attached to a containing {@link ManagedList}, the item will be removed.
 	 */
 	unlink() {
@@ -213,7 +298,7 @@ export class ManagedObject {
 	 * class ParentObject extends ManagedObject {
 	 *   constructor() {
 	 *     super();
-	 *     this.observeAttach(
+	 *     this.autoAttach(
 	 *       "target",
 	 *       (target, event) => {
 	 *         // ...target is either the target object, or undefined
@@ -229,7 +314,7 @@ export class ManagedObject {
 	 * parent.target.unlink();
 	 * parent.target // => undefined
 	 */
-	protected observeAttach<
+	protected autoAttach<
 		K extends keyof this,
 		T extends NonNullable<this[K]> & ManagedObject,
 	>(
@@ -248,7 +333,7 @@ export namespace ManagedObject {
 		new (...args: any[]): T;
 	};
 
-	/** Type definition for the callback function argument passed to {@link ManagedObject.attach()} and {@link ManagedObject.observeAttach()} */
+	/** Type definition for the callback function argument passed to {@link ManagedObject.attach()} and {@link ManagedObject.autoAttach()} */
 	export type AttachObserverFunction<T extends ManagedObject> = (
 		target?: T,
 		event?: ManagedChangeEvent<T>,
