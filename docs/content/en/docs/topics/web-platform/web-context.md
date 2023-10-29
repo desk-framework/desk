@@ -10,6 +10,7 @@ abstract: This article is not yet available.
 - {@link WebContext +}
 - {@link WebContextOptions +}
 - {@link WebTheme +}
+- {@link DialogStyles +}
 - {@link ModalMenuStyles +}
 - {@link MessageDialogStyles +}
 - {@link WebHistoryActivationPath +}

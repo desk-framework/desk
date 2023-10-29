@@ -20,11 +20,6 @@ abstract: This article is not yet available.
 
 - {@link ViewComposite +}
 
-## Defining view activities
-
-- {@link ViewActivity +}
-- {@link PageViewActivity +}
-
 ## Encapsulating other views
 
 - {@link UIViewRenderer +}

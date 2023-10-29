@@ -81,6 +81,9 @@ body {
 		--doctag-text: #000;
 		--doctag-weight: 500;
 	}
+	article.docpage img {
+		filter: invert(100%) hue-rotate(180deg) saturate(1.25);
+	}
 }
 body {
 	text-align: center;
@@ -633,6 +636,12 @@ li.menu-item--var > a::before {
 
 .docpage_breadcrumb_searchbutton {
 	display: none;
+}
+
+article.docpage img {
+	max-width: 100%;
+	display: block;
+	margin: 2rem auto;
 }
 
 article h1 + blockquote {

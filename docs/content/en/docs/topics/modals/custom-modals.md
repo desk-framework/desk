@@ -5,5 +5,3 @@ abstract: This article is not yet available.
 ---
 
 # Title
-
-- {@link DialogViewActivity +}

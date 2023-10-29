@@ -56,8 +56,8 @@ abstract: This article is not yet available.
 
 ## Handling navigation events {#navigation-events}
 
-- {@link ViewActivity.onNavigate}
-- {@link ViewActivity.handleNavigateAsync}
+- {@link Activity.onNavigate}
+- {@link Activity.handleNavigateAsync}
 - {@link Activity.getNavigationTarget}
 - {@link NavigationTarget +}
 

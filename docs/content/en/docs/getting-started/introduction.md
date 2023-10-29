@@ -1,209 +1,145 @@
 ---
 title: Introduction
-abstract: An introduction to the Desk framework. Start here if you're new and want to understand what this is all about.
+abstract: Start here to learn more about the Desk framework, its use cases, and architecture.
 ---
 
 # Introduction
 
-> Start here to get a quick overview of the Desk framework, and learn about its architecture and use cases.
+> Welcome! Start here to learn more about the Desk framework, its use cases, and architecture.
 
 ## What is Desk? {#what-is-desk}
 
-The Desk framework provides a comprehensive starting point for developing interactive front-end applications using TypeScript or JavaScript.
+**The Desk framework provides a starting point for building front-end applications using TypeScript or JavaScript. It includes functionality to build complex user interfaces, handle user input, and manage application state.**
 
-**Distribution** — The framework is distributed as a set of packages on the NPM registry. These packages can be included in an application by _bundling_ their code, or by including a compiled JavaScript file on an existing HTML page.
+Desk is developed as an open-source project on GitHub, with an MIT license. It's free to use, and doesn't rely on any external runtime dependencies.
 
-The application can then use the provided functionality on multiple platforms, to display and update UI elements, respond to user input, and perform other tasks such as managing application state and formatting text.
+With an API that's inspired by popular desktop and mobile GUI frameworks, it's suitable for building **interactive**, **native-like** apps that run entirely on the **client-side**. This includes web apps, but also apps that are installed on a device, such as mobile apps or desktop apps.
 
-**Goals** — As a framework for interactive client-side or 'native-like' applications, Desk's main goals include _maintainability_ and _scalability_ of application code, rather than optimizing for benchmarks such as first-render performance, or the number of lines it takes to output 'Hello, world'.
+> **What is Desk not?**
+>
+> Note that Desk is **not** a general-purpose web framework. Even though it's compiled to JavaScript and can be used to build apps that run in a browser, it isn't the right tool if you're looking to build a corporate website, a blog, or a shop.
+>
+> - It's not a templating engine or static site generator.
+> - It doesn't render pages on the server.
+> - It doesn't offer search engine optimization (SEO) features.
+> - It doesn't provide a database abstraction layer.
 
-- **Clear separation of concerns** — With an architecture that's inspired by mature (native) UI frameworks, the Desk framework encourages clear separation of concerns, keeping code organized even as your application grows.
-- **Self-contained** — A lack of dependencies (other than build tooling) ensures that your applications can be updated long into the future without running into compatibility issues.
-- **Strongly typed** — Thanks to TypeScript, Desk offers a better developer experience with accurate auto-completion and documentation.
+For use on the web, Desk can still be _combined_ with other tools such as a CMS or static site generator in order to build a complete solution, with interactive client-side components that use the framework at runtime.
 
-## Architecture overview {#architecture}
+Great use cases for the Desk framework include:
 
-At a high level, Desk provides a way to split your application into smaller parts, while taking on basic functionality such as rendering content and handling events. Rather than using HTML and CSS to describe the content of a 'page' or component, you'll build an application using _views_, _activities_, and _services_.
-
-**Object oriented** — The Desk framework is object oriented, meaning that every part of your application is defined using classes and objects — from a single button (an instance of {@link UIButton}), to every view, activity, and service, as well as the application _itself_ (the {@link app} object).
-
-**Hierarchy** — Within this collection of objects, Desk makes effective use of _encapsulation_ to keep everything organized. At runtime, every object that's managed by Desk can be 'attached' only to a single parent, making the app a simple tree structure of objects. This enables consistent **event handling** (bottom-up) and one-way **data binding** (top-down) without any extra effort.
-
-- The `app` object contains a list of services and activities
-- Activities may contain other activities, and views
-- Views may contain other views, and UI components.
-
-Let's take a look at how views, activities, and services are defined in your code.
-
-**Views** — At the lowest level of the app hierarchy are views. These consist of UI components such as buttons, labels, and text fields, arranged in groups such as rows, columns, and cells. Together, these are rendered to the screen when the user uses your application.
-
-You can define views using regular JavaScript syntax, by calling static `.with` methods:
-
-```ts
-// view.ts
-import {
-	bound, UICell, UILabel, UISpacer, UICenterRow, UIOutlineButton
-} from "@desk-framework/frame-core";
-
-export default UICell.with(
-	UILabel.with(
-		text: bound.number("count"),
-		textStyle: { fontSize: 36, bold: true }
-	),
-	UISpacer.withHeight(32),
-	UICenterRow.with(
-		UIOutlineButton.withLabel("Down", "CountDown"),
-		UIOutlineButton.withLabel("Up", "CountUp")
-	)
-);
-```
-
-Or, you can define views using JSX-style syntax:
-
-```tsx
-// view.tsx
-import { JSX } from "@desk-framework/frame-core";
-
-export default (
-	<cell>
-		<label textStyle={{ fontSize: 36, bold: true }}>%[count]</label>
-		<spacer height={32} />
-		<centerrow>
-			<outlinebutton onClick="CountDown">Down</outlinebutton>
-			<outlinebutton onClick="CountUp">Up</outlinebutton>
-		</centerrow>
-	</cell>
-);
-```
-
-> **Note**\
-> For a step-by-step guide that includes the code above, refer to [Building an app](./build.html).
-
-**Activities** — Since views only determine what your app _looks like_, you'll need to add activities to determine how it _behaves_.
-
-Each activity represents a 'place' in an application — this could be a full page, a popup dialog, or any other part of the UI. An activity can be _active_ or _inactive_; while active, the attached view (if any) is rendered to the screen. Together, the activity's properties determine its _state_, which can be used by the view through bindings; in turn, the view emits events that are handled by the activity.
-
-In our example, we define an activity by extending the {@link PageViewActivity} class. The current count (our state) is exposed as the `count` property, which is _bound_ by the view above. Both the `CountUp` and `CountDown` events (emitted by either button in the view) are handled using specially named methods.
-
-```ts
-// CountActivity.ts
-import { PageViewActivity } from "@desk-framework/frame-core";
-import view from "./page.js";
-
-export class CountActivity extends PageViewActivity {
-	static ViewBody = page;
-
-	/** The current count */
-	count = 0;
-
-	/** Event handler: called when Up is clicked */
-	onCountUp() {
-		this.count++;
-		// ...since count is bound by the view,
-		// setting this property automatically updates the view, too
-	}
-
-	/** Event handler: called when Down is clicked */
-	onCountDown() {
-		if (this.count > 0) this.count--;
-	}
-}
-```
-
-Note that the activity code doesn't need to know how the `count` property ends up being displayed, or how UI components are laid out (although it can find out which UI component emitted an event, from the event object that's passed to the handler method). Similarly, the view doesn't need to know how events are handled, or where the bound `count` value comes from.
-
-This allows you to split views and activities into different classes when they get too large, adding another level to the application hierarchy without having to rewrite much of your code.
-
-**Services** — After adding multiple activities, some application data and logic shouldn't 'belong' to the activity anymore. In that case, it's a good idea to move those parts to _services_.
-
-Services are instances of arbitrary classes, which are made available to the rest of your application _by name_. Services can be _observed_, to watch for changes and listen for events.
-
-- {@link activities}
-- {@link services}
-- {@link views}
-
-**Global app context** — The singleton {@link app} object sits at the root of the application hierarchy. It keeps track of activities and services, and handles other important tasks, including:
-
-- Navigation and routing: activities can be activated and deactivated automatically based on the current path (URL)
-- Error handling and logging
-- Localization and internationalization (i18n), including text translation
-- Rendering (asynchronously) and styling using themes.
-
-- {@link app}
-
-The app is usually initialized in `app.ts`, the main entry point of the application — adding activities, services, and setting any other options as needed.
-
-```ts
-// app.ts
-import { useWebContext, app } from "@desk-framework/webcontext";
-import { CountActivity } from "./CountActivity.js";
-import { MyService } from "./MyService.js";
-
-useWebContext((options) => {
-	// ...set options here
-});
-app.addActivity(new CountActivity(), true);
-app.addService("MyService", new MyService());
-```
-
-**Test library** — Since Desk takes over the implementation details of rendering and navigating, removing those from your code, it's possible to reuse the same code for unit and integration tests. You can write tests for activities, views, and services that run in Node — on the command line or as part of a CI/CD pipeline — without having to emulate a browser or native app platform.
-
-The Desk `test` library provides a way to define and run tests, and also enables you to control and inspect UI elements as part of your tests without rendering to a 'real' platform:
-
-```ts
-// CountActivity.test.ts
-describe("Counter", (scope) => {
-	let activity: CountActivity;
-	scope.beforeEach(() => {
-		useTestContext();
-		activity = new CountActivity();
-		app.addActivity(activity, true);
-	});
-
-	test("Button increases count", async (t) => {
-		// 1. wait for button to be rendered
-		let out = await t.expectOutputAsync(100, { type: "button", text: "Up" });
-
-		// 2. click it twice
-		out.getSingle().click().click();
-
-		// 3. check that the activity property is now 2
-		expect(activity).toHaveProperty("count").toBe(2);
-
-		// 3. wait for a label with text "2"
-		await t.expectOutputAsync(100, { type: "label", text: "2" });
-	});
-});
-```
-
-For more information, refer to the test library documentation.
-
-- {@link test-context}
-
-## Use cases {#use-cases}
-
-With its object-oriented application/activity/view architecture, the Desk framework is optimized for complete client-side or 'native-like' applications, **or** complex interactive components that are added to an existing website.
-
-_Desk is not a one-size-fits-all solution:_
-
-- Desk is **not** a good choice for _content-first_ web experiences — the framework is only capable of rendering UIs on the client side, limiting what's visible by search engines, and taking time to run on every page. This is intentional.
-- Desk is **not** a good choice for very small widgets — its compressed (gzip) bundle adds ~40kB overhead to the initial page load.
-
-**Good** use cases for the Desk framework include —
-
-- Single-page applications (SPAs): immersive full-screen apps, e.g. productivity apps, business apps, dashboards, e-learning, and customer portals. These applications usually require login (removing the need for search engine access), and include lots of client-side application logic.
+- Immersive full-screen apps, as Single-Page Applications (SPAs) e.g. productivity apps, business apps, dashboards, e-learning, and customer portals. These applications usually require login and include lots of client-side application logic.
 - Mobile apps, and mobile-first web applications.
 - Complex forms, calculators, and other website components, e.g. support tickets, insurance claim forms, mortgage calculators, or chat widgets.
-- Prototypes and MVPs: ideal for quickly testing ideas with a focus on user interaction, the Desk framework provides good UI defaults with a minimal amount of setup.
+- Prototypes and MVPs: quickly test ideas with a focus on user interaction. Desk provides good UI defaults with a minimal amount of setup.
 
-Do you have other ideas for use cases, or great example applications? Share it with the Desk community on our [subreddit](https://www.reddit.com/r/desk_framework/)!
+## Architecture {#architecture}
 
-## Next steps
+Like other frameworks, Desk helps to break up your application code into smaller pieces, and takes away most of the boilerplate code for common tasks.
 
-Want to see what an application that's made with the Desk framework looks like? Check out these example projects.
+The architecture of a Desk application is based on the following concepts:
 
-- {@link examples}
+- **Views** represent your user interface (UI), defining the layout, content, and appearance of your app. Views may be composed of other views, and can be nested to any depth. Desk includes several basic UI components, with configurable styles that can be used out of the box.
+- **Activities** represent the logic behind different screens, dialogs, or other parts of your app. Each activity may _contain_ a view, providing it with data, and handling its events.
+- **Services** provide functionality that's shared between activities, including business logic, data access, and authentication.
 
-Ready to build with Desk? Get started with your own app, and learn about the basics using these tutorials.
+A single **app** object is also available at all times, representing the entire application. This object manages activities and services, and provides methods for navigation, rendering, logging, and more.
 
+![Desk architecture](/docs/en/assets/desk-architecture.png)
+
+This turns the entire application into a single **hierarchy** of objects, managed by the framework. Objects primarily interact using the following mechanisms:
+
+- **Property bindings** automatically observe and copy data from a containing object (e.g. to update views when the activity is updated).
+- Objects emit **events** that can be handled by containing objects (e.g. to handle user input).
+- Objects can be **unlinked** from the hierarchy when they're no longer needed, clearing event handlers and bindings, as well as unlinking their own child objects.
+
+## Example {#example}
+
+Let's take a look at a practical example. While it's impossible to show the full power of Desk in just a few lines of code, the concepts shown here are used in the same way even in the most complex applications.
+
+We'll make an app that shows a counter, and two buttons to increment or decrement the count. The app should look like this mockup:
+
+![Mockup of a counter app](/docs/en/assets/introduction-mockup.png)
+
+Refer to the end of this section for a link to a working version online, with the full source code.
+
+**Creating a view** — To start, let's create a view. Views are defined **statically** — meaning we create a _class_ only once. We can then instantiate a view object using `new` whenever we need to.
+
+Desk views can be defined using JSX syntax, as illustrated below.
+
+{@import :sample-view-jsx}
+
+Note that even though JSX looks like HTML, views are _not_ HTML elements. Rather, each JSX element results in a constructor — meaning `AppPage` is a regular TypeScript class.
+
+The code below is functionally the same, using static methods rather than JSX syntax. This is useful if you're writing code in JavaScript, or if you simply prefer to avoid JSX.
+
+{@import :sample-view}
+
+In the example code, note the following:
+
+- This view consists of UI elements (a text label and two buttons), and containers to arrange them. These components are included with the framework, and use default styles that are also included.
+- The text for the `UILabel` object depends on a **binding**. Therefore, the text will be updated automatically when the value of `count` changes in the parent object (see below).
+- The `UIButton` objects define _aliases_ for the Click event, which will allow us to handle each **event** using a unique name (see below).
+- The label element has a **style** applied to it, which we'll need to define along with the view.
+
+There are various ways to define a custom style, and you can also change the overall look of your app using a **theme** — but in this example we'll _extend_ the default label style and assign it to a new (class) variable.
+
+{@import :sample-style}
+
+**Creating the activity** — Next, we'll create an activity that contains the view above, and matches its bindings and events. To do this, we'll create a class that extends the `Activity` class.
+
+{@import :sample-activity}
+
+Note that this activity performs three main tasks:
+
+- It contains (and initializes) the current state, i.e. the `count` property.
+- It creates and renders the view when ready.
+- It handles the events from the view, incrementing or decrementing the count. Because the view includes a binding, the view will be updated automatically.
+
+The activity does **not** need to know what the view looks like — neither does the view need to know what the activity does.
+
+In this example, we only need one activity, which is _activated_ right away. In a more complex app, we could add multiple activities, and activate them at different times — either manually or using the framework's built-in **routing** functionality. As one activity is activated, another could be deactivated, unlinking its view and removing it from the screen. Asynchronous activation and deactivation is also supported.
+
+**Initializing the app** — Finally, we'll need to tell the app to start, initializing the platform renderer (for now, just the DOM renderer — but other renderers may be available in the future) and adding the activity to the app.
+
+{@import :sample-app}
+
+At this point, we can initialize the following:
+
+- Options for the web platform renderer and DOM location-based router.
+- All activities and sub-activities that are used in the app.
+- All services that are used in the app.
+
+> **Run this app:** The finished app is available online HERE.
+
+**Compiling, bundling, and running** — While the code above fits in a single file, most real-world applications would be developed as a project that includes multiple source code files, assets, dependencies, and configuration files — which need to be compiled and bundled into a distributable output package.
+
+The Desk framework does **not** depend on a specific build tool or bundler. Refer to the {@link tutorials Tutorials} section for more information on how to set up a complete project and deploy it to the web or a native runtime environment.
+
+**Testing** — Desk includes functionality to test your application, including unit tests and integration tests.
+
+By replacing the `useWebContext()` call to `useTestContext()` in the example above, we can run the app from the command line, without a browser. Instead of rendering the UI to a browser or other platform, Desk simply keeps all view output in memory and allows us to query the result to validate that the output is correct.
+
+The following example shows how to test our counter program, with tests that inspect both the activity instance and its view — simulating a button press to invoke one of the event handlers, and checking the new output.
+
+{@import :sample-test}
+
+**Other features** — Desk includes many other features that are often needed in complex client-side applications, such as:
+
+- Navigation and routing
+- Modal dialogs and menus
+- Form input and data validation
+- Logging and error handling
+- Task scheduling
+- Internationalization (i18n)
+- Themes, icons, and colors
+
+More information about all of these concepts, as well as the full API reference, is available on this website.
+
+## Next steps {#next-steps}
+
+Refer to the following sections to continue your journey with Desk.
+
+- {@link documentation}
 - {@link tutorials}
+- {@link examples}
