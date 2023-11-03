@@ -1,12 +1,40 @@
-import { err, ERROR } from "../errors.js";
+import { err, ERROR } from "./errors.js";
 import {
 	Binding,
-	StringFormatBinding,
-	strf,
-	ViewClass,
 	LazyString,
-} from "../index.js";
-import * as intrinsics from "./intrinsics.js";
+	strf,
+	StringFormatBinding,
+	ViewClass,
+} from "./index.js";
+import {
+	UIAnimatedCell,
+	UIAnimationController,
+	UIButton,
+	UICell,
+	UICloseLabel,
+	UIColumn,
+	UIComponent,
+	UIConditional,
+	UIForm,
+	UIFormController,
+	UIHeading1Label,
+	UIHeading2Label,
+	UIHeading3Label,
+	UIIconButton,
+	UIImage,
+	UILabel,
+	UIList,
+	UIParagraphLabel,
+	UIPlainButton,
+	UIPrimaryButton,
+	UIRow,
+	UIScrollContainer,
+	UISeparator,
+	UISpacer,
+	UITextField,
+	UIToggle,
+	UIViewRenderer,
+} from "./ui/index.js";
 
 /** Helper function to flatten component arrays */
 function flatten(a: any[]): any {
@@ -147,22 +175,80 @@ export namespace JSX {
 	/** TypeScript JSX typing information */
 	export namespace JSX {
 		/**
-		 * Type definition for all intrinsic elements
-		 * - Refer to {@link JSX} for more information.
-		 */
-		export type IntrinsicElements = intrinsics.JSX.JSX.IntrinsicElements;
-
-		/**
 		 * Type definition for the result of a JSX call
 		 * - Refer to {@link JSX} for more information.
 		 */
 		export type Element = ViewClass;
+
+		/**
+		 * Type definition for all intrinsic elements
+		 * - Refer to {@link JSX} for more information.
+		 */
+		export type IntrinsicElements = {
+			// containers
+			cell: UIComponent.ViewPreset<UICell>;
+			form: UIComponent.ViewPreset<UIForm>;
+			row: UIComponent.ViewPreset<UIRow>;
+			column: UIComponent.ViewPreset<UIColumn>;
+			scrollcontainer: UIComponent.ViewPreset<UIScrollContainer>;
+			animatedcell: UIComponent.ViewPreset<UIAnimatedCell>;
+
+			// controls
+			button: UIComponent.ViewPreset<UIButton>;
+			iconbutton: UIComponent.ViewPreset<UIIconButton>;
+			primarybutton: UIComponent.ViewPreset<UIPrimaryButton>;
+			plainbutton: UIComponent.ViewPreset<UIPlainButton>;
+			label: UIComponent.ViewPreset<UILabel>;
+			closelabel: UIComponent.ViewPreset<UICloseLabel>;
+			p: UIComponent.ViewPreset<UIParagraphLabel>;
+			h1: UIComponent.ViewPreset<UIHeading1Label>;
+			h2: UIComponent.ViewPreset<UIHeading2Label>;
+			h3: UIComponent.ViewPreset<UIHeading3Label>;
+			textfield: UIComponent.ViewPreset<UITextField>;
+			img: UIComponent.ViewPreset<UIImage>;
+			toggle: UIComponent.ViewPreset<UIToggle>;
+			separator: UIComponent.ViewPreset<UISeparator>;
+			spacer: UIComponent.ViewPreset<UISpacer>;
+
+			// composites
+			conditional: Parameters<(typeof UIConditional)["with"]>[0];
+			formcontext: Parameters<(typeof UIFormController)["with"]>[0];
+			list: Parameters<(typeof UIList)["with"]>[0];
+			animation: Parameters<(typeof UIAnimationController)["with"]>[0];
+			render: Parameters<(typeof UIViewRenderer)["with"]>[0];
+		};
 	}
 
 	/**
 	 * References to JSX factory functions for all intrinsic tags
 	 * - Refer to {@link JSX} for more information.
 	 */
-	export const intrinsicTags: { [tag: string]: { with: Function } } =
-		intrinsics.tags;
+	export const intrinsicTags: { [tag: string]: { with: Function } } = {
+		cell: UICell,
+		form: UIForm,
+		row: UIRow,
+		column: UIColumn,
+		scrollcontainer: UIScrollContainer,
+		animatedcell: UIAnimatedCell,
+		button: UIButton,
+		primarybutton: UIPrimaryButton,
+		plainbutton: UIPlainButton,
+		iconbutton: UIIconButton,
+		label: UILabel,
+		closelabel: UICloseLabel,
+		p: UIParagraphLabel,
+		h1: UIHeading1Label,
+		h2: UIHeading2Label,
+		h3: UIHeading3Label,
+		textfield: UITextField,
+		img: UIImage,
+		toggle: UIToggle,
+		separator: UISeparator,
+		spacer: UISpacer,
+		conditional: UIConditional,
+		formcontext: UIFormController,
+		list: UIList,
+		animation: UIAnimationController,
+		render: UIViewRenderer,
+	};
 }
