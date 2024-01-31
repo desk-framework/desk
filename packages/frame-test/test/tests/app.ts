@@ -21,7 +21,7 @@ class CountActivity extends Activity {
 		))();
 		app.showPage(this.view);
 	}
-	override path = "count";
+	override navigationPageId = "count";
 	count = 0;
 	onCountUp() {
 		this.count++;
@@ -97,5 +97,31 @@ describe("App test", (scope) => {
 		let btnElement = out.getSingle();
 		btnElement.click();
 		expect(btnElement.hasFocus()).toBeTruthy();
+	});
+
+	test("Alert dialog can be dismissed", async (t) => {
+		let p = app.showAlertDialogAsync("Foo");
+		let dialog = await t.expectMessageDialogAsync(100, "Foo");
+		await dialog.confirmAsync();
+		let result = await p;
+		expect(result).toBeUndefined();
+	});
+
+	test("Confirm dialog can be cancelled", async (t) => {
+		let p = app.showConfirmDialogAsync("Foo?");
+		await (await t.expectMessageDialogAsync(100, /^Foo/)).cancelAsync();
+		let result = await p;
+		expect(result).toBeFalsy();
+	});
+
+	test("Confirm dialog can be confirmed", async (t) => {
+		let p = app.showConfirmDialogAsync((d) => {
+			d.messages = ["Foo?", "Bar?"];
+			d.confirmLabel = "Yes";
+		});
+		let dialog = await t.expectMessageDialogAsync(10, /Foo/, /Bar/);
+		await dialog.clickAsync("Yes");
+		let result = await p;
+		expect(result).toBeTruthy();
 	});
 });

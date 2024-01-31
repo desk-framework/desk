@@ -273,7 +273,7 @@ export function unlinkObject(managedObject: ManagedObject) {
 		}
 	}
 
-	// remove bindings
+	// remove bindings list reference explicitly
 	_bindings.delete(managedObject);
 }
 
@@ -352,7 +352,8 @@ function detachObject(origin: ManagedObject, target: ManagedObject) {
 			let bindings = _bindings.get(target);
 			if (bindings) {
 				for (let w of bindings) {
-					if (w.t && w.i <= nestingLevel) {
+					if (w.t && w.i >= nestingLevel) {
+						// remove first trap, which clears others
 						if (w.t[0]) w.t[0].u();
 						else w.t = undefined;
 					}
@@ -487,6 +488,7 @@ export function watchBinding(
 	f: (value: any, bound: boolean) => void,
 ) {
 	if (!managedObject || !path.length) throw TypeError();
+	if (managedObject[$_unlinked]) return;
 	f = guard(f);
 	let bindRef: BindRef = {
 		f,
@@ -568,7 +570,7 @@ function watchFromOrigin(
 
 	// helper function to invoke the binding callback, if new value
 	function invoke(value: any, bound: boolean, force?: boolean) {
-		if (force || value !== lastInvokedWith) {
+		if (!managedObject[$_unlinked] && (force || value !== lastInvokedWith)) {
 			bindRef.f((lastInvokedWith = value), bound);
 		}
 	}
@@ -628,22 +630,26 @@ function watchFromOrigin(
 			function () {
 				// managed object unlinked and/or detached
 				if (trap === traps[i]) {
-					// if trap was still active, remove traps from here
-					for (let j = traps.length - 1; j >= i; j--) {
-						removeTrap(traps[j]);
-					}
-					traps.length = i;
-
-					// start all over, or set bound value to undefined
-					bindRef.i = -1;
-					bindRef.t = undefined;
-					managedObject[$_unlinked]
-						? invoke(undefined, false)
-						: tryWatchFromOrigin(
+					if (!i) {
+						// if this was the first trap, start all over
+						for (let t of traps) removeTrap(t);
+						bindRef.i = -1;
+						bindRef.t = undefined;
+						if (!managedObject[$_unlinked]) {
+							tryWatchFromOrigin(
 								managedObject,
 								managedObject[$_origin],
 								bindRef,
-						  );
+							);
+						}
+					} else {
+						// otherwise, just remove traps from here
+						for (let j = traps.length - 1; j >= i; j--) {
+							removeTrap(traps[j]);
+						}
+						traps.length = i;
+						invoke(undefined, false);
+					}
 				}
 			},
 			true,

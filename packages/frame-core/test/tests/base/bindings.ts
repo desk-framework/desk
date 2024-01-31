@@ -12,35 +12,35 @@ describe("Bindings", () => {
 	test("Constructor without params", () => {
 		expect(() => new Binding())
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(String(new Binding())).toBe("bound()");
 	});
 
 	test("Constructor with empty string", () => {
 		expect(() => new Binding(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 	});
 
 	test("Global variants with empty string", () => {
 		expect(() => bound(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(() => bound.number(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(() => bound.string(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(() => bound.boolean(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(() => bound.not(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 		expect(() => bound.list(""))
 			.not.toThrowError()
-			.toHaveProperty("isManagedBinding");
+			.toHaveProperty("isBinding");
 	});
 
 	test("Constructor with invalid argument", () => {
@@ -49,13 +49,13 @@ describe("Bindings", () => {
 
 	test("Constructor with path", () => {
 		let b = new Binding("x.y");
-		expect(b.isManagedBinding()).toBe(true);
+		expect(b.isBinding()).toBe(true);
 		expect(b).asString().toMatchRegExp(/x\.y/);
 	});
 
 	test("Constructor with path and filters", () => {
 		let b = new Binding("!x.y|!|!");
-		expect(b.isManagedBinding()).toBe(true);
+		expect(b.isBinding()).toBe(true);
 	});
 
 	describe("Basic bindings", () => {
@@ -188,6 +188,23 @@ describe("Bindings", () => {
 			expect(c.child).toHaveProperty("aa").toBe(1);
 		});
 
+		test("Single binding, unlink origin", (t) => {
+			let { TestObject } = setup();
+			let c = new TestObject();
+			let binding = bound.number("a");
+			binding.bindTo(c.child, (a) => {
+				t.log("Binding updated", a);
+				t.count("update");
+			});
+			c.a = 1;
+			c.a = 2;
+			t.expectCount("update").toBe(2);
+			c.child.unlink();
+			c.a = 3;
+			c.a = 4;
+			t.expectCount("update").toBe(2);
+		});
+
 		test("Single binding with 2-step path", () => {
 			let { TestObject, ChildObject } = setup();
 			let c = new TestObject();
@@ -269,6 +286,27 @@ describe("Bindings", () => {
 			expect(c.child).toHaveProperty("aa").toBe(3);
 			c.other.unlink();
 			expect(c.child).toHaveProperty("aa").toBeUndefined();
+		});
+
+		test("Single binding with 3-step path, unlink midway", (t) => {
+			let { TestObject, ChildObject } = setup();
+			let c = new TestObject();
+			c.other = new ChildObject();
+			c.other.nested = new ChildObject();
+			c.child.addAABinding("other.nested.aa");
+			bound("other.nested.aa").bindTo(c.child, (value, bound) => {
+				t.log("3-step path updated", value, bound);
+				t.count("update");
+			});
+			c.other.nested.aa = 3;
+			expect(c.child).toHaveProperty("aa").toBe(3);
+			t.expectCount("update").toBe(2);
+			c.other.nested.unlink();
+			expect(c.child).toHaveProperty("aa").toBeUndefined();
+			c.other.nested = new ChildObject();
+			c.other.nested.aa = 4;
+			expect(c.child).toHaveProperty("aa").toBe(4);
+			t.expectCount("update").toBe(4); // undefined, 3, undefined, 4
 		});
 
 		test("Single binding with 4-step path though non-state object ref", () => {
