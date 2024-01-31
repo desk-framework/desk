@@ -9,3 +9,4 @@ abstract: This article is not yet available.
 - {@link TestOutputElement +}
 - {@link OutputAssertion +}
 - {@link OutputSelectFilter +}
+- {@link RenderedTestMessageDialog +}

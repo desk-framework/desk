@@ -38,9 +38,9 @@ To use activities effectively, the need to be added to the application hierarchy
 
 As shown in other examples throughout this documentation, a real-world Desk application contains one or more activities, which are typically added directly to the app context using the {@link GlobalContext.addActivity addActivity()} method.
 
-This method adds the provided activity to the _activation context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of root objects, as well as a reference to the _activation path_ that handles platform-dependent logic for external navigation (see below). In turn, this allows each activity to _bind_ to the activation path and listen for changes.
+This method adds the provided activity to the _activity context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of activities, as well as a reference to the _navigation path_ that handles platform-dependent logic for external navigation (see below). The activity context ensures that activities are activated and deactivated according to the current navigation path.
 
-- {@link ActivationContext +}
+- {@link ActivityContext +}
 
 For more information, refer to the documentation for {@link activities}.
 
@@ -103,9 +103,9 @@ The app context includes several methods that can be called to navigate between 
 
 For more information specific to the web platform, refer to the documentation for {@link web-navigation web navigation}.
 
-The app context uses an object that's initialized automatically, which handles both navigation and activation based on the current path. This object is available as {@link ActivationContext.activationPath app.activities.activationPath}. Because it's used automatically by the navigation methods above as well as the `Activity` class, this object rarely needs to be used on its own.
+The app context uses an object that's initialized automatically, which handles both navigation and activation based on the current path. This object is available as {@link ActivityContext.navigationPath app.activities.navigationPath}. Because it's used automatically by the navigation methods above as well as the {@link ActivityContext} class, this object rarely needs to be used on its own.
 
-- {@link ActivationPath +}
+- {@link NavigationPath +}
 
 ## Registering log and error handlers {#log-error-handlers}
 

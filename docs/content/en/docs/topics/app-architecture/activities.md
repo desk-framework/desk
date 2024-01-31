@@ -42,22 +42,13 @@ abstract: This article is not yet available.
 
 ## Using paths for automatic routing {#routing}
 
-- {@link Activity.path}
-
-## Handling complex path matches {#complex-path-matches}
-
-**Path captures**
-
-- {@link Activity.pathMatch}
-
-**Path match handlers**
-
-- {@link Activity.handlePathMatchAsync}
+- {@link Activity.navigationPageId}
+- {@link Activity.handleNavigationDetailAsync}
 
 ## Handling navigation events {#navigation-events}
 
 - {@link Activity.onNavigate}
-- {@link Activity.handleNavigateAsync}
+- {@link Activity.navigateAsync}
 - {@link Activity.getNavigationTarget}
 - {@link NavigationTarget +}
 

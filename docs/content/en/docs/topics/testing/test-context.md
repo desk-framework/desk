@@ -15,5 +15,5 @@ abstract: This article is not yet available.
 - {@link TestResult +}
 - {@link TestState +}
 - {@link TestResultsData +}
-- {@link TestActivationPath +}
+- {@link TestNavigationPath +}
 - {@link TestRenderer +}
