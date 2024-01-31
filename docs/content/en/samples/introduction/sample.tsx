@@ -1,8 +1,13 @@
 import {
 	Activity,
 	JSX,
+	UIButton,
+	UICell,
+	UILabel,
 	UILabelStyle,
+	UIRow,
 	app,
+	bound,
 	useWebContext,
 } from "@desk-framework/frame-web";
 /** @jsx JSX */
@@ -27,6 +32,36 @@ const AppPage = (
 	</cell>
 );
 // @doc-end
+
+{
+	// @doc-start introduction:sample-view
+	// Define the page view using static method calls
+	const AppPage = UICell.with(
+		UILabel.with({
+			labelStyle: CounterLabelStyle,
+			text: bound.strf("Count: %s", "count"),
+		}),
+		UIRow.with(
+			{ align: "center" },
+			UIButton.withLabel("Down", "CountDown"),
+			UIButton.withLabel("Up", "CountUp"),
+		),
+	);
+	// @doc-end
+	AppPage;
+}
+{
+	const AppPage = UICell.with(
+		// @doc-start introduction:sample-inline-style
+		// ...
+		UILabel.with({
+			labelStyle: { bold: true, fontSize: 36 },
+			text: bound.strf("Count: %s", "count"),
+		}),
+		// @doc-end
+	);
+	AppPage;
+}
 
 // @doc-start introduction:sample-activity
 // Define the activity

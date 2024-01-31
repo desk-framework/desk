@@ -495,6 +495,11 @@ article.docpage {
 	text-decoration: none;
 }
 
+.docpage_searchbar #docpage-search {
+	display: flex;
+	height: 100%;
+}
+
 .docpage_searchbar code,
 .docpage_navbar code {
 	font-size: 0.875em;
@@ -669,8 +674,7 @@ article h1 + blockquote > p {
 
 .refblock_list > li {
 	list-style: none;
-	margin: 0.75rem 0;
-	padding: 0;
+	position: relative;
 }
 
 .refblock > a {
@@ -682,21 +686,15 @@ article h1 + blockquote > p {
 
 .refblock > a::before {
 	content: "";
-	display: inline-block;
+	display: block;
+	position: absolute;
+	inset: 0.25rem 0 0 -1.75rem;
 	height: 1.25rem;
 	width: 1.25rem;
-	position: relative;
-	top: 0.25rem;
-	padding-inline-end: 0.5rem;
-	background-size: contain;
-	background-repeat: no-repeat;
-}
-.refblock > a::before {
+	line-height: 1;
 	font-family: "Material Icons Outlined";
 	font-display: block;
 	font-size: 18px;
-	display: inline-block;
-	line-height: 1;
 }
 .refblock--doc > a::before {
 	content: "description";
@@ -723,7 +721,6 @@ article h1 + blockquote > p {
 
 .refblock span:last-child {
 	display: block;
-	padding: 0 0 0 1.75rem;
 }
 
 .doctag {

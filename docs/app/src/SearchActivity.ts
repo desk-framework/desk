@@ -2,19 +2,17 @@ import {
 	app,
 	UIList,
 	UITextField,
-	ViewActivity,
+	Activity,
 	ViewEvent,
 } from "@desk-framework/frame-core";
 import { swapPageAsync } from "./swap";
 import { Search, SearchResult } from "./Search";
 import SearchView from "./SearchView";
 
-export class SearchActivity extends ViewActivity {
-	static override ViewBody = SearchView;
-
-	constructor() {
-		super();
-		this.renderPlacement = { mode: "mount", mountId: "docpage-searchbar" };
+export class SearchActivity extends Activity {
+	protected override ready() {
+		this.view = new SearchView();
+		app.render(this.view, "docpage-search");
 	}
 
 	search = new Search();

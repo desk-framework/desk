@@ -34,7 +34,7 @@
 	// show and hide search (app)
 	function showSearch() {
 		document.body.className = "docpage show_search";
-		let input = document.querySelector("#docpage-searchbar input");
+		let input = document.querySelector("#docpage-search input");
 		input.value = "";
 		input.focus();
 	}

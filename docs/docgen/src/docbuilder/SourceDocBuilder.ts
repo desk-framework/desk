@@ -18,6 +18,7 @@ export class SourceDocBuilder extends DocBuilder {
 		let lines = sourceInput.split("\n");
 		let docId: string | undefined;
 		let docLines: string[] = [];
+		let docIndent = "";
 		for (let line of lines) {
 			line = line.replace(/\t/g, "  ");
 			let startMatch = line.match(/@doc-start\s+(\S+)/);
@@ -25,6 +26,7 @@ export class SourceDocBuilder extends DocBuilder {
 				if (docId) this.warn("Missing @doc-end for", docId, "in", fileName);
 				docId = startMatch[1]!;
 				docLines.length = 0;
+				docIndent = line.replace(/\S.*/, "");
 			} else if (docId && line.indexOf("@doc-end") >= 0) {
 				let docItem = new DocItem(
 					docId,
@@ -33,7 +35,10 @@ export class SourceDocBuilder extends DocBuilder {
 				);
 				this.addItem(docItem);
 				docId = undefined;
-			} else {
+			} else if (docId && line.indexOf("@doc-ignore") < 0) {
+				if (line.startsWith(docIndent)) {
+					line = line.slice(docIndent.length);
+				}
 				docLines.push(line);
 			}
 		}

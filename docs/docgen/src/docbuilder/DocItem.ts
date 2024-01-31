@@ -4,8 +4,10 @@ import { minify } from "html-minifier-terser";
 import * as yaml from "js-yaml";
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
+import { markedSmartypants } from "marked-smartypants";
 
 const marked = new Marked(
+	markedSmartypants({ config: 1 }),
 	markedHighlight({
 		langPrefix: "hljs language-",
 		highlight(code, lang) {
@@ -310,6 +312,9 @@ export class DocItem {
 				let found = delegate.lookup(importId);
 				if (!found && !optional) {
 					delegate.warn("Unresolved @import:", importId, "in", this.id);
+					result.push(
+						`<p style="color: red">Unresolved @import: ${importId}</p>`,
+					);
 				}
 				let content = await found?._collateAsync(delegate, true);
 				result.push(...(content ? content.split("\n") : ""));

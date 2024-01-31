@@ -86,7 +86,11 @@ There are various ways to define a custom style, and you can also change the ove
 
 {@import :sample-style}
 
-**Creating the activity** — Next, we'll create an activity that contains the view above, and matches its bindings and events. To do this, we'll create a class that extends the `Activity` class.
+In this example, we could also have included these style properties inline, as below. This is useful for simple styles that are not reused.
+
+{@import :sample-inline-style}
+
+**Creating the activity** — Next, we'll create an activity that contains the view above, and matches its bindings and events. To do this, we'll create a class that extends the `Activity` class, with a `ready()` method that shows our view, and some event handlers to handle button clicks.
 
 {@import :sample-activity}
 
@@ -96,9 +100,9 @@ Note that this activity performs three main tasks:
 - It creates and renders the view when ready.
 - It handles the events from the view, incrementing or decrementing the count. Because the view includes a binding, the view will be updated automatically.
 
-The activity does **not** need to know what the view looks like — neither does the view need to know what the activity does.
+The activity does **not** need to know what the view looks like — neither does the view need to know what the activity does. This is called _separation of concerns_.
 
-In this example, we only need one activity, which is _activated_ right away. In a more complex app, we could add multiple activities, and activate them at different times — either manually or using the framework's built-in **routing** functionality. As one activity is activated, another could be deactivated, unlinking its view and removing it from the screen. Asynchronous activation and deactivation is also supported.
+In this example, we only need one activity, which is 'activated' right away (invoking its `ready()` method). In a more complex app, we could add multiple activities, and activate them at different times — either manually or using the framework's built-in **routing** functionality. As one activity is activated, another could be deactivated, unlinking its view and removing it from the screen. Asynchronous activation and deactivation is also supported.
 
 **Initializing the app** — Finally, we'll need to tell the app to start, initializing the platform renderer (for now, just the DOM renderer — but other renderers may be available in the future) and adding the activity to the app.
 
@@ -112,11 +116,13 @@ At this point, we can initialize the following:
 
 > **Run this app:** The finished app is available online HERE.
 
-**Compiling, bundling, and running** — While the code above fits in a single file, most real-world applications would be developed as a project that includes multiple source code files, assets, dependencies, and configuration files — which need to be compiled and bundled into a distributable output package.
+**Compiling, bundling, and running** — While the code above fits in a single file, most real-world applications would be developed using a project structure that includes multiple source code files, assets, dependencies, and configuration files — which need to be compiled and bundled into a distributable output package.
 
 The Desk framework does **not** depend on a specific build tool or bundler. Refer to the {@link tutorials Tutorials} section for more information on how to set up a complete project and deploy it to the web or a native runtime environment.
 
-**Testing** — Desk includes functionality to test your application, including unit tests and integration tests.
+## Testing {#testing}
+
+Desk includes built-in functionality to test your application, including unit tests and integration tests.
 
 By replacing the `useWebContext()` call to `useTestContext()` in the example above, we can run the app from the command line, without a browser. Instead of rendering the UI to a browser or other platform, Desk simply keeps all view output in memory and allows us to query the result to validate that the output is correct.
 
@@ -124,7 +130,9 @@ The following example shows how to test our counter program, with tests that ins
 
 {@import :sample-test}
 
-**Other features** — Desk includes many other features that are often needed in complex client-side applications, such as:
+## Other features {#other-features}
+
+Desk includes many other features that are often needed in complex client-side applications, such as:
 
 - Navigation and routing
 - Modal dialogs and menus
@@ -134,7 +142,7 @@ The following example shows how to test our counter program, with tests that ins
 - Internationalization (i18n)
 - Themes, icons, and colors
 
-More information about all of these concepts, as well as the full API reference, is available on this website.
+Many of these features can be accessed through the global {@link app-context application context} object, and can be customized to fit your specific needs.
 
 ## Next steps {#next-steps}
 

@@ -128,6 +128,7 @@ export class DocBuilder {
 			data.id = id;
 			data.input_path = path.resolve(file);
 			let mdInput = readFileSync(file, "utf8");
+			mdInput = mdInput.replace(/\t/g, "  ");
 			if (mdInput.startsWith("---\n")) {
 				let yamlInput = mdInput.slice(4).split("\n---\n")[0]!;
 				mdInput = mdInput.slice(yamlInput.length + 8);

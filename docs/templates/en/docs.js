@@ -36,7 +36,10 @@ export const template = async (html, data, builder) => `
 			</div>
 		</div>
 		<div class="docpage_wrapper">
-			<div class="docpage_searchbar" id="docpage-searchbar"></div>
+			<div class="docpage_searchbar">
+				<div id="docpage-search"></div>
+				<div class="docpage_navbar_footer"></div>
+			</div>
 			<div class="docpage_navbar" id="docpage-navbar">
 				<div class="docpage_navbar_header">
 					<a href="/docs/en/">Docs (${builder.getTagText("VERSION")})</a>
