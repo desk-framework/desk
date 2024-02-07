@@ -15,7 +15,7 @@ menu_type: index
 
 ## App architecture {#app-architecture}
 
-- {@link fundamentals +}
+- {@link objects +}
 - {@link event-handling +}
 - {@link bindings +}
 - {@link app-context +}

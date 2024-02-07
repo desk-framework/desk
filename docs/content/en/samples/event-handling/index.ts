@@ -88,6 +88,7 @@ class MyObject extends ManagedObject {}
 
 	let myObject = new MyObject();
 	new MyObserver().observe(myObject);
+	myObject.emit("SomeEvent");
 	// @doc-end
 }
 {

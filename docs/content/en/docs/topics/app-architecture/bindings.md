@@ -1,7 +1,7 @@
 ---
 title: Bindings
 folder: topics
-abstract: Learn how to use bindings, to set property values automatically based on observable data.
+abstract: Learn how to use bindings, to communicate property changes between attached objects.
 ---
 
 # Bindings
@@ -10,13 +10,15 @@ abstract: Learn how to use bindings, to set property values automatically based 
 
 ## Overview {#overview}
 
-An important part of the architecture of a Desk application is the hierarchical structure of **managed objects** that makes up (among others) views, activities, and services. This structure doesn't just help to manage the lifecycle of objects, it also supports the use of events and bindings.
+In a Desk app, bindings are used to act on changes to property data — for example to update the UI when the state of an activity changes, or a property of a view model is updated.
 
-> **Note:** This guide assumes that you're familiar with managed objects. If you're not, read the {@link fundamentals Fundamentals} page first, which describes how Desk uses the ManagedObject base class.
+**Why?** — Bindings are a powerful tool for keeping the UI in sync with the rest of the application, while keeping business logic out of the view. Bindings also have their place in other parts of a complex app, such as services and data or view models, as a means to _decouple_ different parts of the application.
 
-Bindings provide a flexible mechanism for observing and updating data. In the simplest case, a binding **watches** a specific property on one object (the source) and then **updates** a property on another object (the target) with the source value. For example, the text of a label in the app UI can be bound to a property in its parent Activity object — afterwards, updating the activity's value would also update the UI.
+This way, it's easier to distinguish between objects that contain business logic, _providing_ data (properties), and objects that _consume_ this data (using bindings), such as views. As an application grows, this separation of concerns becomes increasingly important.
 
-The source object is always the _first parent in the managed object hierarchy that provides a property with the specified name_. If the target object is not attached yet, or none of the parents have a property with the specified name, then the binding is reevaluated each time a _new_ parent is attached further up the hierarchy.
+**Implementation** — Bindings are applied to {@link objects managed objects}, and watch for changes to attached 'parent' objects and their properties. When the object is attached, and a property with a specified name is available, the binding starts to observe the source property. A binding can either directly update a target property, or call a callback function whenever the value changes.
+
+Hence, the source object is always the _first parent in the managed object hierarchy that provides a property with the specified name_. If the target object is not attached yet, or none of the parents have a property with the specified name then the binding is unbound, and is reevaluated each time a _new_ parent is attached further up the hierarchy.
 
 In addition, bindings provide the following features:
 
@@ -24,7 +26,9 @@ In addition, bindings provide the following features:
 - **Filters** can be added to manipulate or combine bound values.
 - A **callback** function can be used to handle updates, rather than setting a target property directly.
 
-To create a binding, you can use the {@link bound} function (or one of the specific functions for the type of value you want to bind to, see below). This function returns a {@link Binding} object that you can use to configure the binding further, if needed.
+## Creating a binding {#create}
+
+To create a binding, you can use the {@link bound()} function (or one of the specific functions for the type of value you want to bind to, see below). This function returns a {@link Binding} object that you can use to configure the binding further, if needed.
 
 - {@link bound +}
 - {@link Binding +}
@@ -48,7 +52,7 @@ UILabel.withText(bound("name"));
 >
 > It's important to understand that bindings only update data **one-way**. After applying a binding, changing the source property immediately updates the target property — however, setting the target property to another value doesn't affect the source property in any way.
 >
-> The Desk framework doesn't include a facility for two-way bindings. To communicate data back to the source object (e.g. user input) you can use events. For form input (a very specific would-be use case for two-way bindings) Desk provides the {@link UIFormContext} view model.
+> The Desk framework doesn't include a facility for two-way bindings. To communicate data back to the source object (e.g. user input) you can use events. For form input (a very specific would-be use case for two-way bindings) Desk provides the {@link form-context form context} view model.
 
 ## Setting the binding source {#source}
 
@@ -56,7 +60,7 @@ The first argument to the {@link bound} function(s) is the binding **source**.
 
 **Single property** — In most cases, the binding source is the name of a single property that will be observed on the source object.
 
-For example, `bound("name")` represents a binding that looks for a `name` property on one of the target's parent objects, takes its value, and watches for changes.
+For example, `bound("name")` represents a binding that looks for a `name` property on one of the target's parent object(s), takes its value, and watches for changes.
 
 Under the hood, this upgrades the source property with a JavaScript _getter and setter_ that allow the binding (as well as any other bindings and/or observers) to handle changes transparently to the rest of the application.
 
@@ -172,7 +176,7 @@ For direct comparisons, you can use the following {@link Binding} methods. While
 - {@link Binding.matches}
 - {@link Binding.equals}
 
-> **Note:** These methods only support _direct_ comparisons using the `===` operator, and there are no further methods for other comparisons like greater-than, less-than, etc. These are left out on purpose: since the primary task of the view is to determine what the app UI _looks like_, business logic should ideally be kept out of the view. If it seems like it would be useful to have the ability to compare bound values directly, this is usually an indication that business logic is leaking into the view — consider adding such code to the activity (or view composite) instead, or use a dedicated view model.
+> **Note:** These methods only support _direct_ comparisons using the `===` operator, and there are no further methods for other comparisons like greater-than, less-than, etc. These are left out on purpose, to avoid adding business logic in the wrong place. If it seems like it would be useful to have comparative bindings, this is usually an indication that business logic is leaking into the view — consider adding such code to the activity (or view composite) instead, or use a dedicated view model.
 
 ## Binding to text values and formatted strings {#text}
 

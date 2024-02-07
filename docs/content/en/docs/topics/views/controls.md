@@ -4,7 +4,7 @@ folder: topics
 abstract: This article is not yet available.
 ---
 
-# Title
+# Controls
 
 ## Labels and images {#labels-and-images}
 

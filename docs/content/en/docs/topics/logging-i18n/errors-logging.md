@@ -4,7 +4,7 @@ folder: topics
 abstract: This article is not yet available.
 ---
 
-# Title
+# Errors and logging
 
 - {@link AppException +}
 - {@link LogWriter +}

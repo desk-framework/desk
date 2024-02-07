@@ -1,0 +1,154 @@
+---
+title: Objects
+folder: topics
+abstract: Understand how the Desk framework manages different parts of your app using a common foundation provided by the ManagedObject class.
+---
+
+# Objects
+
+> {@include abstract}
+
+## Object orientation {#oo}
+
+Desk apps are **object-oriented**, and rely on **composition** (referencing component objects from 'parent' objects) to produce a tree structure, i.e. a strict hierarchy of objects.
+
+> **Note:** This documentation assumes you're familiar with the basics of object-oriented programming in JavaScript. If you're not, you may want to read up on the topic before proceeding.
+>
+> - Classes and objects (instances)
+> - Properties and methods
+> - Inheritance using modern JavaScript syntax (extends, super)
+
+To communicate between objects, you can use standard JavaScript properties and methods — but the framework also provides features to **attach** component objects to 'parent' or containing objects. This enables the following special features:
+
+- **Property bindings** automatically observe and copy property data from a parent object to a contained object (one-way only, e.g. to update views when the activity is updated).
+- Objects emit **events** that can be handled by containing objects (the other way around from bindings, e.g. to handle user input).
+- Objects can be **unlinked** from the hierarchy when they're no longer needed, clearing event handlers and bindings automatically, as well as unlinking further child objects.
+
+## Managed objects {#managed-object}
+
+Most of the classes provided by the Desk framework extend the `ManagedObject` class. This class serves as the primary building block for the Desk application hierarchy: it contains all of the functionality to attach objects, handle events, and bind data between them.
+
+- {@link ManagedObject +}
+
+> **Note:** The `ManagedObject` primarily 'manages' references between objects, ensuring that properties and events can be observed without creating memory leaks. By sticking with a strict hierarchy of attached, managed objects, Desk introduces a concept of **ownership** in your code, avoiding many of the pitfalls of traditional JavaScript programming surrounding closures and event handlers.
+
+However, most of the time you won't be aware of the `ManagedObject` class itself. For example, to define an **activity**, you'll need to extend the {@link Activity} class, which comes with a `view` property that _attaches view objects automatically_ —
+
+```ts
+class MyActivity extends Activity {
+	// ... your code goes here, e.g.:
+	protected ready() {
+		this.view = new MyView(); // MyView instance is attached
+		app.showPage(this.view);
+	}
+}
+```
+
+With just this code, property bindings and event handlers are added _and_ cleaned up automatically, as the activity and view are attached and/or unlinked.
+
+Similarly, the {@link UIComponent} class lets you create classes that construct (and attach) an entire **view** hierarchy in one go, using its static `.with()` method:
+
+```ts
+// After this, MyView is a class that extends UICell,
+// whose instances contain a UILabel instance:
+const MyView = UICell.with(
+	{ padding: 16 }, // 'preset' properties
+	UILabel.withText("Hello World"), // content
+);
+```
+
+Finally, the {@link app} object itself is a managed object, which is responsible for the application as a whole. It's created immediately when the app starts, and can be used from anywhere in your code.
+
+```ts
+// start the app
+app.addActivity(new MyActivity(), true);
+
+// show a dialog
+let result = await app.showConfirmationDialogAsync("Are you sure?");
+```
+
+## Attaching objects {#attach}
+
+You can also attach your own managed objects to other managed objects, to build out the application hierarchy with e.g. data structures.
+
+- Objects can be attached ad-hoc using the {@link ManagedObject.attach attach()} method, allowing you to assign relationships between objects dynamically. Objects can only be attached to a single parent object at a time.
+- Objects can also be attached by referencing them from specific properties. The property to be watched is set up using the {@link ManagedObject.autoAttach autoAttach()} method. Any object assigned to such a property is automatically attached to the parent object. When the referenced object is unlinked, the property is set to undefined.
+- For both methods, an observer or callback function can be provided to listen for events or changes on attached objects.
+- When an object is no longer needed, it can be unlinked using the {@link ManagedObject.unlink unlink()} method. This method unlinks the object from its parent, and also unlinks all of its own attached objects.
+
+After an object is unlinked (see below) it can no longer be attached to any other parent object. Unlinked objects also can't emit any events, be observed, or have their properties bound to other objects.
+
+- {@link ManagedObject.attach}
+- {@link ManagedObject.autoAttach}
+- {@link ManagedObject.unlink}
+
+> **Why should I need to "unlink" a managed object?**
+>
+> Unlinking managed objects is not always necessary. JavaScript is a garbage-collected language, so objects that are no longer referenced by _any_ other object or active closure are automatically removed from memory.
+>
+> However, unlinking an object is still a good idea if the object had any event listeners or bindings added to it during its lifetime. Unlinking the object explicitly removes such references, and breaks up any circular references that may otherwise prevent the object from being garbage-collected.
+
+## Handling unlinked objects {#handling-unlinked}
+
+In a managed object class, you may want to perform some cleanup when the object is unlinked. The {@link ManagedObject} class allows you to override the {@link ManagedObject.beforeUnlink beforeUnlink()} method for an opportunity to perform such cleanup.
+
+```ts
+class MyObject extends ManagedObject {
+	// Called just before the object is unlinked:
+	protected beforeUnlink() {
+		// ... cleanup code goes here
+	}
+}
+```
+
+On the other hand, after attaching another object, you may want to run some code when the _attached_ object is unlinked. Both the {@link ManagedObject.attach attach()} and {@link ManagedObject.autoAttach autoAttach()} methods accept an optional callback function (or {@link Observer} class) that's invoked when the attached object emits an event **and** when the object is unlinked.
+
+```ts
+class ParentObject extends ManagedObject {
+	readonly target = this.attach(new MyObject(), (target, event) => {
+		if (!target) {
+			// ...handle the attached object being unlinked
+		} else if (event && event.name === "Change") {
+			// ...handle change event from the attached object
+		}
+	});
+}
+```
+
+Note that both callbacks are only invoked when the attached object is unlinked _explicitly_, using the {@link ManagedObject.unlink unlink()} method on the object itself **or** one of its 'parent' containing objects. These callbacks are not invoked when the object is garbage-collected.
+
+## Attaching objects using managed lists {#attach-lists}
+
+If you need to keep track of _multiple_ managed objects in a list, you could of course use a regular array or JavaScript `Set`. However, Desk provides a special class called {@link ManagedList} that's designed to work with managed objects in a more efficient way.
+
+- A `ManagedList` contains an _ordered set_ of managed objects — each object can only be added to the list **once**.
+- A `ManagedList` can be restricted to only contain objects of a specific type.
+- A `ManagedList` that's attached to a parent object, automatically attaches all of the contained objects as well.
+- When an attached `ManagedList` is unlinked, all of the attached objects are unlinked as well.
+- When an object is unlinked, it is automatically removed from the `ManagedList`.
+- A `ManagedList` automatically **propagates events** from attached objects, making it easier to listen for events on all objects at the same time.
+
+```ts
+class CustomerOrders extends ManagedObject {
+	readonly orders = this.attach(
+		new ManagedList().restrict(Order),
+		(target, event) => {
+			// ... handle changes on this list and its objects
+		},
+	);
+}
+```
+
+## Further reading {#further-reading}
+
+Learn more about event handling, property bindings, and data structures in the following articles:
+
+- {@link event-handling}
+- {@link bindings}
+- {@link data-structures}
+
+To see how managed objects are used in practice, refer to the following articles:
+
+- {@link app-context}
+- {@link activities}
+- {@link views}

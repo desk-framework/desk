@@ -4,7 +4,7 @@ folder: topics
 abstract: This article is not yet available.
 ---
 
-# Title
+# String formatting
 
 - {@link strf +}
 - {@link LazyString +}
