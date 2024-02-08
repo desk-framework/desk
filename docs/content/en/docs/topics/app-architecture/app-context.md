@@ -28,6 +28,10 @@ The functionality provided by the application context depends on the runtime pla
 - To initialize a test with full app functionality (activities, rendering, etc.) you'll need to use the {@link useTestContext} function.
 - Currently, no other platforms are supported — but with more platforms, each package would have to export an initialization function to set up its own context objects.
 
+The `use..Context` functions take an `options` argument, which may either be an instance of the particular context's options class, or a function. The function is called with a _default_ options object, which can be modified to customize the context. The {@link ConfigOptions} base class of the options object is available for use elsewhere in your code, e.g. to configure a {@link services service}.
+
+- {@link ConfigOptions +}
+
 After initialization, you can add activities and (optionally) services to the application hierarchy, and customize several other app elements; refer to each of the sections below.
 
 ### Initializing activities
@@ -36,9 +40,7 @@ To use activities effectively, they need to be added to the application hierarch
 
 - {@link GlobalContext.addActivity()}
 
-This method adds the provided activity to the _activity context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of activities, as well as a reference to the _navigation path_ that handles platform-dependent logic for external navigation (see below). The activity context ensures that activities are activated and deactivated according to the current navigation path if needed.
-
-- {@link ActivityContext +}
+This method adds the provided activity to the _activity context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of activities, as well as a reference to the _navigation path_ that handles platform-dependent logic for external navigation (see below).
 
 For more information, refer to the documentation for {@link activities}.
 
@@ -50,9 +52,16 @@ The app context also includes a method to register a service, so that it can be 
 
 This method adds the provided service to the _service context_, available as {@link GlobalContext.services app.services}. This object manages the list of currently registered services.
 
-- {@link ServiceContext +}
-
 For more information, refer to the documentation for {@link services}.
+
+```ts
+// you can chain method calls together:
+useWebContext((options) => {
+	// ... set up the app context using options
+})
+	.addService(new MyService())
+	.addActivity(new MainActivity(), true);
+```
 
 ## Using global app navigation {#navigation-context}
 
@@ -75,6 +84,17 @@ While the app is running, the app context can be used to render the application'
 - {@link GlobalContext.showPage()}
 - {@link GlobalContext.showDialog()}
 
+```ts
+class MyActivity extends Activity {
+	// ...
+
+	ready() {
+		this.view = new MyView();
+		app.showPage(this.view);
+	}
+}
+```
+
 ### Predefined modals
 
 The app context also includes methods to render predefined modal views, which can be used at any time — usually from event handlers within the current activity. The alert and confirmation dialogs, as well as modal menus that are displayed, may be rendered using platform-specific UI elements or using a custom view. The {@link GlobalContext.theme app.theme} object includes options for customizing the appearance of these views.
@@ -82,6 +102,24 @@ The app context also includes methods to render predefined modal views, which ca
 - {@link GlobalContext.showAlertDialogAsync()}
 - {@link GlobalContext.showConfirmDialogAsync()}
 - {@link GlobalContext.showModalMenuAsync()}
+
+```ts
+// simple usage example:
+app.showAlertDialogAsync("An error occurred");
+
+// with options:
+const errorDialog = new MessageDialogOptions(
+	[
+		strf("An error occurred: %s"),
+		strf("The data could not be saved, please try again."),
+	],
+	strf("Try again"),
+	strf("Cancel"),
+	strf("Show details"),
+);
+
+app.showAlertDialogAsync(errorDialog.format(err));
+```
 
 > **Note:** While these methods can be used from anywhere in the application, they're typically only used from within an activity. Using these rendering methods from within services or models, for example to show error messages or perform data validation, is considered an anti-pattern and should be avoided.
 

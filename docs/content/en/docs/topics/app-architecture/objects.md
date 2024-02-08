@@ -18,9 +18,9 @@ Desk apps are **object-oriented**, and rely on **composition** (referencing comp
 > - Properties and methods
 > - Inheritance using modern JavaScript syntax (extends, super)
 
-To communicate between objects, you can use standard JavaScript properties and methods — but the framework also provides features to **attach** component objects to 'parent' or containing objects. This enables the following special features:
+To communicate between objects, you can use standard JavaScript properties and methods — but the framework also provides features to **attach** component objects to 'parent' or containing objects. For example, a view object is _attached_ to an activity. This enables the following special features:
 
-- **Property bindings** automatically observe and copy property data from a parent object to a contained object (one-way only, e.g. to update views when the activity is updated).
+- **Property bindings** automatically observe and copy property data from a containing parent object to a contained object (one-way only, e.g. to update views when the activity is updated).
 - Objects emit **events** that can be handled by containing objects (the other way around from bindings, e.g. to handle user input).
 - Objects can be **unlinked** from the hierarchy when they're no longer needed, clearing event handlers and bindings automatically, as well as unlinking further child objects.
 
@@ -69,7 +69,7 @@ let result = await app.showConfirmationDialogAsync("Are you sure?");
 
 ## Attaching objects {#attach}
 
-You can also attach your own managed objects to other managed objects, to build out the application hierarchy with e.g. data structures.
+You can also attach your own managed objects to other managed objects, to build out the application hierarchy — for example, to incorporate relational data or complex view models.
 
 - Objects can be attached ad-hoc using the {@link ManagedObject.attach attach()} method, allowing you to assign relationships between objects dynamically. Objects can only be attached to a single parent object at a time.
 - Objects can also be attached by referencing them from specific properties. The property to be watched is set up using the {@link ManagedObject.autoAttach autoAttach()} method. Any object assigned to such a property is automatically attached to the parent object. When the referenced object is unlinked, the property is set to undefined.
@@ -81,6 +81,25 @@ After an object is unlinked (see below) it can no longer be attached to any othe
 - {@link ManagedObject.attach}
 - {@link ManagedObject.autoAttach}
 - {@link ManagedObject.unlink}
+- {@link ManagedObject.isUnlinked}
+
+To get a reference to the containing (attached parent) object, or the _closest_ containing object of a specific type, you can use the **static** {@link ManagedObject.whence whence()} method that's available on the `ManagedObject` class and all subclasses.
+
+- {@link ManagedObject.whence}
+
+```ts
+class MyObject extends ManagedObject {
+	// ...
+	readonly other = this.attach(new OtherObject());
+}
+
+let object = new MyObject();
+MyObject.whence(object.other); // => object
+
+// attached objects are unlinked automatically:
+object.unlink();
+object.other.isUnlinked(); // => true
+```
 
 > **Why should I need to "unlink" a managed object?**
 >
