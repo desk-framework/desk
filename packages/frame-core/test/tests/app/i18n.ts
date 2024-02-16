@@ -72,6 +72,7 @@ describe("I18n", (scope) => {
 			}
 			LazyString.setI18nInterface(new MyI18nProvider() as any);
 			expect(strf("##TAG The tag")).asString().toBe("Le tag");
+			expect(strf("##TAG:string with a tag")).asString().toBe("Le tag");
 			expect(strf("##BARE The bare")).asString().toBe("Le bare");
 			expect(strf("##BARE:With description:The bare"))
 				.asString()
@@ -79,6 +80,7 @@ describe("I18n", (scope) => {
 			expect(strf("##NO_MATCH No match")).asString().toBe("No match");
 			LazyString.setI18nInterface();
 			expect(strf("##BARE")).asString().toBe("");
+			expect(strf("##EMPTY:Nothing goes here")).asString().toBe("");
 			expect(strf("##SPACE:A single space: ")).asString().toBe(" ");
 			expect(strf("##STARTS_WITH_SPACE:: abc")).asString().toBe(" abc");
 		});

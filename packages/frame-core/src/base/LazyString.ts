@@ -200,7 +200,7 @@ export class LazyString extends String {
 	translate() {
 		let result = new LazyString(() =>
 			(_i18n ? _i18n.getText(String(this)) : String(this)).replace(
-				/^##[^ :]+(?: |\:[^:]*\:|$)/,
+				/^##[^ :]+(?: |\:[^:]*\:?|$)/,
 				"",
 			),
 		);
