@@ -223,6 +223,7 @@ export class LazyString extends String {
 	 * - `%n` (non-standard) general-purpose number format, never results in exponential notation
 	 * - `%_` to insert nothing at all (blank string)
 	 * - `%{uc}`, `%{lc}` to convert strings to uppercase or lowercase
+	 * - `%{s|abc}` to insert a string, or `abc` if the string is empty or not defined
 	 * - `%{?|a}` to insert string a if the value `== true`, otherwise a blank string
 	 * - `%{?|a|b}` to insert one of `a` or `b`: the first option if the value `== true`, the second if not
 	 * - `%{plural|...|...}` for pluralization, but with its own quantity value in the argument list
