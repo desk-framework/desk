@@ -299,22 +299,22 @@ export namespace LazyString {
 			// use special format
 			let split = format.split("|");
 			switch (split[0]!) {
-				case "_":
-					return "";
-				case "?":
-					return value
-						? _stringify(split[1] ?? "")
-						: _stringify(split[2] ?? "");
-				case "uc":
-					return _stringify(value ?? "").toUpperCase();
-				case "lc":
-					return _stringify(value ?? "").toLowerCase();
 				case "local":
 					return LazyString.local.call(undefined, value, ...split.splice(1));
 				case "plural":
 					return _i18n
 						? String(_i18n.getPlural(value, split.splice(1)))
 						: split[value == 1 ? 1 : 2] || "";
+				case "s":
+					return _stringify(value) || (split[1] ?? "");
+				case "?":
+					return value ? split[1] ?? "" : split[2] ?? "";
+				case "uc":
+					return _stringify(value ?? "").toUpperCase();
+				case "lc":
+					return _stringify(value ?? "").toLowerCase();
+				case "_":
+					return "";
 				default:
 					errorHandler(err(ERROR.Format_Type, format));
 					return "???";
