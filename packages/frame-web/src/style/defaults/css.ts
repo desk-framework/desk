@@ -71,6 +71,9 @@ export function makeBaseCSS() {
 			minHeight: "0",
 			flexShrink: "0",
 		},
+		[`.${CLASS_UI}.${CLASS_CELL}>.${CLASS_COLUMN}`]: {
+			flexGrow: "1",
+		},
 
 		// set sensible placeholder style
 		[`input.${CLASS_UI}::placeholder`]: {
