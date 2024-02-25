@@ -24,7 +24,6 @@ export const colors: [name: string, color: UIColor][] = [
 	["primary", new UIColor("@blue")],
 	["primaryBackground", new UIColor("@blue")],
 	["accent", new UIColor("@purple")],
-	["pageBackground", new UIColor("@background")],
 	["background", new UIColor("@white")],
 	["text", new UIColor("@background").text()],
 	["separator", new UIColor("@background").text().alpha(0.1)],

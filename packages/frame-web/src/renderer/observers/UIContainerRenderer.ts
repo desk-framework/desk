@@ -23,8 +23,7 @@ import {
 	CLASS_SEPARATOR_SPACER,
 } from "../../style/defaults/css.js";
 import {
-	applyElementClassName,
-	applyElementStyle,
+	applyStyles,
 	getCSSColor,
 	getCSSLength,
 } from "../../style/DOMStyle.js";
@@ -200,8 +199,17 @@ export class UIContainerRenderer<
 				systemName = CLASS_CELL;
 			}
 
-			applyElementClassName(element, BaseStyle, systemName, false, true);
-			applyElementStyle(element, styles, container.position, layout);
+			applyStyles(
+				container,
+				element,
+				BaseStyle,
+				systemName,
+				false,
+				true,
+				styles,
+				container.position,
+				layout,
+			);
 			this.updateSeparator();
 		}
 	}

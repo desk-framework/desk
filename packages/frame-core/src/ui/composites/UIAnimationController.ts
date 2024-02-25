@@ -50,22 +50,17 @@ export class UIAnimationController extends ViewComposite {
 	) {
 		// prepare everything in advance
 		let renderer = app.renderer;
-		let f =
+		let transformer =
 			typeof animation === "string"
 				? app.theme?.animations.get(animation.slice(1))
 				: animation;
 		let output = this._lastOutput;
-		if (!f || !output || !renderer) return;
+		if (!transformer || !output || !renderer) return;
 
 		// loop if repeating, otherwise run transform just once
 		let update = this._lastUpdate;
-		let t: RenderContext.OutputTransform | undefined | void;
-		while (
-			this.body &&
-			this._lastUpdate === update &&
-			(t = renderer.transform(output))
-		) {
-			await f(t);
+		while (this.body && this._lastUpdate === update) {
+			await renderer.animateAsync(output, transformer);
 			if (!repeat) return;
 		}
 	}

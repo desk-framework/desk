@@ -5,10 +5,7 @@ import {
 	UIImageStyle,
 } from "@desk-framework/frame-core";
 import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
-import {
-	applyElementClassName,
-	applyElementStyle,
-} from "../../style/DOMStyle.js";
+import { applyStyles } from "../../style/DOMStyle.js";
 
 /** @internal */
 export class UIImageRenderer extends BaseObserver<UIImage> {
@@ -53,12 +50,13 @@ export class UIImageRenderer extends BaseObserver<UIImage> {
 	override updateStyle(element: HTMLImageElement) {
 		let image = this.observed;
 		if (image) {
-			applyElementClassName(
+			applyStyles(
+				image,
 				element,
 				getBaseStyleClass(image.imageStyle) || UIImageStyle,
-			);
-			applyElementStyle(
-				element,
+				undefined,
+				false,
+				false,
 				[image.imageStyle, { width: image.width, height: image.height }],
 				image.position,
 			);

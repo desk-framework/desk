@@ -18,14 +18,8 @@ import type {
 	UIToggleStyle,
 } from "./index.js";
 
-/** Default row `spacing` for new themes */
-const BASE_ROW_SPACING = 8;
-
-/** Default separator `margin` for new themes */
-const BASE_SEPARATOR_MARGIN = 8;
-
-/** Default modalDialogShadeOpacity for new themes */
-const BASE_MODAL_OPACITY = 0.3;
+/** Default row spacing and separator margin for new themes */
+const BASE_SPACING = 8;
 
 /** Default dark text color */
 const BASE_DARK_TEXT_COLOR = "#000000";
@@ -37,38 +31,25 @@ const BASE_LIGHT_TEXT_COLOR = "#ffffff";
 let _nextStyleId = 0x1234;
 
 /**
- * A collection of default style options, colors, animations, and icons, part of the global application context
+ * A collection of default style options, colors, animations, effects, and icons, part of the global application context
  *
  * @description
  * The current application theme is available through the {@link GlobalContext.theme app.theme} property.
  *
- * To change the theme, create a new theme using {@link UITheme.clone()} and update styles, icons, animations, and/or colors. The view for all activities will be re-rendered automatically.
+ * To change the theme, create a new theme using {@link UITheme.clone()} and update styles, icons, animations, effects, and/or colors. The view for all activities will be re-rendered automatically.
  *
  */
 export class UITheme {
 	/** Returns the row spacing value from the current theme, or a default value */
-	static getRowSpacing() {
-		return app.theme ? app.theme.rowSpacing : BASE_ROW_SPACING;
+	static getSpacing() {
+		return app.theme ? app.theme.rowSpacing : BASE_SPACING;
 	}
-
-	/** Returns the separator margin value from the current theme, or a default value */
-	static getSeparatorMargin() {
-		return app.theme ? app.theme.separatorMargin : BASE_SEPARATOR_MARGIN;
-	}
-
-	/** Returns the modal dialog backdrop shade value from the current theme, or a default value */
-	static getModalDialogShadeOpacity() {
-		return app.theme ? app.theme.modalDialogShadeOpacity : BASE_MODAL_OPACITY;
-	}
-
-	/** Dialog backdrop shader opacity (used by modal dialog views), defaults to 0.3 */
-	modalDialogShadeOpacity = BASE_MODAL_OPACITY;
 
 	/** Default spacing between components in a row, defaults to 8 */
-	rowSpacing: string | number = BASE_ROW_SPACING;
+	rowSpacing: string | number = BASE_SPACING;
 
 	/** Default margin around separator components, defaults to 8 */
-	separatorMargin: string | number = BASE_SEPARATOR_MARGIN;
+	separatorMargin: string | number = BASE_SPACING;
 
 	/** Default dark text color, defaults to `#000000` */
 	darkTextColor: string = BASE_DARK_TEXT_COLOR;
@@ -110,12 +91,10 @@ export class UITheme {
 	 * - primary
 	 * - primaryBackground
 	 * - accent
-	 * - pageBackground
 	 * - background
 	 * - text
 	 * - separator
 	 * - controlBase
-	 * - modalShade
 	 *
 	 * Color changes may not be applied to views that are already rendered. If needed, re-render content using `app.renderer.remount()`, or change the theme altogether (use {@link UITheme.clone()} to create a new theme).
 	 *
@@ -176,6 +155,16 @@ export class UITheme {
 	animations = new Map<string, RenderContext.OutputTransformer>();
 
 	/**
+	 * A map that defines a set of predefined output effects
+	 *
+	 * @description
+	 * The effects defined by this map can be used with UI component styles (e.g. {@link UICellStyle}), as defined by {@link UIComponent.DecorationStyleType}.
+	 *
+	 * These effects are platform-specific, and may include e.g. `shadow`, `glass`, `glow`, etc.
+	 */
+	effects = new Map<string, RenderContext.OutputEffect>();
+
+	/**
 	 * A map that defines a set of predefined styles
 	 * - This map includes base style definitions that are applied to instances of {@link UITheme.BaseStyle}. Each key is a subclass, and each value is a list of style definitions (as an array). To change the base appearance of UI components, preferably _add_ objects with style definitions to each array. The format of style definitions is the same as the arguments of {@link BaseStyle.extend}.
 	 *
@@ -199,7 +188,6 @@ export class UITheme {
 	/** Returns a new {@link UITheme} object that's a clone of this object */
 	clone() {
 		let result = new UITheme();
-		result.modalDialogShadeOpacity = this.modalDialogShadeOpacity;
 		result.rowSpacing = this.rowSpacing;
 		result.modalFactory = this.modalFactory;
 		result.darkTextColor = this.darkTextColor;
@@ -208,6 +196,7 @@ export class UITheme {
 		result.colors = new Map(this.colors);
 		result.styles = new Map(this.styles) as any;
 		result.animations = new Map(this.animations);
+		result.effects = new Map(this.effects);
 		return result;
 	}
 }
@@ -329,11 +318,22 @@ export namespace UITheme {
 			this: StyleClassType<BaseStyle<TypeString, TDefinition>>,
 			...styles: Readonly<StyleSelectorList<TDefinition>>
 		): typeof this {
+			let effect: UIComponent.DecorationStyleType["effect"];
+			for (let s of styles) {
+				if ((s as any).effect) effect = (s as any).effect;
+			}
 			return class extends this {
 				override getStyles() {
 					return [...super.getStyles(), ...styles];
 				}
-			} as any;
+				override getEffect() {
+					return (
+						(typeof effect === "string"
+							? app.theme?.effects.get(effect.slice(1))
+							: effect) || super.getEffect()
+					);
+				}
+			};
 		}
 
 		/**
@@ -381,6 +381,15 @@ export namespace UITheme {
 		 */
 		getStyles(): Readonly<StyleSelectorList<TDefinition>> {
 			return this.base;
+		}
+
+		/**
+		 * Returns the effect that should be applied to a rendered UI component's output
+		 * - The returned effect gets applied by the renderer to each new output element.
+		 * - On a style that's extended using {@link extend()}, the effect is taken from {@link UIComponent.DecorationStyleType}.
+		 */
+		getEffect(): Readonly<RenderContext.OutputEffect> | undefined {
+			return undefined;
 		}
 	}
 

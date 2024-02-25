@@ -9,8 +9,7 @@ import {
 	UILabelStyle,
 } from "@desk-framework/frame-core";
 import {
-	applyElementClassName,
-	applyElementStyle,
+	applyStyles,
 	getCSSColor,
 	getCSSLength,
 } from "../../style/DOMStyle.js";
@@ -78,14 +77,13 @@ export class UILabelRenderer extends BaseObserver<UILabel> {
 	override updateStyle(element: HTMLElement) {
 		let label = this.observed;
 		if (label) {
-			applyElementClassName(
+			applyStyles(
+				label,
 				element,
 				getBaseStyleClass(label.labelStyle) || UILabelStyle,
 				undefined,
 				true,
-			);
-			applyElementStyle(
-				element,
+				false,
 				[
 					label.labelStyle,
 					{
@@ -97,7 +95,6 @@ export class UILabelRenderer extends BaseObserver<UILabel> {
 				],
 				label.position,
 				undefined,
-				true,
 			);
 		}
 	}

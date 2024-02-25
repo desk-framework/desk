@@ -366,7 +366,7 @@ export class GlobalContext extends ManagedObject {
 	/**
 	 * Runs an animation on the provided view output element
 	 *
-	 * @summary This method passes a renderer-specific transformation object to an asynchronous function, which may use methods on the transformation object to animate the view output.
+	 * @summary This method passes a renderer-specific transformation object to an asynchronous transformer, which may use methods on the transform object to animate a view.
 	 * @see {@link RenderContext.OutputTransform}
 	 * @see {@link RenderContext.OutputTransformer}
 	 * @see {@link UITheme.animations}
@@ -381,12 +381,13 @@ export class GlobalContext extends ManagedObject {
 	) {
 		if (!this.renderer) throw err(ERROR.GlobalContext_NoRenderer);
 		let out = ref.lastRenderOutput;
-		let t = out && this.renderer.transform(out);
-		let f =
+		let transformer =
 			typeof animation === "string"
 				? this.theme?.animations.get(animation.slice(1))
 				: animation;
-		if (t && f) await f(t);
+		if (out && transformer) {
+			await this.renderer.animateAsync(out, transformer);
+		}
 	}
 
 	/**

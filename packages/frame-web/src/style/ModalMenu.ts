@@ -50,10 +50,10 @@ export class ModalMenuStyles {
 		background: UIColor["@background"],
 		borderRadius: 12,
 		padding: { y: 8 },
-		dropShadow: 0.8,
 		width: "100%",
 		minWidth: 200,
 		maxWidth: 280,
+		effect: "@elevate",
 	});
 
 	/**

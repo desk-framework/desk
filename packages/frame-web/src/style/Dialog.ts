@@ -23,12 +23,12 @@ export class DialogStyles {
 	 * - The default style includes properties for dimensions, background, border radius, and drop shadow
 	 */
 	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@pageBackground"],
+		background: UIColor["@background"],
 		borderRadius: 12,
-		dropShadow: 0.8,
 		width: "auto",
 		minWidth: 360,
 		grow: 0,
+		effect: "@elevate",
 	});
 
 	/** The margin that is applied to the outer dialog container, to position the dialog itself */
@@ -64,7 +64,7 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 		if (this.dialogView.isUnlinked()) return;
 		app.render(this, {
 			mode: "dialog",
-			shade: UITheme.getModalDialogShadeOpacity(),
+			shade: true,
 			transform: {
 				show: "@show-dialog",
 				hide: "@hide-dialog",

@@ -34,9 +34,9 @@ export class UISeparator extends UIComponent {
 
 	/**
 	 * The amount of space to be added perpendicular to the separator, in pixels or CSS length with unit
-	 * - This property is set by default to the value of {@link UITheme.separatorMargin}
+	 * - This property is set by default to the value of {@link UITheme.rowSpacing}
 	 */
-	margin?: string | number = UITheme.getSeparatorMargin();
+	margin?: string | number = UITheme.getSpacing();
 
 	/** True if the separator should be drawn as a vertical line instead of a horizontal line */
 	vertical?: boolean;

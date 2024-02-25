@@ -16,7 +16,7 @@ export class UIRow extends UIContainer {
 	/** Creates a new row container view object with the provided view content */
 	constructor(...content: View[]) {
 		super(...content);
-		this.spacing = UITheme.getRowSpacing();
+		this.spacing = UITheme.getSpacing();
 	}
 
 	/**

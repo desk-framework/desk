@@ -52,13 +52,13 @@ export class MessageDialogStyles {
 	 * - The default style includes properties for dimensions, background, border radius, and drop shadow
 	 */
 	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@pageBackground"],
+		background: UIColor["@background"],
 		borderRadius: 12,
-		dropShadow: 0.8,
 		width: "auto",
 		minWidth: 360,
 		maxWidth: "95vw",
 		grow: 0,
+		effect: "@elevate",
 	});
 
 	/**
@@ -74,7 +74,6 @@ export class MessageDialogStyles {
 	 * - The default style includes properties for padding and background
 	 */
 	ButtonCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@background"],
 		padding: 16,
 	});
 
@@ -162,7 +161,7 @@ export class MessageDialog
 		return new Promise<{ confirmed: boolean; other?: boolean }>((r) => {
 			app.render(this, {
 				mode: "dialog",
-				shade: UITheme.getModalDialogShadeOpacity(),
+				shade: true,
 				transform: {
 					show: "@show-dialog",
 					hide: "@hide-dialog",

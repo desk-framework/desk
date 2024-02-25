@@ -35,6 +35,7 @@ const _flexAlignOptions = {
 	center: "center",
 	stretch: "stretch",
 	baseline: "baseline",
+	auto: "auto",
 	"": "",
 };
 
@@ -215,32 +216,66 @@ export function defineStyleClass(
 	return instance;
 }
 
-/** @internal Helper function to apply style classes to an element using CSS class names */
-export function applyElementClassName(
+/** @internal Helper function to apply styles to an element using CSS, and apply effects */
+export function applyStyles(
+	component: UIComponent,
 	element: HTMLElement,
 	BaseStyle?: new () => UITheme.BaseStyle<string, any>,
 	systemName?: string,
 	isTextControl?: boolean,
 	isContainer?: boolean,
+	styleOverrides?: any[],
+	position?: UIComponent.Position,
+	layout?: UIContainer.Layout,
 ) {
+	let style = applyElementBaseStyle(
+		element,
+		BaseStyle,
+		systemName,
+		isTextControl,
+		isContainer,
+	);
+	applyElementStyle(element, styleOverrides, position, layout, isTextControl);
+	let effect = style?.getEffect();
+	if (styleOverrides) {
+		for (let style of styleOverrides) {
+			if (style?.effect) effect = style.effect;
+		}
+		// TODO: this shouldn't be the case anymore
+		if (typeof effect === "string")
+			effect = app.theme?.effects.get((effect as any).slice(1));
+	}
+	if (effect) effect.applyEffect(element, component);
+}
+
+/** @internal Helper function to apply a base style to an element (i.e. CSS class name) */
+function applyElementBaseStyle(
+	element: HTMLElement,
+	BaseStyle?: new () => UITheme.BaseStyle<string, any>,
+	systemName?: string,
+	isTextControl?: boolean,
+	isContainer?: boolean,
+): UITheme.BaseStyle<string, any> | undefined {
 	// if element is hidden, stop early
 	if (element.hidden) {
 		element.className = "";
 		return;
 	}
+	let style: UITheme.BaseStyle<string, any> | undefined;
 	let className = CLASS_UI;
 	if (isTextControl) className += " " + CLASS_TEXTCONTROL;
 	if (isContainer) className += " " + CLASS_CONTAINER;
 	if (systemName) className += " " + systemName;
 	if (BaseStyle) {
-		let baseName = defineStyleClass(BaseStyle, isTextControl).id;
-		if (baseName) className += " " + baseName;
+		style = defineStyleClass(BaseStyle, isTextControl);
+		className += " " + style.id;
 	}
 	element.className = className;
+	return style;
 }
 
 /** @internal Helper function to apply styles to an element using inline CSS properties */
-export function applyElementStyle(
+function applyElementStyle(
 	element: HTMLElement,
 	styleOverrides?: any[],
 	position?: UIComponent.Position,
@@ -435,8 +470,6 @@ function addDecorationStyleCSS(
 			result.paddingInlineStart = getCSSLength(padding.start);
 		if ("end" in padding) result.paddingInlineEnd = getCSSLength(padding.end);
 	}
-	if (decoration.dropShadow !== undefined)
-		result.boxShadow = getBoxShadowCSS(decoration.dropShadow);
 	if (decoration.opacity! >= 0) result.opacity = String(decoration.opacity);
 	if (decoration.css) {
 		// copy all properties to result
@@ -492,28 +525,6 @@ function camelToCssCase(k: string) {
 			.replace(/([A-Z])/g, "-$1")
 			.toLowerCase()
 			.replace(/^(webkit|o|ms|moz)-/, "-$1-"))
-	);
-}
-
-/** Helper function to get boxShadow property for given elevation (0-1) */
-function getBoxShadowCSS(d = 0) {
-	let inset = "";
-	if (d < 0) {
-		inset = "inset ";
-		d = -d;
-	}
-	d = Math.min(1, Math.max(0, d));
-	if (!(d > 0)) return "none";
-	return (
-		`${inset}0 0 ${d * 2}rem ${d * -0.25}rem rgba(0,0,0,${d * d * 0.3}),` +
-		`${inset}0 ${d * 0.85}rem ${d * 1}rem ${d * -0.25}rem rgba(0,0,0,${
-			d * 0.15 + 0.1
-		}),` +
-		`${inset}0 ${d * d * 0.5 + d * 0.6}rem ${d * 1}rem ${
-			d * -1
-		}rem rgba(0,0,0,.4),` +
-		`${inset}0 ${d * d * 1.5}rem ${d * 3}rem ${d * -1}rem rgba(0,0,0,.3),` +
-		`${inset}0 ${d * d * 3}rem ${d * 2.5}rem ${d * -2}rem rgba(0,0,0,.3)`
 	);
 }
 

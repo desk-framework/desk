@@ -29,16 +29,18 @@ function _anim(
 	easeIn?: boolean,
 	duration?: number,
 ): RenderContext.OutputTransformer {
-	return async function (t: RenderContext.OutputTransform) {
-		let a = t
-			.offset(...offset[0])
-			.fade(fade[0])
-			.step()
-			.offset(...offset[1])
-			.fade(fade[1]);
-		let p = easeIn
-			? a.easeIn(duration || 200).waitAsync()
-			: a.easeOut(duration || 200).waitAsync();
-		if (!async) await p;
+	return {
+		async applyTransform(t: RenderContext.OutputTransform) {
+			let a = t
+				.offset(...offset[0])
+				.fade(fade[0])
+				.step()
+				.offset(...offset[1])
+				.fade(fade[1]);
+			let p = easeIn
+				? a.easeIn(duration || 200).waitAsync()
+				: a.easeOut(duration || 200).waitAsync();
+			if (!async) await p;
+		},
 	};
 }

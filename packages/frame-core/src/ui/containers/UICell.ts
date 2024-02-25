@@ -26,7 +26,6 @@ export class UICell extends UIContainer {
 			| "background"
 			| "textColor"
 			| "borderRadius"
-			| "dropShadow"
 			| "opacity"
 			| "cellStyle"
 		> & {
@@ -56,9 +55,6 @@ export class UICell extends UIContainer {
 
 	/** Opacity level (0–1), defaults to undefined (opaque) */
 	opacity?: number = undefined;
-
-	/** Drop shadow elevation level (0–1), defaults to undefined (no dropshadow) */
-	dropShadow?: number = undefined;
 
 	/** The style to be applied to this cell */
 	cellStyle?: UITheme.StyleConfiguration<UICellStyle> = undefined;

@@ -6,10 +6,7 @@ import {
 	UIButton,
 	UIButtonStyle,
 } from "@desk-framework/frame-core";
-import {
-	applyElementClassName,
-	applyElementStyle,
-} from "../../style/DOMStyle.js";
+import { applyStyles } from "../../style/DOMStyle.js";
 import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
 import { setTextOrHtmlContent } from "./UILabelRenderer.js";
 
@@ -119,14 +116,13 @@ export class UIButtonRenderer extends BaseObserver<UIButton> {
 			else element.removeAttribute("aria-pressed");
 
 			// set CSS styles
-			applyElementClassName(
+			applyStyles(
+				button,
 				element,
 				getBaseStyleClass(button.buttonStyle) || UIButtonStyle,
 				undefined,
 				true,
-			);
-			applyElementStyle(
-				element,
+				false,
 				[
 					button.buttonStyle,
 					button.width !== undefined
@@ -135,7 +131,6 @@ export class UIButtonRenderer extends BaseObserver<UIButton> {
 				],
 				button.position,
 				undefined,
-				true,
 			);
 		}
 	}

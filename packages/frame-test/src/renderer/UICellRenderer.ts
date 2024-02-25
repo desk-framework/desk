@@ -19,7 +19,6 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 			"background",
 			"textColor",
 			"opacity",
-			"dropShadow",
 			"cellStyle",
 		);
 	}
@@ -37,7 +36,6 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 				case "background":
 				case "textColor":
 				case "opacity":
-				case "dropShadow":
 				case "cellStyle":
 					this.scheduleUpdate(undefined, this.element);
 					return;
@@ -72,7 +70,6 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 					background: cell.background,
 					textColor: cell.textColor,
 					opacity: cell.opacity,
-					dropShadow: cell.dropShadow,
 				},
 			],
 		);

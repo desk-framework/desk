@@ -5,10 +5,7 @@ import {
 	UITextFieldStyle,
 } from "@desk-framework/frame-core";
 import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
-import {
-	applyElementClassName,
-	applyElementStyle,
-} from "../../style/DOMStyle.js";
+import { applyStyles } from "../../style/DOMStyle.js";
 
 /** @internal */
 export class UITextFieldRenderer extends BaseObserver<UITextField> {
@@ -70,14 +67,13 @@ export class UITextFieldRenderer extends BaseObserver<UITextField> {
 			element.readOnly = !!textField.readOnly;
 
 			// apply other CSS styles
-			applyElementClassName(
+			applyStyles(
+				textField,
 				element,
 				getBaseStyleClass(textField.textFieldStyle) || UITextFieldStyle,
 				undefined,
 				true,
-			);
-			applyElementStyle(
-				element,
+				false,
 				[
 					textField.textFieldStyle,
 					textField.width !== undefined
@@ -86,7 +82,6 @@ export class UITextFieldRenderer extends BaseObserver<UITextField> {
 				],
 				textField.position,
 				undefined,
-				true,
 			);
 		}
 	}

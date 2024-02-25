@@ -223,6 +223,7 @@ export namespace UIComponent {
 			| "baseline"
 			| "overlay"
 			| "cover"
+			| "auto"
 			| "";
 		/** Top anchor: relative distance, or absolute position if `gravity` is 'overlay' (in pixels or string with unit, defaults to `auto`) */
 		top?: string | number;
@@ -283,6 +284,7 @@ export namespace UIComponent {
 
 	/**
 	 * Options for the appearance of UI components
+	 * - The `effect` property can be set to a {@link RenderContext.OutputEffect} or a string that references a theme effect (see {@link UITheme.effects}), starting with `@`.
 	 * - The `css` property can be used to include miscellaneous CSS attributes, at your own risk.
 	 * @see {@link UICellStyle}
 	 * @see {@link UIButtonStyle}
@@ -306,12 +308,12 @@ export namespace UIComponent {
 		borderRadius?: string | number;
 		/** Padding within control element (in pixels or CSS string, or separate offset values) */
 		padding?: Offsets;
-		/** Drop shadow elevation level (0–1) */
-		dropShadow?: number;
 		/** Opacity (0-1) */
 		opacity?: number;
 		/** Miscellaneous CSS attributes */
 		css?: Partial<CSSStyleDeclaration>;
+		/** Render output effect */
+		effect?: RenderContext.OutputEffect | `@${string}`;
 	};
 
 	/**

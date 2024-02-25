@@ -23,7 +23,7 @@ export class OutputMount {
 		elt.ariaAtomic = "true";
 		this._remount = () => {
 			elt.dir = app.i18n?.getAttributes().rtl ? "rtl" : "ltr";
-			elt.style.background = String(UIColor["@pageBackground"]);
+			elt.style.background = String(new UIColor("@pageBackground"));
 			elt.style.color = String(UIColor["@text"]);
 		};
 		this._remount();
@@ -34,7 +34,7 @@ export class OutputMount {
 	/** Creates a modal root element, for use with various modal placement modes */
 	createModalElement(
 		autoCloseModal?: boolean,
-		shadeOpacity?: number,
+		shadeBackground?: boolean,
 		refElt?: HTMLElement,
 		reducedMotion?: boolean,
 	) {
@@ -54,9 +54,10 @@ export class OutputMount {
 		}
 		setTimeout(() => {
 			if (reducedMotion) shader.style.transition = "none";
-			let color = UIColor["@modalShade"].alpha(shadeOpacity || 0);
-			shader.style.backgroundColor = String(color);
-			setFocus();
+			(shader.style.backgroundColor = shadeBackground
+				? String(new UIColor("@modalShade"))
+				: "transparent"),
+				setFocus();
 			setTimeout(setFocus, 10);
 			setTimeout(setFocus, 100);
 		}, 0);
@@ -108,9 +109,10 @@ export class OutputMount {
 
 		// handle remount by setting colors again
 		this._remount = () => {
-			let color = UIColor["@modalShade"].alpha(shadeOpacity || 0);
-			shader.style.backgroundColor = String(color);
-			wrapper.style.color = String(UIColor["@text"]);
+			(shader.style.backgroundColor = shadeBackground
+				? String(new UIColor("@modalShade"))
+				: "transparent"),
+				(wrapper.style.color = String(UIColor["@text"]));
 			wrapper.dir = app.i18n?.getAttributes().rtl ? "rtl" : "ltr";
 		};
 	}
