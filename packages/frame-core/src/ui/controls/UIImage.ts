@@ -1,4 +1,4 @@
-import { Binding, StringConvertible } from "../../base/index.js";
+import { BindingOrValue, StringConvertible } from "../../base/index.js";
 import { UIComponent } from "../UIComponent.js";
 import { UITheme } from "../UITheme.js";
 
@@ -19,7 +19,7 @@ export class UIImage extends UIComponent {
 	 * @returns A class that can be used to create instances of this image class with the provided URL and style
 	 */
 	static withUrl(
-		url?: StringConvertible | Binding,
+		url?: BindingOrValue<StringConvertible>,
 		imageStyle?: UITheme.StyleConfiguration<UIImageStyle>,
 	) {
 		return this.with({ url, imageStyle });

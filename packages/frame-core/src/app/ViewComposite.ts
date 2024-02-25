@@ -76,7 +76,7 @@ export abstract class ViewComposite extends View {
 	 * // A view composite that uses preset properties and content
 	 * const Card = ViewComposite.define(
 	 *   (
-	 *     p: { title?: StringConvertible | Binding<StringConvertible> },
+	 *     p: { title?: BindingOrValue<StringConvertible> },
 	 *     ...content: ViewClass[]
 	 *   ) => (
 	 *     <cell style={myStyles.cardCell}>
@@ -100,8 +100,8 @@ export abstract class ViewComposite extends View {
 	 * @example
 	 * // A view composite that only uses preset properties
 	 * const BadgeButton = ViewComposite.define<{
-	 *   label?: StringConvertible | Binding<StringConvertible>
-	 *   badge?: StringConvertible | Binding<StringConvertible>
+	 *   label?: BindingOrValue<StringConvertible>
+	 *   badge?: BindingOrValue<StringConvertible>
 	 * }>(
 	 *   UICell.with(
 	 *     { dimensions: { grow: 0 }, layout: { clip: false } },
@@ -112,7 +112,7 @@ export abstract class ViewComposite extends View {
 	 *
 	 * @example
 	 * const CollapsingBlock = ViewComposite.define<{
-	 *   title?: StringConvertible | Binding<StringConvertible>;
+	 *   title?: BindingOrValue<StringConvertible>;
 	 *   show?: boolean;
 	 * }>(
 	 *   (p, ...content) => (

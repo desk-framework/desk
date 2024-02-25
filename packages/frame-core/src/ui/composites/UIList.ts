@@ -1,6 +1,6 @@
 import { View, ViewClass, ViewComposite, app } from "../../app/index.js";
 import {
-	Binding,
+	BindingOrValue,
 	DelegatedEvent,
 	ManagedEvent,
 	ManagedList,
@@ -43,7 +43,7 @@ export class UIList extends ViewComposite {
 			"firstIndex" | "maxItems" | "animation"
 		> & {
 			/** List of objects, either an array, {@link ManagedList} object, or binding for either */
-			items?: Iterable<any> | Binding<Iterable<any>>;
+			items?: BindingOrValue<Iterable<any>>;
 			/** True if the _container_ view object may receive input focus using the keyboard (e.g. Tab key) */
 			allowKeyboardFocus?: boolean;
 			/** Event that's emitted when list item views are rendered */

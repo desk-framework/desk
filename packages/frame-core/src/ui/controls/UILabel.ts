@@ -1,4 +1,4 @@
-import { Binding, strf, StringConvertible } from "../../base/index.js";
+import { BindingOrValue, strf, StringConvertible } from "../../base/index.js";
 import type { UIColor } from "../UIColor.js";
 import { UIComponent } from "../UIComponent.js";
 import { UIIconResource } from "../UIIconResource.js";
@@ -22,7 +22,7 @@ export class UILabel extends UIComponent {
 	 * @returns A class that can be used to create instances of this label class with the provided text and style
 	 */
 	static withText(
-		text?: StringConvertible | Binding,
+		text?: BindingOrValue<StringConvertible>,
 		labelStyle?: UITheme.StyleConfiguration<UILabelStyle>,
 	) {
 		if (typeof text === "string") text = strf(text);
@@ -37,7 +37,7 @@ export class UILabel extends UIComponent {
 	 * @returns A class that can be used to create instances of this label class with the specified icon
 	 */
 	static withIcon(
-		icon?: UIIconResource | `@${string}` | Binding,
+		icon?: BindingOrValue<UIIconResource | `@${string}`>,
 		size?: string | number,
 		color?: UIColor | string,
 	) {

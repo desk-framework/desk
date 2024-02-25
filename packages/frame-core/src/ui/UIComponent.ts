@@ -1,5 +1,5 @@
 import { app, RenderContext, View, ViewClass } from "../app/index.js";
-import { Binding, StringConvertible } from "../base/index.js";
+import { BindingOrValue, StringConvertible } from "../base/index.js";
 import { err, ERROR } from "../errors.js";
 import type { UIColor } from "./UIColor.js";
 
@@ -52,13 +52,13 @@ export abstract class UIComponent extends View {
 	 */
 	override applyViewPreset(preset: {
 		/** True if this component should be hidden from view (doesn't stop the component from being rendered) */
-		hidden?: boolean | Binding<boolean>;
+		hidden?: BindingOrValue<boolean>;
 		/** Options for the positioning of this component within parent component(s) (overrides) */
-		position?: UIComponent.Position | Binding<UIComponent.Position>;
+		position?: BindingOrValue<UIComponent.Position>;
 		/** WAI-ARIA role for this component, if applicable */
-		accessibleRole?: StringConvertible | Binding<StringConvertible>;
+		accessibleRole?: BindingOrValue<StringConvertible>;
 		/** WAI-ARIA label text for this component (not tooltip), if applicable */
-		accessibleLabel?: StringConvertible | Binding<StringConvertible>;
+		accessibleLabel?: BindingOrValue<StringConvertible>;
 		/** True if this component should be focused immediately after rendering for the first time */
 		requestFocus?: boolean;
 		/** Event that's emitted before rendering the component the first time */
@@ -206,7 +206,7 @@ export namespace UIComponent {
 	> = TBase extends {
 		applyViewPreset(preset: infer P): void;
 	}
-		? P & { [P in K]?: TView[P] | Binding<TView[P]> }
+		? P & { [P in K]?: BindingOrValue<TView[P]> }
 		: never;
 
 	/**

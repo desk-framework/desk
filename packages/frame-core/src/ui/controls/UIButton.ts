@@ -1,4 +1,9 @@
-import { Binding, strf, StringConvertible } from "../../base/index.js";
+import {
+	Binding,
+	BindingOrValue,
+	strf,
+	StringConvertible,
+} from "../../base/index.js";
 import { NavigationTarget } from "../../app/index.js";
 import { UIColor } from "../UIColor.js";
 import { UIIconResource } from "../UIIconResource.js";
@@ -24,7 +29,7 @@ export class UIButton extends UIComponent {
 	 * @returns A class that can be used to create instances of this button class with the provided label and click event handler
 	 */
 	static withLabel(
-		label?: StringConvertible | Binding,
+		label?: BindingOrValue<StringConvertible>,
 		onClick?: string,
 		buttonStyle?: UITheme.StyleConfiguration<UIButtonStyle>,
 	) {
@@ -41,7 +46,7 @@ export class UIButton extends UIComponent {
 	 * @returns A class that can be used to create instances of this button class with the provided icon and click event handler
 	 */
 	static withIcon(
-		icon: UIIconResource | `@${string}` | Binding,
+		icon: BindingOrValue<UIIconResource | `@${string}`>,
 		onClick?: string,
 		size?: string | number,
 		color?: UIColor | string,
@@ -79,7 +84,7 @@ export class UIButton extends UIComponent {
 			| "buttonStyle"
 		> & {
 			/** True if keyboard focus should be disabled this button */
-			disableKeyboardFocus?: boolean | Binding<boolean>;
+			disableKeyboardFocus?: BindingOrValue<boolean>;
 		},
 	) {
 		// quietly change 'text' to label to support JSX tag content

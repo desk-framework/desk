@@ -24,6 +24,12 @@ export function isBinding<T = any>(value: any): value is Binding<T> {
 }
 
 /**
+ * A type that maps to the specified type _or_ a {@link Binding} instance
+ * - This type can be used in object types or function arguments, to allow both a direct value and a binding.
+ */
+export type BindingOrValue<T> = T | Binding<T>;
+
+/**
  * A class that represents a property binding
  *
  * @description
