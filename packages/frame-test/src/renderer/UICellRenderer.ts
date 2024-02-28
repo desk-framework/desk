@@ -2,7 +2,7 @@ import {
 	ManagedChangeEvent,
 	RenderContext,
 	UICell,
-	UICellStyle,
+	ui,
 } from "@desk-framework/frame-core";
 import { TestOutputElement } from "../app/TestOutputElement.js";
 import { getBaseStyleClass } from "./TestBaseObserver.js";
@@ -19,7 +19,7 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 			"background",
 			"textColor",
 			"opacity",
-			"cellStyle",
+			"style",
 		);
 	}
 
@@ -36,7 +36,7 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 				case "background":
 				case "textColor":
 				case "opacity":
-				case "cellStyle":
+				case "style":
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -59,19 +59,15 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 		if (!cell) return;
 
 		// NOTE: margin, textDirection aren't applied in test renderer
-		super.updateStyle(
-			element,
-			getBaseStyleClass(cell.cellStyle) || UICellStyle,
-			[
-				cell.cellStyle,
-				{
-					padding: cell.padding,
-					borderRadius: cell.borderRadius,
-					background: cell.background,
-					textColor: cell.textColor,
-					opacity: cell.opacity,
-				},
-			],
-		);
+		super.updateStyle(element, getBaseStyleClass(cell.style) || ui.style.CELL, [
+			cell.style,
+			{
+				padding: cell.padding,
+				borderRadius: cell.borderRadius,
+				background: cell.background,
+				textColor: cell.textColor,
+				opacity: cell.opacity,
+			},
+		]);
 	}
 }

@@ -3,13 +3,14 @@ import {
 	ManagedChangeEvent,
 	ManagedObject,
 	RenderContext,
+	ui,
 	UICell,
 	UIColumn,
 	UIComponent,
 	UIContainer,
 	UIRow,
 	UIScrollContainer,
-	UITheme,
+	UIStyle,
 	View,
 	ViewEvent,
 } from "@desk-framework/frame-core";
@@ -22,11 +23,7 @@ import {
 	CLASS_SEPARATOR_LINE_VERT,
 	CLASS_SEPARATOR_SPACER,
 } from "../../style/defaults/css.js";
-import {
-	applyStyles,
-	getCSSColor,
-	getCSSLength,
-} from "../../style/DOMStyle.js";
+import { applyStyles, getCSSLength } from "../../style/DOMStyle.js";
 import { BaseObserver } from "./BaseObserver.js";
 
 /** Debounce DragContainer actions by keeping track of the last start time */
@@ -44,7 +41,11 @@ export class UIContainerRenderer<
 			result.observePropertyAsync("height" as any, "align" as any);
 		}
 		if (observed instanceof UIColumn) {
-			result.observePropertyAsync("width" as any, "align" as any);
+			result.observePropertyAsync(
+				"width" as any,
+				"align" as any,
+				"distribute" as any,
+			);
 		}
 		return result;
 	}
@@ -171,7 +172,7 @@ export class UIContainerRenderer<
 
 	override updateStyle(
 		element: HTMLElement,
-		BaseStyle?: new () => UITheme.BaseStyle<string, any>,
+		BaseStyle?: UIStyle.Type<any>,
 		styles?: any[],
 	) {
 		let container = this.observed;
@@ -182,14 +183,26 @@ export class UIContainerRenderer<
 			if (container instanceof UIRow) {
 				systemName = CLASS_ROW;
 				styles = [{ height: container.height, padding: container.padding }];
-				if (container.align) {
-					layout = { ...layout, distribution: container.align };
+				if (container.align || container.gravity) {
+					layout = Object.assign(
+						{},
+						layout,
+						container.align ? { distribution: container.align } : undefined,
+						container.gravity ? { gravity: container.gravity } : undefined,
+					);
 				}
 			} else if (container instanceof UIColumn) {
 				systemName = CLASS_COLUMN;
 				styles = [{ width: container.width, padding: container.padding }];
-				if (container.align) {
-					layout = { ...layout, gravity: container.align };
+				if (container.align || container.distribute) {
+					layout = Object.assign(
+						{},
+						layout,
+						container.align ? { gravity: container.align } : undefined,
+						container.distribute
+							? { distribution: container.distribute }
+							: undefined,
+					);
 				}
 			} else if (container instanceof UIScrollContainer) {
 				systemName = CLASS_SCROLL;
@@ -387,7 +400,7 @@ export class ContentUpdater {
 					? "0 " + margin
 					: margin + " 0"
 				: "";
-			sep.style.borderColor = getCSSColor(options.lineColor || "@separator");
+			sep.style.borderColor = String(options.lineColor || ui.color.SEPARATOR);
 		} else if (options && options.space) {
 			let size = getCSSLength(options && options.space, "0");
 			sep = document.createElement("spacer" as string);
@@ -584,7 +597,7 @@ export class ContentUpdater {
 			// set placeholder output if needed, to reduce diffing later
 			isSync = false;
 			if (!lastOutput) {
-				let placeholderElt = document.createComment("@");
+				let placeholderElt = document.createComment("?");
 				let output = new RenderContext.Output<Node>(item, placeholderElt);
 				lastOutput = output;
 				this._output.set(item, output);

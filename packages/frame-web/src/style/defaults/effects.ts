@@ -12,7 +12,7 @@ export const effects: [
 	effect: RenderContext.OutputEffect<HTMLElement>,
 ][] = [
 	[
-		"inset",
+		"Inset",
 		{
 			applyEffect(element) {
 				element.style.boxShadow = "inset 0 .25rem .75rem rgba(0,0,0,.1)";
@@ -20,7 +20,7 @@ export const effects: [
 		},
 	],
 	[
-		"shadow",
+		"Shadow",
 		{
 			applyEffect(element) {
 				element.style.boxShadow = "0 .25rem .75rem rgba(0,0,0,.1)";
@@ -28,7 +28,7 @@ export const effects: [
 		},
 	],
 	[
-		"elevate",
+		"Elevate",
 		{
 			applyEffect(element) {
 				element.style.boxShadow =

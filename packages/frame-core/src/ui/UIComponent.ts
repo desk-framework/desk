@@ -12,40 +12,12 @@ const _viewContent: any[] = Object.freeze([]) as any;
  * @description
  * This class provides common infrastructure for UI components such as {@link UIButton} and {@link UIColumn}. The UIComponent class is an abstract class and can't be instantiated or rendered on its own.
  *
- * UI components can be constructed directly using `new`, but are often created as part of a 'preset' view hierarchy that's defined using the static {@link UIComponent.with with()} method on view classes, e.g. `UIButton.with({ ... })` or `UIColumn.with({ ... }, ...)`.
+ * UI components can be constructed directly using `new`, but are often created as part of a 'preset' view hierarchy that's defined using JSX or {@link ui} factory functions, e.g. `<ui.button>`, `ui.button({ ... })` or `ui.column(...)`.
  *
  * @online_docs Refer to the Desk website for more documentation on using UI components.
- *
- * @see {@link UIComponent.with()}
  * @hideconstructor
  */
 export abstract class UIComponent extends View {
-	/**
-	 * Creates a preset view class for a UI component
-	 *
-	 * @summary This static method returns a new constructor, that applies the provided property values, bindings, and event handlers to all instances of the resulting view class.
-	 *
-	 * Note that this method should be called on UIComponent subclasses rather than UIComponent itself, and is further overridden by {@link UIContainer} to also accept a list of constructors for contained content, see {@link UIContainer.with()}.
-	 *
-	 * For convenience, several subclasses define shortcut `with...` methods for frequently used preset properties. For example, the {@link UILabel} class includes a static {@link UILabel.withText()} method, which takes a string argument instead of an object.
-	 *
-	 * @online_docs Refer to the Desk website for more documentation on properties and events that can be preset using the `with` method for every UI component.
-	 *
-	 * @param preset Property values, bindings, and event handlers, specific to the type of component.
-	 * @returns A class that can be used to create instances of this control class with the provided property values, bindings, and event handlers.
-	 */
-	static with<TViewClass, TComponent extends UIComponent>(
-		this: TViewClass & (new (...args: any[]) => TComponent),
-		preset: UIComponent.ViewPreset<TComponent>,
-	): TViewClass {
-		return class PresetUIComponent extends (this as any) {
-			constructor(...args: any[]) {
-				super(...args);
-				this.applyViewPreset({ ...preset });
-			}
-		} as any;
-	}
-
 	/**
 	 * Applies the provided preset properties to this object
 	 * - This method is called automatically. Don't call this method after constructing a UI component.
@@ -193,23 +165,6 @@ export abstract class UIComponent extends View {
 
 export namespace UIComponent {
 	/**
-	 * Type definition for the object that can be used to preset a UIComponent view constructor
-	 * @summary This type is used to put together the object type for e.g. `.with()` on a UIComponent subclass, based on the provided type parameters.
-	 * - TBase is used to infer the type of the parameter accepted by {@link View.applyViewPreset()} on a subclass.
-	 * - TView is used to infer the type of a property.
-	 * - K is a string type containing all properties to take from TView.
-	 */
-	export type ViewPreset<
-		TBase extends View,
-		TView = any,
-		K extends keyof TView = never,
-	> = TBase extends {
-		applyViewPreset(preset: infer P): void;
-	}
-		? P & { [P in K]?: BindingOrValue<TView[P]> }
-		: never;
-
-	/**
 	 * Options for component positioning within their parent component(s)
 	 * @see {@link UIComponent.position}
 	 */
@@ -256,12 +211,7 @@ export namespace UIComponent {
 
 	/**
 	 * Options for component dimensions
-	 * @see {@link UICellStyle}
-	 * @see {@link UIButtonStyle}
-	 * @see {@link UIImageStyle}
-	 * @see {@link UILabelStyle}
-	 * @see {@link UITextFieldStyle}
-	 * @see {@link UIToggleStyle}
+	 * @see {@link UIStyle}
 	 */
 	export type DimensionsStyleType = {
 		/** Outer width of the element, as specified (in pixels or string with unit) */
@@ -284,22 +234,16 @@ export namespace UIComponent {
 
 	/**
 	 * Options for the appearance of UI components
-	 * - The `effect` property can be set to a {@link RenderContext.OutputEffect} or a string that references a theme effect (see {@link UITheme.effects}), starting with `@`.
 	 * - The `css` property can be used to include miscellaneous CSS attributes, at your own risk.
-	 * @see {@link UICellStyle}
-	 * @see {@link UIButtonStyle}
-	 * @see {@link UIImageStyle}
-	 * @see {@link UILabelStyle}
-	 * @see {@link UITextFieldStyle}
-	 * @see {@link UIToggleLabelStyle}
+	 * @see {@link UIStyle}
 	 */
 	export type DecorationStyleType = {
-		/** Background style or color (`UIColor` or string) */
-		background?: UIColor | string;
-		/** Text color (`UIColor` or string) */
-		textColor?: UIColor | string;
-		/** Border color (`UIColor` or string) */
-		borderColor?: UIColor | string;
+		/** Background style or color */
+		background?: UIColor;
+		/** Text color */
+		textColor?: UIColor;
+		/** Border color */
+		borderColor?: UIColor;
 		/** Border style (CSS), defaults to "solid" */
 		borderStyle?: string;
 		/** Border thickness (in pixels or CSS string, or separate offset values) */
@@ -312,16 +256,11 @@ export namespace UIComponent {
 		opacity?: number;
 		/** Miscellaneous CSS attributes */
 		css?: Partial<CSSStyleDeclaration>;
-		/** Render output effect */
-		effect?: RenderContext.OutputEffect | `@${string}`;
 	};
 
 	/**
 	 * Options for typography used on UI components
-	 * @see {@link UIButtonStyle}
-	 * @see {@link UILabelStyle}
-	 * @see {@link UITextFieldStyle}
-	 * @see {@link UIToggleLabelStyle}
+	 * @see {@link UIStyle}
 	 */
 	export type TextStyleType = {
 		/** Text direction (rtl or ltr) */
@@ -360,5 +299,7 @@ export namespace UIComponent {
 		underline?: boolean;
 		/** True for struck trough text */
 		strikeThrough?: boolean;
+		/** True if text can be selected by the user */
+		userSelect?: boolean;
 	};
 }

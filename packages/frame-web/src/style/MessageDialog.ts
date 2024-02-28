@@ -2,21 +2,13 @@ import {
 	MessageDialogOptions,
 	RenderContext,
 	StringConvertible,
-	UIButton,
-	UIButtonStyle,
-	UICell,
-	UICellStyle,
-	UIColor,
+	UIComponent,
 	UIContainer,
-	UILabel,
-	UILabelStyle,
-	UIParagraphLabelStyle,
-	UIPrimaryButtonStyle,
-	UIRow,
 	UITheme,
 	ViewComposite,
 	app,
 	strf,
+	ui,
 } from "@desk-framework/frame-core";
 
 /**
@@ -51,21 +43,25 @@ export class MessageDialogStyles {
 	 * The cell style used for the outer dialog container
 	 * - The default style includes properties for dimensions, background, border radius, and drop shadow
 	 */
-	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@background"],
-		borderRadius: 12,
+	ContainerStyle = ui.style.CELL_BG.extend({
 		width: "auto",
 		minWidth: 360,
 		maxWidth: "95vw",
+		borderRadius: 12,
 		grow: 0,
-		effect: "@elevate",
 	});
+
+	/** The position that is set on the outer dialog container, to position the dialog itself */
+	position: UIComponent.Position = { gravity: "center" };
+
+	/** The output effect that is applied to the outer dialog container, defaults to Elevate */
+	effect: RenderContext.OutputEffect = ui.effect.ELEVATE;
 
 	/**
 	 * The cell style used for the block of messages
 	 * - The default style only includes padding
 	 */
-	MessageCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
+	MessageCellStyle = ui.style.CELL.extend({
 		padding: 16,
 	});
 
@@ -73,7 +69,7 @@ export class MessageDialogStyles {
 	 * The cell style used for the block of buttons
 	 * - The default style includes properties for padding and background
 	 */
-	ButtonCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
+	ButtonCellStyle = ui.style.CELL.extend({
 		padding: 16,
 	});
 
@@ -81,37 +77,36 @@ export class MessageDialogStyles {
 	 * The label style used for the first message label
 	 * - The default style includes centered, bold text, with a maximum width of 480 pixels.
 	 */
-	FirstLabelStyle: UITheme.StyleClassType<UILabelStyle> =
-		UIParagraphLabelStyle.extend({
-			bold: true,
-			textAlign: "center",
-			maxWidth: 480,
-			css: { cursor: "default" },
-		});
+	FirstLabelStyle = ui.style.LABEL.extend({
+		bold: true,
+		textAlign: "center",
+		maxWidth: 480,
+		lineBreakMode: "pre-wrap",
+		userSelect: true,
+	});
 
 	/**
 	 * The label style used for all labels except the first
 	 * - The default style includes centered text, with a maximum width of 480 pixels.
 	 */
-	LabelStyle: UITheme.StyleClassType<UILabelStyle> =
-		UIParagraphLabelStyle.extend({
-			textAlign: "center",
-			maxWidth: 480,
-			css: { cursor: "default" },
-		});
+	LabelStyle = ui.style.LABEL.extend({
+		textAlign: "center",
+		maxWidth: 480,
+		lineBreakMode: "pre-wrap",
+		userSelect: true,
+	});
 
 	/**
 	 * The button style used for all buttons except the confirm button
-	 * - This property defaults to {@link UIButtonStyle} itself.
+	 * - This property defaults to the default button style.
 	 */
-	ButtonStyle: UITheme.StyleClassType<UIButtonStyle> = UIButtonStyle;
+	ButtonStyle = ui.style.BUTTON;
 
 	/**
 	 * The button style used for the confirm button
-	 * - This property defaults to {@link UIPrimaryButtonStyle} itself.
+	 * - This property defaults to the default primary button style.
 	 */
-	ConfirmButtonStyle: UITheme.StyleClassType<UIButtonStyle> =
-		UIPrimaryButtonStyle;
+	ConfirmButtonStyle = ui.style.BUTTON_PRIMARY;
 
 	/**
 	 * Options for the layout of the row of buttons
@@ -163,8 +158,8 @@ export class MessageDialog
 				mode: "dialog",
 				shade: true,
 				transform: {
-					show: "@show-dialog",
-					hide: "@hide-dialog",
+					show: ui.animation.SHOW_DIALOG,
+					hide: ui.animation.HIDE_DIALOG,
 				},
 				...place,
 			});
@@ -177,54 +172,54 @@ export class MessageDialog
 
 	protected override createView() {
 		let messageLabels = this.options.messages.map((text, i) =>
-			UILabel.with({
-				labelStyle: i
+			ui.label({
+				style: i
 					? MessageDialog.styles.LabelStyle
 					: MessageDialog.styles.FirstLabelStyle,
 				text,
 			}),
 		);
 		let buttons = [
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ConfirmButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.ConfirmButtonStyle,
 				label: this.confirmLabel,
 				onClick: "+Confirm",
 				requestFocus: true,
 			}),
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.ButtonStyle,
 				hidden: !this.otherLabel,
 				label: this.otherLabel,
 				onClick: "+Other",
 			}),
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.ButtonStyle,
 				hidden: !this.cancelLabel,
 				label: this.cancelLabel,
 				onClick: "+Cancel",
 			}),
 		];
 		if (MessageDialog.styles.reverseButtons) buttons.reverse();
-		return new (UICell.with(
+		return new (ui.cell(
 			{
-				cellStyle: MessageDialog.styles.ContainerStyle,
-				position: { gravity: "center" },
+				style: MessageDialog.styles.ContainerStyle,
+				position: MessageDialog.styles.position,
+				effect: MessageDialog.styles.effect,
 				accessibleRole: "alertdialog",
 			},
-			UICell.with(
-				{
-					cellStyle: MessageDialog.styles.MessageCellStyle,
-					onMouseDown: "+DragContainer",
-				},
-				...messageLabels,
-			),
-			UICell.with(
-				{
-					cellStyle: MessageDialog.styles.ButtonCellStyle,
-				},
-				UIRow.with(
-					{ layout: MessageDialog.styles.buttonRowLayout },
-					...buttons,
+			ui.column(
+				ui.cell(
+					{
+						style: MessageDialog.styles.MessageCellStyle,
+						onMouseDown: "+DragContainer",
+					},
+					ui.column(...messageLabels),
+				),
+				ui.cell(
+					{
+						style: MessageDialog.styles.ButtonCellStyle,
+					},
+					ui.row({ layout: MessageDialog.styles.buttonRowLayout }, ...buttons),
 				),
 			),
 		))();

@@ -2,7 +2,7 @@ import {
 	ManagedChangeEvent,
 	UIAnimatedCell,
 	UICell,
-	UICellStyle,
+	ui,
 } from "@desk-framework/frame-core";
 import { getCSSLength } from "../../style/DOMStyle.js";
 import { getBaseStyleClass } from "./BaseObserver.js";
@@ -19,7 +19,8 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 			"background",
 			"textColor",
 			"opacity",
-			"cellStyle",
+			"effect",
+			"style",
 		);
 	}
 
@@ -36,7 +37,8 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 				case "background":
 				case "textColor":
 				case "opacity":
-				case "cellStyle":
+				case "effect":
+				case "style":
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -47,20 +49,16 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 	override updateStyle(element: HTMLElement) {
 		let cell = this.observed;
 		if (!cell) return;
-		super.updateStyle(
-			element,
-			getBaseStyleClass(cell.cellStyle) || UICellStyle,
-			[
-				cell.cellStyle,
-				{
-					padding: cell.padding,
-					borderRadius: cell.borderRadius,
-					background: cell.background,
-					textColor: cell.textColor,
-					opacity: cell.opacity,
-				},
-			],
-		);
+		super.updateStyle(element, getBaseStyleClass(cell.style) || ui.style.CELL, [
+			cell.style,
+			{
+				padding: cell.padding,
+				borderRadius: cell.borderRadius,
+				background: cell.background,
+				textColor: cell.textColor,
+				opacity: cell.opacity,
+			},
+		]);
 
 		// set misc. styles
 		element.dir = cell.textDirection || "";
@@ -86,5 +84,8 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 					: "ease";
 			element.style.transitionTimingFunction = timing;
 		}
+
+		// apply output effect, if any
+		if (cell.effect) cell.effect.applyEffect(element, cell);
 	}
 }

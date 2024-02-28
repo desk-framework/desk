@@ -2,7 +2,7 @@ import {
 	ManagedChangeEvent,
 	RenderContext,
 	UIImage,
-	UIImageStyle,
+	ui,
 } from "@desk-framework/frame-core";
 import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
 import { applyStyles } from "../../style/DOMStyle.js";
@@ -10,7 +10,7 @@ import { applyStyles } from "../../style/DOMStyle.js";
 /** @internal */
 export class UIImageRenderer extends BaseObserver<UIImage> {
 	override observe(observed: UIImage) {
-		return super.observe(observed).observePropertyAsync("url", "imageStyle");
+		return super.observe(observed).observePropertyAsync("url", "style");
 	}
 
 	protected override async handlePropertyChange(
@@ -23,7 +23,7 @@ export class UIImageRenderer extends BaseObserver<UIImage> {
 				case "url":
 					this.scheduleUpdate(this.element);
 					return;
-				case "imageStyle":
+				case "style":
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -53,11 +53,11 @@ export class UIImageRenderer extends BaseObserver<UIImage> {
 			applyStyles(
 				image,
 				element,
-				getBaseStyleClass(image.imageStyle) || UIImageStyle,
+				getBaseStyleClass(image.style) || ui.style.IMAGE,
 				undefined,
 				false,
 				false,
-				[image.imageStyle, { width: image.width, height: image.height }],
+				[image.style, { width: image.width, height: image.height }],
 				image.position,
 			);
 		}

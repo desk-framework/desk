@@ -74,8 +74,8 @@ export namespace RenderContext {
 		ref?: Output;
 		shade?: boolean;
 		transform?: Readonly<{
-			show?: OutputTransformer | `@${string}`;
-			hide?: OutputTransformer | `@${string}`;
+			show?: OutputTransformer;
+			hide?: OutputTransformer;
 		}>;
 	}>;
 
@@ -85,7 +85,7 @@ export namespace RenderContext {
 	 * @description
 	 * This object encapsulates a view output element, as well as any transformations that can be applied to it. The transformation methods stack particular transformations on top of each other. Timing functions can be used to control the animation speed and curve. To build complex animations that consist of multiple transformations, use a step-wise approach by chaining a call to `step()`.
 	 *
-	 * This interface is used to control animations within a {@link RenderContext.OutputTransformer}, which can be used on its own, with {@link GlobalContext.animateAsync app.animateAsync}, or from a {@link UIAnimationController}.
+	 * This interface is used to control animations within a {@link RenderContext.OutputTransformer}, which can be used on its own, with {@link GlobalContext.animateAsync app.animateAsync}, or from a {@link UIAnimationView}.
 	 *
 	 * @see {@link RenderContext.OutputTransformer}
 	 * @see {@link GlobalContext.animateAsync}
@@ -105,11 +105,11 @@ export namespace RenderContext {
 		easeOut(ms: number): this;
 		/** Sets a custom bezier timing curve for the current step, with the specified duration (in milliseconds) */
 		timing(ms: number, bezier: [number, number, number, number]): this;
-		/** Adds a fade effect to the current step, with the specified target opacity */
+		/** Adds an opacity filter to the current step, with the specified target opacity */
 		fade(opacity: number): this;
-		/** Adds a blur effect to the current step, with the specified effect strength (in pixels) */
+		/** Adds a blur filter to the current step, with the specified strength (in pixels) */
 		blur(strength: number): this;
-		/** Adds a (de)saturation effect to the current step, with the specified strength */
+		/** Adds a (de)saturation filter to the current step, with the specified strength */
 		saturate(saturation: number): this;
 		/** Sets the transformation origin for the current step */
 		origin(x: number, y: number): this;
@@ -155,12 +155,13 @@ export namespace RenderContext {
 	 * @see {@link RenderContext.OutputTransform}
 	 */
 	export interface OutputTransformer<TElement = unknown> {
+		/** Apply the transformer using the provided output transform object */
 		applyTransform(transform: OutputTransform<TElement>): Promise<unknown>;
 	}
 
 	/**
 	 * A platform-dependent effect that can be applied to a rendered output element
-	 * - This type is used to apply vidual effects to rendered output elements, when referenced from a UI component style (e.g. {@link UICellStyle}).
+	 * - This type is used to apply visual effects to rendered (cell) output elements, when referenced from @{link UICell.effect}.
 	 */
 	export interface OutputEffect<TElement = unknown> {
 		/** Apply the effect to the provided output element */

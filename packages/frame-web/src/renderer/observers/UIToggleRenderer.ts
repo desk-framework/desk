@@ -2,8 +2,7 @@ import {
 	ManagedChangeEvent,
 	RenderContext,
 	UIToggle,
-	UIToggleLabelStyle,
-	UIToggleStyle,
+	ui,
 } from "@desk-framework/frame-core";
 import { applyStyles } from "../../style/DOMStyle.js";
 import { CLASS_TOGGLE_WRAPPER } from "../../style/defaults/css.js";
@@ -20,7 +19,7 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 				"label",
 				"state",
 				"disabled",
-				"toggleStyle",
+				"style",
 				"labelStyle",
 			);
 	}
@@ -37,7 +36,7 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 					this.scheduleUpdate(this.element);
 					return;
 				case "disabled":
-				case "toggleStyle":
+				case "style":
 				case "labelStyle":
 					this.scheduleUpdate(undefined, this.element);
 					return;
@@ -76,11 +75,11 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 			applyStyles(
 				toggle,
 				element,
-				getBaseStyleClass(toggle.toggleStyle) || UIToggleStyle,
+				getBaseStyleClass(toggle.style) || ui.style.TOGGLE,
 				CLASS_TOGGLE_WRAPPER,
 				false,
 				false,
-				[toggle.toggleStyle],
+				[toggle.style],
 				toggle.position,
 			);
 
@@ -89,7 +88,7 @@ export class UIToggleRenderer extends BaseObserver<UIToggle> {
 			applyStyles(
 				toggle,
 				label,
-				getBaseStyleClass(toggle.labelStyle) || UIToggleLabelStyle,
+				getBaseStyleClass(toggle.labelStyle) || ui.style.TOGGLE_LABEL,
 				undefined,
 				true,
 				false,
