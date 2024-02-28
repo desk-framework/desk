@@ -486,12 +486,13 @@ export class ContentUpdater {
 
 			// STEP 2: insert/move element content (and separators)
 			let cur = element.firstChild;
+			let hasContent = false;
 			for (let i = 0, len = newContent.length; i < len; i++) {
 				let elt = output[i]?.element;
 				if (!elt || elt.nodeType === Node.COMMENT_NODE) continue;
 
 				// expect a separator in this position first (if i > 0)
-				if (i && hasSeparators) {
+				if (hasContent && hasSeparators) {
 					let sep = this._getSeparatorFor(newContent[i]!)!;
 					if (cur !== sep) {
 						element.insertBefore(sep, cur);
@@ -499,6 +500,7 @@ export class ContentUpdater {
 						cur = cur && cur.nextSibling;
 					}
 				}
+				hasContent = true;
 
 				// insert correct element next
 				if (cur !== elt) {
