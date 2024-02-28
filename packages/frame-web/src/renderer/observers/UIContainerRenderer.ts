@@ -1,7 +1,6 @@
 import {
 	app,
 	ManagedChangeEvent,
-	ManagedObject,
 	RenderContext,
 	ui,
 	UICell,
@@ -25,9 +24,6 @@ import {
 } from "../../style/defaults/css.js";
 import { applyStyles, getCSSLength } from "../../style/DOMStyle.js";
 import { BaseObserver } from "./BaseObserver.js";
-
-/** Debounce DragContainer actions by keeping track of the last start time */
-let _dragStart = 0;
 
 /** @internal */
 export class UIContainerRenderer<
@@ -257,105 +253,6 @@ export class UIContainerRenderer<
 		}
 	}
 	lastSeparator?: UIContainer.SeparatorOptions;
-
-	onDragContainer(e: ViewEvent<UIContainer>) {
-		let element = this.element!;
-		if (!element) return;
-		if (
-			_dragStart > Date.now() - 40 ||
-			!this.observed ||
-			ManagedObject.whence(this.observed) instanceof UIComponent
-		)
-			return;
-
-		// find original DOM event (e.g. mousedown)
-		let domEvent: MouseEvent | TouchEvent | undefined;
-		while (e && !domEvent) {
-			if (e.data && e.data.event && (e.data.event as MouseEvent).type) {
-				domEvent = e.data.event as any;
-			} else {
-				e = e.inner as any;
-			}
-		}
-		if (!domEvent || (domEvent as MouseEvent).button) return;
-
-		// check starting coordinates
-		let startX =
-			((domEvent as TouchEvent).touches &&
-				(domEvent as TouchEvent).touches[0]!.screenX) ||
-			(domEvent as MouseEvent).screenX;
-		let startY =
-			((domEvent as TouchEvent).touches &&
-				(domEvent as TouchEvent).touches[0]!.screenY) ||
-			(domEvent as MouseEvent).screenY;
-		if (startX === undefined || startY === undefined) return;
-
-		// found the element and coordinates, start dragging now
-		_dragStart = Date.now();
-		let moved = false;
-		let rect = element.getBoundingClientRect();
-
-		/** Handler that's invoked when the mouse/touch input is moved */
-		const moveHandler = (e: MouseEvent | TouchEvent) => {
-			let screenX =
-				((e as TouchEvent).touches && (e as TouchEvent).touches[0]!.screenX) ||
-				(e as MouseEvent).screenX;
-			let screenY =
-				((e as TouchEvent).touches && (e as TouchEvent).touches[0]!.screenY) ||
-				(e as MouseEvent).screenY;
-			let diffX = screenX - startX;
-			let diffY = screenY - startY;
-			if (!moved) {
-				if (Math.abs(diffX) < 2 && Math.abs(diffY) < 2) return;
-				moved = true;
-				let parentNode = element.parentNode as HTMLElement;
-				if (parentNode && parentNode.className === "App__ModalWrapper") {
-					// make sure the modal wrapper is based at 0, 0
-					// (not the case for menu, popover etc.)
-					parentNode.style.top = "0";
-					parentNode.style.left = "0";
-				}
-				element.style.position = "absolute";
-				element.style.bottom = "auto";
-				element.style.right = "auto";
-			}
-			e.preventDefault();
-			e.stopPropagation();
-			let y = Math.max(0, rect.top + diffY);
-			element.style.top = Math.min(y, window.innerHeight - 40) + "px";
-			let x = Math.max(-element.clientWidth + 40, rect.left + diffX);
-			element.style.left = Math.min(x, window.innerWidth - 64) + "px";
-		};
-
-		/** Handler that's invoked when the mouse button/touch input is released */
-		const upHandler = (e: MouseEvent) => {
-			if (moved) {
-				e.preventDefault();
-				e.stopPropagation();
-			}
-			_dragStart = 0;
-			app.renderer!.schedule(() => {
-				window.removeEventListener("touchmove", moveHandler, {
-					passive: false,
-					capture: true,
-				} as any);
-				window.removeEventListener("mousemove", moveHandler, true);
-				window.removeEventListener("touchend", upHandler as any, true);
-				window.removeEventListener("mouseup", upHandler, true);
-				window.removeEventListener("click", upHandler, true);
-			});
-		};
-
-		// add all handlers
-		window.addEventListener("touchmove", moveHandler, {
-			passive: false,
-			capture: true,
-		});
-		window.addEventListener("mousemove", moveHandler, true);
-		window.addEventListener("touchend", upHandler as any, true);
-		window.addEventListener("mouseup", upHandler, true);
-		window.addEventListener("click", upHandler, true);
-	}
 }
 
 /** @internal Asynchronous container content updater */

@@ -51,8 +51,11 @@ export class MessageDialogStyles {
 		grow: 0,
 	});
 
-	/** The position that is set on the outer dialog container, to position the dialog itself */
-	position: UIComponent.Position = { gravity: "center" };
+	/**
+	 * The margin that is set on the outer dialog container, to position the dialog on the screen
+	 * - By default, the dialog is centered on the screen using `auto` margins all around
+	 */
+	margin: UIComponent.Offsets = "auto";
 
 	/** The output effect that is applied to the outer dialog container, defaults to Elevate */
 	effect: RenderContext.OutputEffect = ui.effect.ELEVATE;
@@ -203,7 +206,7 @@ export class MessageDialog
 		return new (ui.cell(
 			{
 				style: MessageDialog.styles.ContainerStyle,
-				position: MessageDialog.styles.position,
+				margin: MessageDialog.styles.margin,
 				effect: MessageDialog.styles.effect,
 				accessibleRole: "alertdialog",
 			},
@@ -211,7 +214,7 @@ export class MessageDialog
 				ui.cell(
 					{
 						style: MessageDialog.styles.MessageCellStyle,
-						onMouseDown: "+DragContainer",
+						effect: ui.effect("DragModal"),
 					},
 					ui.column(...messageLabels),
 				),

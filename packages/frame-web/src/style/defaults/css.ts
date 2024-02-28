@@ -141,10 +141,9 @@ export function makeBaseCSS() {
 			cursor: "default",
 		},
 		[`.${CLASS_MODAL_WRAPPER}`]: {
-			flexDirection: "row",
-			justifyContent: "center",
-			alignContent: "center",
 			display: "flex",
+			flexDirection: "column",
+			justifyContent: "start", // otherwise tall modals expand above frame
 			position: "absolute",
 			width: "100%",
 			height: "100%",

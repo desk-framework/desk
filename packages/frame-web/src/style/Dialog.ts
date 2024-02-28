@@ -26,8 +26,11 @@ export class DialogStyles {
 		borderRadius: 12,
 	});
 
-	/** The position that is set on the outer dialog container, to position the dialog itself */
-	position: UIComponent.Position = { gravity: "center" };
+	/**
+	 * The margin that is set on the outer dialog container, to position the dialog on the screen
+	 * - By default, the dialog is centered on the screen using `auto` margins all around
+	 */
+	margin: UIComponent.Offsets = "auto";
 
 	/** The output effect that is applied to the outer dialog container, defaults to Elevate */
 	effect: RenderContext.OutputEffect = ui.effect.ELEVATE;
@@ -45,7 +48,7 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 		return new (ui.cell(
 			{
 				style: Dialog.styles.ContainerStyle,
-				position: Dialog.styles.position,
+				margin: Dialog.styles.margin,
 				effect: Dialog.styles.effect,
 			},
 			ui.renderView({
