@@ -3,6 +3,7 @@ import {
 	AsyncTaskQueue,
 	Observer,
 	RenderContext,
+	UIColor,
 	View,
 	app,
 } from "@desk-framework/frame-core";
@@ -26,6 +27,8 @@ export class WebRenderer extends RenderContext {
 			},
 		);
 		if (options.reducedMotion) this.setReducedMotion(true);
+		this._pageBackground = options.pageBackground;
+		this._modalBackground = options.modalShadeBackground;
 	}
 
 	/** Schedules the provided callback in the rendering queue */
@@ -82,7 +85,7 @@ export class WebRenderer extends RenderContext {
 								}
 								break;
 							case "page":
-								mount.createPageElement();
+								mount.createPageElement(this._pageBackground);
 								this.setDocumentTitle(output.source);
 								break;
 							case "modal":
@@ -90,9 +93,9 @@ export class WebRenderer extends RenderContext {
 							case "dialog":
 								mount.createModalElement(
 									autoCloseModal,
-									output.place.shade,
 									output.place.ref && (output.place.ref.element as any),
 									this._reducedMotion,
+									output.place.shade ? this._modalBackground : "transparent",
 								);
 								break;
 							default: // "none"
@@ -116,9 +119,8 @@ export class WebRenderer extends RenderContext {
 	setDocumentTitle(view: View) {
 		let activity = Activity.whence(view);
 		while (activity) {
-			let target = activity.getNavigationTarget();
-			if (target.title) {
-				document.title = String(target.title);
+			if (activity.title) {
+				document.title = String(activity.title);
 				break;
 			}
 			activity = Activity.whence(activity);
@@ -170,12 +172,15 @@ export class WebRenderer extends RenderContext {
 		return this;
 	}
 
-	/** Re-renders all mounted content to appear in (new or existing) elements with corresponding ID */
+	/**
+	 * Re-renders all mounted content to appear in (new or existing) elements with corresponding ID
+	 * - This method also emits a change event on the renderer, to trigger a full re-render
+	 */
 	remount() {
+		this.emitChange();
 		for (let mount of this._mounts.values()) {
 			mount.remount();
 		}
-		this.emitChange();
 		return this;
 	}
 
@@ -187,5 +192,7 @@ export class WebRenderer extends RenderContext {
 	private _mounts: Map<number, OutputMount>;
 	private _queue: AsyncTaskQueue;
 	private _reducedMotion?: boolean;
+	private _pageBackground: UIColor | string;
+	private _modalBackground: UIColor | string;
 	private _raf?: any;
 }

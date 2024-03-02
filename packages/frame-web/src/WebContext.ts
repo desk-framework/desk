@@ -4,10 +4,12 @@ import {
 	bound,
 	ConfigOptions,
 	GlobalContext,
+	ui,
+	UIColor,
 	UIComponent,
 } from "@desk-framework/frame-core";
-import { WebHashNavigationPath } from "./path/WebHashNavigationPath.js";
-import { WebHistoryNavigationPath } from "./path/WebHistoryNavigationPath.js";
+import { WebHashNavigationController } from "./path/WebHashNavigationController.js";
+import { WebHistoryNavigationController } from "./path/WebHistoryNavigationController.js";
 import { WebRenderer } from "./renderer/WebRenderer.js";
 import { WebViewportContext } from "./renderer/WebViewportContext.js";
 import { Dialog, DialogStyles } from "./style/Dialog.js";
@@ -21,7 +23,9 @@ import { WebTheme } from "./style/WebTheme.js";
 export type WebContext = GlobalContext & {
 	theme: WebTheme;
 	activities: ActivityContext & {
-		navigationPath: WebHashNavigationPath | WebHistoryNavigationPath;
+		navigationController:
+			| WebHashNavigationController
+			| WebHistoryNavigationController;
 	};
 };
 
@@ -47,6 +51,19 @@ export class WebContextOptions extends ConfigOptions {
 
 	/** Custom focus (outline) decoration styles, if any */
 	focusDecoration?: UIComponent.DecorationStyleType;
+
+	/**
+	 * Page background color (or CSS value), defaults to Background color
+	 * - Use a (custom) theme color rather than a specific color to allow the color to change with the theme. The page background is updated dynamically when the theme changes.
+	 */
+	pageBackground: UIColor | string = ui.color.BACKGROUND;
+
+	/**
+	 * Modal shade backdrop color (or CSS value), defaults to darkened Text color at low opacity
+	 * - Use a (custom) theme color rather than a specific color to allow the color to change with the theme. The modal shade color is updated dynamically when the theme changes.
+	 */
+	modalShadeBackground: UIColor | string =
+		ui.color.TEXT.brighten(-0.8).alpha(0.3);
 
 	/**
 	 * Options for the appearance of the default modal dialog view (container)
@@ -99,7 +116,7 @@ export class WebContextOptions extends ConfigOptions {
  *   options.logicalPxScale = 1.5;
  *   options.theme.styles.LinkButton =
  *     options.theme.styles.LinkButton.extend({
- *       decoration: { borderColor: UIColor["@primary"] },
+ *       decoration: { borderColor: ui.color.PRIMARY },
  *     });
  * });
  * app.addActivity(new MyActivity())
@@ -133,9 +150,13 @@ export function useWebContext(config?: ConfigOptions.Arg<WebContextOptions>) {
 
 	// create navigation path
 	if (options.useHistoryAPI) {
-		app.activities.navigationPath = new WebHistoryNavigationPath(options);
+		app.activities.navigationController = new WebHistoryNavigationController(
+			options,
+		);
 	} else {
-		app.activities.navigationPath = new WebHashNavigationPath(options);
+		app.activities.navigationController = new WebHashNavigationController(
+			options,
+		);
 	}
 
 	// enable hot module reload for activities

@@ -1,5 +1,5 @@
 import {
-	TestNavigationPath,
+	TestNavigationController,
 	TestRenderer,
 	describe,
 	expect,
@@ -9,16 +9,16 @@ import {
 import {
 	Activity,
 	MessageDialogOptions,
-	UIButtonStyle,
+	NavigationTarget,
+	UIButton,
 	UICell,
-	UIColor,
 	UIIconResource,
 	UILabel,
-	UIPrimaryButton,
 	UITheme,
 	ViewComposite,
 	app,
 	strf,
+	ui,
 } from "../../../dist/index.js";
 
 describe("TestContext", () => {
@@ -26,113 +26,99 @@ describe("TestContext", () => {
 		t.breakOnFail();
 		let app = useTestContext();
 		expect(app.renderer).toBeInstanceOf(TestRenderer);
-		expect(app.activities.navigationPath).toBeInstanceOf(TestNavigationPath);
+		expect(app.activities.navigationController).toBeInstanceOf(
+			TestNavigationController,
+		);
 	});
 
 	describe("Navigation paths", () => {
 		test("Initial path: default", () => {
 			let app = useTestContext();
-			expect(app.getPath()).toBe("");
+			expect(app.activities.navigationController.pageId).toBe("");
+			expect(app.activities.navigationController.detail).toBe("");
 		});
 
 		test("Initial path: set in options", () => {
 			let app = useTestContext((options) => {
-				options.path = "/foo";
+				options.navigationPageId = "foo";
 			});
-			expect(app.getPath()).toBe("foo");
+			expect(app.activities.navigationController.pageId).toBe("foo");
 		});
 
 		test("Navigation history: set once", async () => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
-			expect(path.getHistory()).toBeArray(["foo", "foo/bar"]);
+			let nav = app.activities.navigationController;
+			await nav.navigateAsync(new NavigationTarget("foo/bar"));
+			expect(nav.getHistory()).toBeArray(["foo", "foo/bar"]);
 		});
 
 		test("Navigation history: set, replace", async () => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
-			await path.navigateAsync("baz", { replace: true });
-			expect(path.getHistory()).toBeArray(["foo", "foo/bar/baz"]);
+			let nav = app.activities.navigationController;
+			await nav.navigateAsync(new NavigationTarget("foo/bar"));
+			await nav.navigateAsync(new NavigationTarget("foo/bar/baz"), {
+				replace: true,
+			});
+			expect(nav.getHistory()).toBeArray(["foo", "foo/bar/baz"]);
 		});
 
 		test("Navigation history: back", async () => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
-			await path.navigateAsync("", { back: true });
-			expect(path.getHistory()).toBeArray(["foo"]);
+			let nav = app.activities.navigationController;
+			await nav.navigateAsync(new NavigationTarget("foo"));
+			await nav.navigateAsync(undefined, { back: true });
+			expect(nav.getHistory()).toBeArray(["foo"]);
 		});
 
 		test("Navigation history: back twice", async (t) => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			app.navigate("bar");
-			await t.expectPathAsync(100, "foo/bar");
+			app.navigate("foo/bar");
+			await t.expectNavAsync(100, "foo", "bar");
 			app.navigate("/baz");
-			await t.expectPathAsync(100, "baz");
-			app.navigate(":back", { back: true });
-			await t.expectPathAsync(100, "foo");
+			await t.expectNavAsync(100, "baz");
+			app.navigate(new NavigationTarget(), { back: true });
+			app.goBack();
+			await t.expectNavAsync(100, "foo");
 		});
 
 		test("Navigation history: back using goBack() sync", async (t) => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
-				options.pathDelay = 0;
+				options.navigationPageId = "foo";
+				options.navigationDelay = 0;
 			});
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
+			let nav = app.activities.navigationController;
+			await nav.navigateAsync(new NavigationTarget("foo"));
 			app.goBack();
-			await t.expectPathAsync(100, "foo");
-			expect(path.getHistory()).toBeArray(["foo"]);
+			await t.expectNavAsync(100, "foo");
+			expect(nav.getHistory()).toBeArray(["foo"]);
 		});
 
 		test("Navigation history: back, set", async () => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
-			await path.navigateAsync("baz", { back: true });
-			expect(path.getHistory()).toBeArray(["foo", "foo/baz"]);
+			let nav = app.activities.navigationController;
+			await nav.navigateAsync(new NavigationTarget("bar"));
+			await nav.navigateAsync(new NavigationTarget("baz"), { back: true });
+			expect(nav.getHistory()).toBeArray(["foo", "baz"]);
 		});
 
 		test("Navigation history: back, error if app would exit", async () => {
 			let app = useTestContext((options) => {
-				options.path = "foo";
+				options.navigationPageId = "foo";
 			});
-			let path = app.activities.navigationPath;
+			let nav = app.activities.navigationController;
 			await expect(async () =>
-				path.navigateAsync("", { back: true }),
+				nav.navigateAsync(undefined, { back: true }),
 			).toThrowErrorAsync();
-		});
-
-		test("Navigate to relative path", async () => {
-			let app = useTestContext();
-			let path = app.activities.navigationPath;
-			await path.navigateAsync("bar");
-			await path.navigateAsync("./baz");
-			expect(path.getHistory()).toBeArray(["", "bar", "bar/baz"]);
-			path.clear();
-			await path.navigateAsync("bar");
-			await path.navigateAsync("../baz");
-			expect(path.getHistory()).toBeArray(["", "bar", "baz"]);
-			path.clear();
-			await path.navigateAsync("bar/baz/123");
-			await path.navigateAsync("../../../xyz");
-			expect(path.getHistory()).toBeArray(["", "bar/baz/123", "xyz"]);
-			path.clear();
-			await path.navigateAsync("bar/baz/123");
-			await path.navigateAsync("//.././../xyz/.");
-			expect(path.getHistory()).toBeArray(["", "bar/baz/123", "xyz"]);
 		});
 	});
 
@@ -164,8 +150,7 @@ describe("TestContext", () => {
 		});
 
 		test("Cell view from single controller, handle events", async (t) => {
-			class MyView extends ViewComposite {
-				override createView = () => new UICell();
+			class MyView extends ViewComposite.withPreset({}, UICell) {
 				async onClick() {
 					await Promise.resolve();
 					throw Error("Catch me");
@@ -363,7 +348,7 @@ describe("TestContext", () => {
 			let app = useTestContext((options) => {
 				options.renderFrequency = 5;
 			});
-			let button = new UIPrimaryButton("Test");
+			let button = new UIButton("Test");
 			app.showPage(button);
 			await t.expectOutputAsync(100, { type: "button" });
 			let p = app.showModalMenuAsync(
@@ -412,21 +397,21 @@ describe("TestContext", () => {
 		});
 
 		test("Select icons are mirrored in RTL", () => {
-			let icon = new UIIconResource("test").setMirrorRTL();
+			let icon = new UIIconResource("Test").setMirrorRTL();
 			expect(icon.isMirrorRTL()).toBe(true);
 
 			// check on standard icons
 			let app = useTestContext();
-			expect(app.theme!.icons.get("chevronNext")!.isMirrorRTL()).toBe(true);
-			expect(app.theme!.icons.get("chevronBack")!.isMirrorRTL()).toBe(true);
-			expect(app.theme!.icons.get("chevronUp")!.isMirrorRTL()).toBe(false);
-			expect(app.theme!.icons.get("chevronDown")!.isMirrorRTL()).toBe(false);
+			expect(app.theme!.icons.get("ChevronNext")!.isMirrorRTL()).toBe(true);
+			expect(app.theme!.icons.get("ChevronBack")!.isMirrorRTL()).toBe(true);
+			expect(app.theme!.icons.get("ChevronUp")!.isMirrorRTL()).toBe(false);
+			expect(app.theme!.icons.get("ChevronDown")!.isMirrorRTL()).toBe(false);
 		});
 
 		describe("Base styles", () => {
 			test("Extend base style using static method", () => {
-				let MyStyle = UIButtonStyle.extend({
-					textColor: UIColor["@green"],
+				let MyStyle = ui.style.BUTTON.extend({
+					textColor: ui.color.GREEN,
 				});
 				let expectStyles = expect(new MyStyle())
 					.toHaveMethod("getStyles")
@@ -435,41 +420,39 @@ describe("TestContext", () => {
 				let styles = new MyStyle().getStyles();
 				expect(styles[styles.length - 1])
 					.toHaveProperty("textColor")
-					.toBe(UIColor["@green"]);
+					.toBe(ui.color.GREEN);
 			});
 
 			test("Extend base style using class", () => {
-				class MyStyle extends UIButtonStyle {
+				class MyStyle extends ui.style.BUTTON {
 					override getStyles() {
-						return [...super.getStyles(), { textColor: UIColor["@green"] }];
+						return [...super.getStyles(), { textColor: ui.color.GREEN }];
 					}
 				}
 				expect(() => new MyStyle()).not.toThrowError();
 			});
 
 			test("Override base style", () => {
-				let override = UIButtonStyle.override({
-					textColor: UIColor["@green"],
+				let override = ui.style.BUTTON.override({
+					textColor: ui.color.GREEN,
 				});
 				expect(override.overrides).toBeArray(1);
 				expect(override.overrides[0])
 					.toHaveProperty("textColor")
-					.toBe(UIColor["@green"]);
+					.toBe(ui.color.GREEN);
 			});
 
 			test("Styles cache is cleared on context clear", (t) => {
 				let app = useTestContext();
-				app.theme!.styles.set(UIButtonStyle, [
-					{ textColor: UIColor["@green"] },
-				]);
-				let MyButtonStyle = UIButtonStyle.extend({ padding: 8 });
+				app.theme!.styles.set("Button", [{ textColor: ui.color.GREEN }]);
+				let MyButtonStyle = ui.style.BUTTON.extend({ padding: 8 });
 				let styles = new MyButtonStyle().getStyles().slice(-2);
-				expect(styles[0]).toHaveProperty("textColor").toBe(UIColor["@green"]);
+				expect(styles[0]).toHaveProperty("textColor").toBe(ui.color.GREEN);
 				expect(styles[1]).toHaveProperty("padding").toBe(8);
 
 				t.log("Clearing test context");
 				app = useTestContext();
-				app.theme!.styles.set(UIButtonStyle, [{ padding: 0 }]);
+				app.theme!.styles.set("Button", [{ padding: 0 }]);
 				styles = new MyButtonStyle().getStyles().slice(-2);
 				expect(styles[0]).not.toHaveProperty("textColor");
 				expect(styles[1]).toHaveProperty("padding").toBe(8);

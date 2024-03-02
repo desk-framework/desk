@@ -1,32 +1,25 @@
-import {
-	app,
-	AsyncTaskQueue,
-	bound,
-	JSX,
-	Activity,
-	UILabelStyle,
-} from "../../../dist";
+import { app, AsyncTaskQueue, bound, Activity, ui } from "../../../dist";
 
 const MAX = 10000;
 
-const MyLabelStyle = UILabelStyle.extend({
+const MyLabelStyle = ui.style.LABEL.extend({
 	fontSize: 12,
 });
 
 const ViewBody = (
-	<scrollcontainer>
+	<scroll>
 		<row padding={{ x: 40, y: 16 }}>
-			<h1>Perf test</h1>
+			<label style={ui.style.LABEL_TITLE}>Perf test</label>
 		</row>
 		<list items={bound("items")}>
 			<row height={48}>
-				<label icon="@chevronNext" iconMargin={16} labelStyle={MyLabelStyle}>
+				<label icon={ui.icon.CHEVRON_NEXT} iconMargin={16} style={MyLabelStyle}>
 					Hello, this is row %[item]
 				</label>
 			</row>
 			<column layout={{ separator: { lineThickness: 1 } }} />
 		</list>
-	</scrollcontainer>
+	</scroll>
 );
 
 export class PerfActivity extends Activity {

@@ -1,18 +1,20 @@
-import { Activity, JSX, app } from "@desk-framework/frame-core";
+import { Activity, app, ui } from "@desk-framework/frame-core";
 
 const ViewBody = (
 	<cell>
-		<label labelStyle={{ bold: true, fontSize: 36 }}>Count: %[count]</label>
-		<spacer height={32} />
-		<row align="center">
-			<button onClick="CountDown">Down</button>
-			<button onClick="CountUp">Up</button>
-		</row>
+		<column distribute="center">
+			<label style={{ bold: true, fontSize: 36 }}>Count: %[count]</label>
+			<spacer height={32} />
+			<row align="center">
+				<button onClick="CountDown">Down</button>
+				<button onClick="CountUp">Up</button>
+			</row>
+		</column>
 	</cell>
 );
 
 export class CountActivity extends Activity {
-	protected ready() {
+	ready() {
 		this.view = new ViewBody();
 		app.showPage(this.view);
 	}
@@ -27,5 +29,3 @@ export class CountActivity extends Activity {
 		this.count++;
 	}
 }
-
-app.hotReload(module, CountActivity);

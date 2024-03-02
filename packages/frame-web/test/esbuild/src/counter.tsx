@@ -1,13 +1,15 @@
-import { JSX, Activity, app } from "../../../dist";
+import { Activity, app, ui } from "../../../dist";
 
 const ViewBody = (
 	<cell>
-		<label labelStyle={{ bold: true, fontSize: 36 }}>Count: %[count]</label>
-		<spacer height={32} />
-		<row align="center">
-			<button onClick="CountDown">Down</button>
-			<button onClick="CountUp">Up</button>
-		</row>
+		<column distribute="center">
+			<label style={{ bold: true, fontSize: 36 }}>Count: %[count]</label>
+			<spacer height={32} />
+			<row align="center">
+				<button onClick="CountDown">Down</button>
+				<button onClick="CountUp">Up</button>
+			</row>
+		</column>
 	</cell>
 );
 
