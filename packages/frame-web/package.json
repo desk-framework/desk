@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/frame-web",
-	"version": "4.0.0-dev.15",
+	"version": "4.0.0-dev.16",
 	"publishConfig": {
 		"tag": "next"
 	},
@@ -51,7 +51,7 @@
 		"tslib": "^2.6.2"
 	},
 	"peerDependencies": {
-		"@desk-framework/frame-core": "4.0.0-dev.15"
+		"@desk-framework/frame-core": "4.0.0-dev.16"
 	},
 	"devDependencies": {
 		"@desk-framework/frame-core": "file:../frame-core"
