@@ -1,4 +1,4 @@
-import { UIComponent, UIStyle, ui } from "@desk-framework/frame-core";
+import { UIColor, UIComponent, UIStyle, ui } from "@desk-framework/frame-core";
 
 type CombinedStyleType = UIComponent.DimensionsStyleType &
 	UIComponent.DecorationStyleType &
@@ -15,7 +15,6 @@ export const defaultControlTextStyle: CombinedStyleType = {
 
 const _color_clear = ui.color.CLEAR;
 const _color_text = ui.color.TEXT;
-const _color_primaryBackground = ui.color.PRIMARY_BG;
 const _color_controlBase = ui.color.CONTROL_BASE;
 
 const baseButtonStyle: CombinedStyleType = {
@@ -63,6 +62,15 @@ const pressedNotDisabled: CombinedStyleType = {
 	[UIStyle.STATE_DISABLED]: false,
 };
 
+function makeBgButtonStyle(bg: UIColor) {
+	return [
+		{ ...baseButtonStyle, background: bg, textColor: bg.text() },
+		{ ...hoveredNotDisabled, background: bg.contrast(0.2) },
+		{ ...pressedNotDisabled, background: bg.contrast(-0.1) },
+		disabledStyle,
+	];
+}
+
 /** @internal Default styles for `UITheme.styles` */
 export const styles: [
 	name: string,
@@ -96,25 +104,9 @@ export const styles: [
 			disabledStyle,
 		],
 	],
-	[
-		"PrimaryButton",
-		[
-			{
-				...baseButtonStyle,
-				background: _color_primaryBackground,
-				textColor: _color_primaryBackground.text(),
-			},
-			{
-				...hoveredNotDisabled,
-				background: _color_primaryBackground.contrast(0.2),
-			},
-			{
-				...pressedNotDisabled,
-				background: _color_primaryBackground.contrast(-0.1),
-			},
-			disabledStyle,
-		],
-	],
+	["PrimaryButton", makeBgButtonStyle(ui.color.PRIMARY_BG)],
+	["DangerButton", makeBgButtonStyle(ui.color.DANGER_BG)],
+	["SuccessButton", makeBgButtonStyle(ui.color.SUCCESS_BG)],
 	[
 		"PlainButton",
 		[
@@ -219,7 +211,7 @@ export const styles: [
 		[
 			{
 				borderColor: _color_text.alpha(0.5),
-				textColor: _color_primaryBackground, // :checked fill
+				textColor: ui.color.PRIMARY_BG, // :checked fill
 				padding: { y: 4 },
 				css: { cursor: "pointer" },
 			},
