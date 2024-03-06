@@ -4,7 +4,7 @@ import {
 	ManagedObject,
 	Observer,
 } from "../base/index.js";
-import { ERROR, err, errorHandler } from "../errors.js";
+import { ERROR, err, errorHandler, invalidArgErr } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";
 
@@ -67,7 +67,12 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 			constructor(preset: any, ...content: TContent) {
 				super();
 				this._Content = content;
-				this.applyViewPreset({ ...defaults, ...preset });
+				if (preset?.variant && !(this instanceof preset.variant.type)) {
+					throw invalidArgErr("preset.variant");
+				}
+				let apply = { ...defaults, ...preset?.variant?.preset, ...preset };
+				delete apply.variant;
+				this.applyViewPreset(apply);
 			}
 			protected override createView() {
 				return ViewBody
@@ -159,12 +164,12 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	/**
 	 * Delegates events from the current view
 	 * - This method is called automatically when an event is emitted by the current view object.
-	 * - The base implementation calls activity methods starting with `on`, e.g. `onClick` for a `Click` event. The event is passed as a single argument, and the return value should either be `true`, undefined, or a promise (which is awaited just to be able to handle any errors).
+	 * - The base implementation calls activity methods starting with `on`, e.g. `onClick` for a `Click` event. The event is passed as a single argument, and the return value should either be `true`, undefined, or a promise (which is awaited just to be able to handle any errors). If the return value is `true` or a promise, the event is considered handled and no further action is taken. Otherwise, the event is emitted again on the ViewComposite instance itself.
 	 * - This method may be overridden to handle events in any other way, e.g. to propagate them by emitting the same event on the ViewComposite instance itself.
 	 * @param event The event to be delegated (from the view)
-	 * @returns True if an event handler was found, and it returned true; false otherwise.
+	 * @returns This method always returns `true` since the event is either handled or emitted again.
 	 */
-	protected delegateViewEvent(event: ManagedEvent) {
+	protected delegateViewEvent(event: ManagedEvent): boolean | Promise<unknown> {
 		// find own handler method
 		let method = (this as any)["on" + event.name];
 		if (typeof method === "function") {
@@ -176,7 +181,8 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 				return (result as Promise<unknown>).catch(errorHandler);
 			}
 		}
-		return false;
+		this.emit(event);
+		return true;
 	}
 
 	/**
@@ -213,14 +219,47 @@ export namespace ViewComposite {
 	> = {
 		/** Creates an instance of this view composite */
 		new (
-			preset?: TPreset,
+			preset?: TPreset & {
+				/** A view composite variant object, applied before other presets */
+				variant?: ViewCompositeVariant<TPreset, TObject>;
+			},
 			...content: TContent
 		): ViewComposite<TBodyView> & TObject;
 
 		/** Creates a preset class that further extends this view composite */
 		preset(
-			preset?: TPreset,
+			preset?: TPreset & {
+				/** A view composite variant object, applied before other presets */
+				variant?: ViewCompositeVariant<TPreset, TObject>;
+			},
 			...content: TContent
 		): { new (): ViewComposite<TBodyView> & TObject };
 	};
+}
+
+/**
+ * An object that includes predefined properties for a view composite
+ * - View composite variants can be used for the `variant` property passed to a view composite constructor, in JSX tags and with the static `preset` method.
+ * - Variants can only be used with a specific view composite class, and sub classes.
+ * - To create a new variant for a UI component instead, use {@link UIVariant}.
+ */
+export class ViewCompositeVariant<TPreset, TObject> {
+	/**
+	 * Creates a new view composite variant object
+	 * - The resulting instance can be used for the `variant` property passed to a view composite constructor, in JSX tags and with the static `preset` method.
+	 * @param type The view composite class that the variant will be used with
+	 * @param preset The properties, bindings, and event handlers that will be preset on each object created with this variant
+	 */
+	constructor(
+		public readonly type: ViewComposite.WithPreset<
+			TPreset,
+			any[],
+			View,
+			TObject
+		>,
+		public readonly preset: Readonly<TPreset>,
+	) {
+		this.type = type;
+		this.preset = Object.freeze({ ...preset });
+	}
 }
