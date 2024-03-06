@@ -22,8 +22,6 @@ const baseButtonStyle: CombinedStyleType = {
 	borderRadius: 12,
 	borderThickness: 1,
 	borderColor: _color_clear,
-	background: _color_controlBase,
-	textColor: _color_controlBase.text(),
 	fontWeight: 600,
 	textAlign: "center",
 	lineBreakMode: "ellipsis",
@@ -62,11 +60,20 @@ const pressedNotDisabled: CombinedStyleType = {
 	[UIStyle.STATE_DISABLED]: false,
 };
 
-function makeBgButtonStyle(bg: UIColor) {
+function makeBgButtonStyle(bg: UIColor, baseBg?: UIColor, baseFg?: UIColor) {
+	let fg = bg.text();
 	return [
-		{ ...baseButtonStyle, background: bg, textColor: bg.text() },
-		{ ...hoveredNotDisabled, background: bg.contrast(0.2) },
-		{ ...pressedNotDisabled, background: bg.contrast(-0.1) },
+		{ ...baseButtonStyle, background: baseBg || bg, textColor: baseFg || fg },
+		{
+			...hoveredNotDisabled,
+			background: bg.contrast(-0.1),
+			textColor: fg,
+		},
+		{
+			...pressedNotDisabled,
+			background: bg.contrast(0.1),
+			textColor: fg,
+		},
 		disabledStyle,
 	];
 }
@@ -89,24 +96,13 @@ export const styles: [
 			},
 		],
 	],
-	[
-		"Button",
-		[
-			baseButtonStyle,
-			{
-				...hoveredNotDisabled,
-				background: _color_controlBase.contrast(-0.1),
-			},
-			{
-				...pressedNotDisabled,
-				background: _color_controlBase.contrast(0.1),
-			},
-			disabledStyle,
-		],
-	],
+	["Button", makeBgButtonStyle(_color_controlBase)],
 	["PrimaryButton", makeBgButtonStyle(ui.color.PRIMARY_BG)],
-	["DangerButton", makeBgButtonStyle(ui.color.DANGER_BG)],
 	["SuccessButton", makeBgButtonStyle(ui.color.SUCCESS_BG)],
+	[
+		"DangerButton",
+		makeBgButtonStyle(ui.color.DANGER_BG, _color_controlBase, ui.color.DANGER),
+	],
 	[
 		"PlainButton",
 		[
