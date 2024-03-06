@@ -11,7 +11,7 @@ const PACKAGES = [
 let packageJson = fs.readFileSync("package.json", "utf-8");
 let packageJsonObj = JSON.parse(packageJson);
 let currentVersion = packageJsonObj.version;
-if (packageJsonObj.name !== "desk") {
+if (packageJsonObj.name !== "desk-framework") {
 	throw new Error("Not running in root package directory");
 }
 
