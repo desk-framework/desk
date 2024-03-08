@@ -26,7 +26,7 @@ menu_type: index
 
 ## Logging and i18n {#logging-i18n}
 
-- {@link string-formatting +}
+- {@link text-formatting +}
 - {@link internationalization +}
 - {@link errors-logging +}
 
@@ -39,8 +39,8 @@ menu_type: index
 
 ## Appearance {#appearance}
 
-- {@link icons +}
 - {@link themes-colors +}
+- {@link icons +}
 - {@link animation +}
 - {@link viewport-context +}
 

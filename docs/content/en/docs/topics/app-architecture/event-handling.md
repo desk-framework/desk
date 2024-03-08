@@ -73,6 +73,12 @@ Listeners provide the simplest mechanism for handling events. A listener adds a 
 
 > **Note:** Since listeners can't be removed, don't add a listener to an object that's intended to 'outlive' the listener. For example, from the {@link Activity.ready()} method, don't add a listener to an object that stays around during the entire lifetime of the application. In that case, use a (service) observer, or find a way to attach the target object to the activity.
 
+### Async event streams {#listen-async}
+
+Rather than using a callback function, you can also use an _async iterable_ to listen for events. This allows for a different syntax, and ensures that each event is handled in sequence, even if the event is emitted while the listener is still processing a previous event.
+
+{@import :listen-async}
+
 ## Observers {#observers}
 
 The Desk framework provides an even more powerful mechanism for handling events, in the form of _observers_.

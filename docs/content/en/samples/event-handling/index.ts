@@ -54,6 +54,19 @@ class MyObject extends ManagedObject {}
 	myObject.emitChange();
 }
 {
+	async () => {
+		const myObject = new MyObject();
+		// @doc-start event-handling:listen-async
+		for await (let event of myObject.listen()) {
+			if (event.name === "SomeEvent") {
+				// ...handle SomeEvent
+			}
+		}
+		// ... (code here runs after object is unlinked, or `break`)
+		// @doc-end
+	};
+}
+{
 	// @doc-start event-handling:attach-callback
 	// Handle change events on an attached object:
 	class ParentObject extends ManagedObject {

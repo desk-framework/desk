@@ -110,7 +110,7 @@ app.showAlertDialogAsync("An error occurred");
 // with options:
 const errorDialog = new MessageDialogOptions(
 	[
-		strf("An error occurred: %s"),
+		strf("An error occurred: %[message]"),
 		strf("The data could not be saved, please try again."),
 	],
 	strf("Try again"),

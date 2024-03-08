@@ -151,7 +151,7 @@ Learn more about managed objects, events, and property bindings in the following
 Learn more about internationalization, localization, and formatting features, which can also be used as part of your data model:
 
 - {@link internationalization}
-- {@link string-formatting}
+- {@link text-formatting}
 
 Learn more about list views:
 
