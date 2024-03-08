@@ -2,117 +2,65 @@ import {
 	MessageDialogOptions,
 	RenderContext,
 	StringConvertible,
-	UIButton,
-	UIButtonStyle,
 	UICell,
-	UICellStyle,
-	UIColor,
 	UIContainer,
-	UILabel,
-	UILabelStyle,
-	UIParagraphLabelStyle,
-	UIPrimaryButtonStyle,
-	UIRow,
 	UITheme,
+	UIVariant,
 	ViewComposite,
 	app,
 	strf,
+	ui,
 } from "@desk-framework/frame-core";
 
 /**
  * A class that defines the styles for the default modal message dialog view
  * - A default instance of this class is created, and can be modified in the {@link WebContextOptions} configuration callback passed to {@link useWebContext}.
  * - These styles are used by the default message dialog view referenced by the {@link UITheme} implementation — and therefore also by {@link GlobalContext.showAlertDialogAsync app.showAlertDialogAsync()} and {@link GlobalContext.showConfirmDialogAsync app.showConfirmDialogAsync()}.
- * - The default dialog view includes an outer container, a block of message labels, and a block of buttons. These can be customized using {@link ContainerStyle}, {@link MessageCellStyle}, and {@link ButtonCellStyle}, respectively.
+ * - The default dialog view includes an outer container, a block of message labels, and a block of buttons.
  *
  * @see {@link WebContextOptions}
  * @see {@link UITheme.ModalControllerFactory}
- *
- * @example
- * useWebContext((options) => {
- * options.messageDialogStyles.ContainerStyle =
- *   options.messageDialogStyles.ContainerStyle.extend({
- *     width: 320,
- *   });
- * options.messageDialogStyles.ButtonCellStyle =
- *   options.messageDialogStyles.ButtonCellStyle.extend({
- *     padding: { x: 32, y: 24 },
- *   });
- * });
- * options.messageDialogStyles.buttonRowLayout = {
- *   axis: "vertical",
- *   gravity: "stretch",
- *   separator: { space: 8 },
- * };
- * options.messageDialogStyles.reverseButtons = false;
  */
 export class MessageDialogStyles {
 	/**
-	 * The cell style used for the outer dialog container
-	 * - The default style includes properties for dimensions, background, border radius, and drop shadow
+	 * The cell variant (and style) used for the outer dialog container
+	 * - The default style is based on `ui.style.CELL_BG` and includes properties for dimensions and border radius.
+	 * - Margin is set to `auto` to center the dialog on the screen if possible.
+	 * - An `Elevate` effect is applied to add a drop shadow to the dialog.
 	 */
-	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@pageBackground"],
-		borderRadius: 12,
-		dropShadow: 0.8,
-		width: "auto",
-		minWidth: 360,
-		maxWidth: "95vw",
-		grow: 0,
+	containerVariant = new UIVariant(UICell, {
+		accessibleRole: "alertdialog",
+		margin: "auto",
+		effect: ui.effect.ELEVATE,
+		style: ui.style.CELL_BG.extend({
+			width: "auto",
+			minWidth: 360,
+			maxWidth: "95vw",
+			grow: 0,
+			borderRadius: 12,
+		}),
 	});
 
 	/**
-	 * The cell style used for the block of messages
-	 * - The default style only includes padding
+	 * The cell variant used for the block of messages
+	 * - The default style only includes padding. A `DragModal` effect is applied to the container to use the cell as a grab handle for the entire dialog.
 	 */
-	MessageCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		padding: 16,
+	messageCellVariant = new UIVariant(UICell, {
+		effect: ui.effect("DragModal"),
+		style: ui.style.CELL.extend({
+			padding: 16,
+		}),
 	});
 
 	/**
-	 * The cell style used for the block of buttons
+	 * The cell variant used for the block of buttons
 	 * - The default style includes properties for padding and background
 	 */
-	ButtonCellStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@background"],
-		padding: 16,
+	buttonCellVariant = new UIVariant(UICell, {
+		style: ui.style.CELL.extend({
+			padding: 16,
+		}),
 	});
-
-	/**
-	 * The label style used for the first message label
-	 * - The default style includes centered, bold text, with a maximum width of 480 pixels.
-	 */
-	FirstLabelStyle: UITheme.StyleClassType<UILabelStyle> =
-		UIParagraphLabelStyle.extend({
-			bold: true,
-			textAlign: "center",
-			maxWidth: 480,
-			css: { cursor: "default" },
-		});
-
-	/**
-	 * The label style used for all labels except the first
-	 * - The default style includes centered text, with a maximum width of 480 pixels.
-	 */
-	LabelStyle: UITheme.StyleClassType<UILabelStyle> =
-		UIParagraphLabelStyle.extend({
-			textAlign: "center",
-			maxWidth: 480,
-			css: { cursor: "default" },
-		});
-
-	/**
-	 * The button style used for all buttons except the confirm button
-	 * - This property defaults to {@link UIButtonStyle} itself.
-	 */
-	ButtonStyle: UITheme.StyleClassType<UIButtonStyle> = UIButtonStyle;
-
-	/**
-	 * The button style used for the confirm button
-	 * - This property defaults to {@link UIPrimaryButtonStyle} itself.
-	 */
-	ConfirmButtonStyle: UITheme.StyleClassType<UIButtonStyle> =
-		UIPrimaryButtonStyle;
 
 	/**
 	 * Options for the layout of the row of buttons
@@ -128,6 +76,41 @@ export class MessageDialogStyles {
 	 * - This property defaults to true, which means that the confirm button is displayed last. Set to false to display the confirm button first.
 	 */
 	reverseButtons = true;
+
+	/**
+	 * The label style used for the first message label
+	 * - The default style includes centered, bold text, with a maximum width of 480 pixels.
+	 */
+	firstLabelStyle = ui.style.LABEL.extend({
+		bold: true,
+		textAlign: "center",
+		maxWidth: 480,
+		lineBreakMode: "pre-wrap",
+		userSelect: true,
+	});
+
+	/**
+	 * The label style used for all labels except the first
+	 * - The default style includes centered text, with a maximum width of 480 pixels.
+	 */
+	labelStyle = ui.style.LABEL.extend({
+		textAlign: "center",
+		maxWidth: 480,
+		lineBreakMode: "pre-wrap",
+		userSelect: true,
+	});
+
+	/**
+	 * The button style used for all buttons except the confirm button
+	 * - This property defaults to the default button style.
+	 */
+	buttonStyle = ui.style.BUTTON;
+
+	/**
+	 * The button style used for the confirm button
+	 * - This property defaults to the default primary button style.
+	 */
+	confirmButtonStyle = ui.style.BUTTON_PRIMARY;
 }
 
 /** @internal Default modal message dialog view; shown asynchronously and resolves a promise */
@@ -162,10 +145,10 @@ export class MessageDialog
 		return new Promise<{ confirmed: boolean; other?: boolean }>((r) => {
 			app.render(this, {
 				mode: "dialog",
-				shade: UITheme.getModalDialogShadeOpacity(),
+				shade: true,
 				transform: {
-					show: "@show-dialog",
-					hide: "@hide-dialog",
+					show: ui.animation.SHOW_DIALOG,
+					hide: ui.animation.HIDE_DIALOG,
 				},
 				...place,
 			});
@@ -178,54 +161,44 @@ export class MessageDialog
 
 	protected override createView() {
 		let messageLabels = this.options.messages.map((text, i) =>
-			UILabel.with({
-				labelStyle: i
-					? MessageDialog.styles.LabelStyle
-					: MessageDialog.styles.FirstLabelStyle,
-				text,
-			}),
+			ui.label(
+				String(text),
+				i
+					? MessageDialog.styles.labelStyle
+					: MessageDialog.styles.firstLabelStyle,
+			),
 		);
 		let buttons = [
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ConfirmButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.confirmButtonStyle,
 				label: this.confirmLabel,
 				onClick: "+Confirm",
 				requestFocus: true,
 			}),
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.buttonStyle,
 				hidden: !this.otherLabel,
 				label: this.otherLabel,
 				onClick: "+Other",
 			}),
-			UIButton.with({
-				buttonStyle: MessageDialog.styles.ButtonStyle,
+			ui.button({
+				style: MessageDialog.styles.buttonStyle,
 				hidden: !this.cancelLabel,
 				label: this.cancelLabel,
 				onClick: "+Cancel",
 			}),
 		];
 		if (MessageDialog.styles.reverseButtons) buttons.reverse();
-		return new (UICell.with(
-			{
-				cellStyle: MessageDialog.styles.ContainerStyle,
-				position: { gravity: "center" },
-				accessibleRole: "alertdialog",
-			},
-			UICell.with(
-				{
-					cellStyle: MessageDialog.styles.MessageCellStyle,
-					onMouseDown: "+DragContainer",
-				},
-				...messageLabels,
-			),
-			UICell.with(
-				{
-					cellStyle: MessageDialog.styles.ButtonCellStyle,
-				},
-				UIRow.with(
-					{ layout: MessageDialog.styles.buttonRowLayout },
-					...buttons,
+		return new (ui.cell(
+			{ variant: MessageDialog.styles.containerVariant },
+			ui.column(
+				ui.cell(
+					{ variant: MessageDialog.styles.messageCellVariant },
+					ui.column(...messageLabels),
+				),
+				ui.cell(
+					{ variant: MessageDialog.styles.buttonCellVariant },
+					ui.row({ layout: MessageDialog.styles.buttonRowLayout }, ...buttons),
 				),
 			),
 		))();

@@ -1,23 +1,21 @@
 import {
-	app,
-	bound,
 	Activity,
 	StringConvertible,
-	UIButton,
-	UICell,
-	UILabel,
 	UITextField,
 	ViewComposite,
 	ViewEvent,
+	app,
+	bound,
+	ui,
 } from "@desk-framework/frame-core";
 import { describe, expect, test, useTestContext } from "../../dist/index.js";
 // ... from "@desk-framework/frame-test"
 
 class CountActivity extends Activity {
 	protected override ready() {
-		this.view = new (UICell.with(
-			UITextField.with({ value: bound("count"), onInput: "SetCount" }),
-			UIButton.withLabel("+", "CountUp"),
+		this.view = new (ui.cell(
+			ui.textField({ value: bound("count"), onInput: "SetCount" }),
+			ui.button("+", "CountUp"),
 		))();
 		app.showPage(this.view);
 	}
@@ -37,18 +35,19 @@ describe("App test", (scope) => {
 	scope.beforeEach(() => {
 		// initialize test app before every test
 		useTestContext((options) => {
-			options.path = "count";
+			options.navigationPageId = "count";
 		});
 		activity = new CountActivity();
 		app.addActivity(activity);
 	});
 
 	test("Single view is rendered", async (t) => {
-		const MyView = ViewComposite.define<{ title?: StringConvertible }>((p) =>
-			UILabel.withText(p.title),
-		).with({ title: "TEST" });
-		let view = new MyView();
-		app.showPage(view);
+		const MyView = ViewComposite.withPreset(
+			{ title: StringConvertible.EMPTY },
+			ui.label(bound.string("title")),
+		).preset({ title: "TEST" });
+		let myView = new MyView();
+		app.showPage(myView);
 		await t.expectOutputAsync(100, { text: "TEST" });
 	});
 
@@ -58,11 +57,11 @@ describe("App test", (scope) => {
 
 	test("Another path inactivates activity", async (t) => {
 		// initial path should be set directly
-		expect(app.getPath()).toBe("count");
+		expect(app.activities.navigationController.pageId).toBe("count");
 
 		// setting another path takes some time
-		app.navigate("/another/path");
-		await t.expectPathAsync(100, "another/path");
+		app.navigate("/another/path/here");
+		await t.expectNavAsync(100, "another", "path/here");
 
 		// by then, the activity should be made inactive
 		await t.pollAsync(() => !activity.isActive(), 5, 100);

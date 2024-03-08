@@ -15,11 +15,15 @@ import {
 import { MessageDialog } from "./MessageDialog.js";
 import { ModalMenu } from "./ModalMenu.js";
 import { animations } from "./defaults/animations.js";
+import { effects } from "./defaults/effects.js";
 import { colors } from "./defaults/colors.js";
 import { makeBaseCSS } from "./defaults/css.js";
 import { icons } from "./defaults/icons.js";
 import { defaultControlTextStyle, styles } from "./defaults/styles.js";
 import { Dialog } from "./Dialog.js";
+
+let _pxScaleOverride: number | undefined;
+let _importedCSS: string[] = [];
 
 /** @internal Modal view implementation for the web context */
 export class ModalFactory implements UITheme.ModalControllerFactory {
@@ -43,8 +47,8 @@ export class WebTheme extends UITheme {
 	static initializeCSS(options: WebContextOptions) {
 		resetCSS();
 		setGlobalCSS(makeBaseCSS());
-		setLogicalPxScale(options.logicalPxScale);
-		importStylesheets(options.importCSS);
+		setLogicalPxScale(_pxScaleOverride ?? options.logicalPxScale);
+		importStylesheets([...options.importCSS, ..._importedCSS]);
 		setControlTextStyle({
 			...defaultControlTextStyle,
 			...options.controlTextStyle,
@@ -54,8 +58,12 @@ export class WebTheme extends UITheme {
 		}
 	}
 
-	/** Imports an additional set of style sheets from the provided list of URLs */
+	/**
+	 * Imports an additional set of style sheets from the provided list of URLs
+	 * @note Stylesheets can also be imported using the options callback provided to {@link useWebContext()}.
+	 */
 	static importStylesheets(urls: string[]) {
+		_importedCSS.push(...urls);
 		importStylesheets(urls);
 	}
 
@@ -64,12 +72,13 @@ export class WebTheme extends UITheme {
 	 * @note This value can also be set using the options callback provided to {@link useWebContext()}.
 	 */
 	static setLogicalPxScale(scale: number) {
+		_pxScaleOverride = scale;
 		setLogicalPxScale(scale);
 	}
 
 	/**
 	 * Creates a new theme instance
-	 * @note It should not be necessary to create a new theme instance at all. You can change the properties of the existing theme (and trigger a re-render if needed by emitting a change event on the renderer) or clone it to create different versions.
+	 * - This constructor creates a new blank theme. Use {@link UITheme.clone()} to create a copy of an existing theme.
 	 */
 	constructor() {
 		super();
@@ -77,6 +86,7 @@ export class WebTheme extends UITheme {
 		this.modalFactory = new ModalFactory();
 		this.icons = new Map(icons);
 		this.animations = new Map(animations);
+		this.effects = new Map(effects);
 		this.colors = new Map(colors);
 		this.styles = new Map(styles) as any;
 	}

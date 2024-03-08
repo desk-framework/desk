@@ -31,6 +31,13 @@ let _decimalSeparator = ".";
  * useString(strf("%.2f", 123));
  */
 export type StringConvertible = string | { toString(): string };
+export namespace StringConvertible {
+	/**
+	 * The empty string, typed as {@link StringConvertible}
+	 * - This constant can be used in place of an empty string, forcing a property type to `StringConvertible`, e.g. for use with {@link ViewComposite.withPreset()}.
+	 */
+	export const EMPTY: StringConvertible = "";
+}
 
 /** Better toString method */
 function _stringify(s: any) {
@@ -132,7 +139,7 @@ export class LazyString extends String {
 	 */
 	static setI18nInterface(i18n?: I18nProvider) {
 		_i18n = i18n;
-		_decimalSeparator = String((i18n && i18n.getDecimalSeparator()) || ".");
+		_decimalSeparator = String(i18n?.getAttributes().decimalSeparator || ".");
 	}
 
 	/**
@@ -194,11 +201,15 @@ export class LazyString extends String {
 	 * Translates the string using the current I18n provider
 	 * - This method is called automatically by {@link strf()}.
 	 * - If no I18n provider (see {@link GlobalContext.i18n app.i18n}) is currently set, the current string value is used directly.
+	 * - If the resulting string _starts with_ `##`, the translation marker and following space, OR optional description (between `:` characters) are removed: e.g. `##T_HELLO Hello, world` or `##T_HELLO:User greeting:Hello, world`. Spaces after the end of the description are not removed.
 	 * @returns A new LazyString instance.
 	 */
 	translate() {
 		let result = new LazyString(() =>
-			_i18n ? _i18n.getText(String(this)) : String(this),
+			(_i18n ? _i18n.getText(String(this)) : String(this)).replace(
+				/^##[^ :]+(?: |\:[^:]*\:?|$)/,
+				"",
+			),
 		);
 		result._orig = this._orig || this;
 		return result;
@@ -219,6 +230,7 @@ export class LazyString extends String {
 	 * - `%n` (non-standard) general-purpose number format, never results in exponential notation
 	 * - `%_` to insert nothing at all (blank string)
 	 * - `%{uc}`, `%{lc}` to convert strings to uppercase or lowercase
+	 * - `%{s|abc}` to insert a string, or `abc` if the string is empty or not defined
 	 * - `%{?|a}` to insert string a if the value `== true`, otherwise a blank string
 	 * - `%{?|a|b}` to insert one of `a` or `b`: the first option if the value `== true`, the second if not
 	 * - `%{plural|...|...}` for pluralization, but with its own quantity value in the argument list
@@ -226,7 +238,7 @@ export class LazyString extends String {
 	 *
 	 * **Using arguments within placeholders** — Asterisks (`*`) anywhere in a placeholder are replaced by the next value in the parameter list (_before_ the value being represented itself), e.g. in `strf("%.*f", precision, number)` and `strf("%{local|currency:*}", currency, number)`.
 	 *
-	 * **Decimal separator** — Floating point numbers are formatted using the decimal separator specified by the `I18nInterface.decimalSeparator` property of the currently registered i18n interface, if any. Number grouping separators aren't supported, and if necessary numbers will need to be formatted using %{local|...}.
+	 * **Decimal separator** — Floating point numbers are formatted using the decimal separator specified by the `decimalSeparator` attribute of the currently registered i18n interface, if any. Number grouping separators aren't supported, and if necessary numbers will need to be formatted using %{local|...}.
 	 *
 	 * **Argument positions** — Use position specifiers (i.e. `n$`) to change the order of parameters used, e.g. `strf("A is %i and B is %i, so %1$i + %2$i equals %i", i1, i2, i1 + i2)`. This is mostly helpful for translations where the position of words or numbers is different.
 	 *
@@ -295,22 +307,22 @@ export namespace LazyString {
 			// use special format
 			let split = format.split("|");
 			switch (split[0]!) {
-				case "_":
-					return "";
-				case "?":
-					return value
-						? _stringify(split[1] ?? "")
-						: _stringify(split[2] ?? "");
-				case "uc":
-					return _stringify(value ?? "").toUpperCase();
-				case "lc":
-					return _stringify(value ?? "").toLowerCase();
 				case "local":
 					return LazyString.local.call(undefined, value, ...split.splice(1));
 				case "plural":
 					return _i18n
 						? String(_i18n.getPlural(value, split.splice(1)))
 						: split[value == 1 ? 1 : 2] || "";
+				case "s":
+					return _stringify(value) || (split[1] ?? "");
+				case "?":
+					return value ? split[1] ?? "" : split[2] ?? "";
+				case "uc":
+					return _stringify(value ?? "").toUpperCase();
+				case "lc":
+					return _stringify(value ?? "").toLowerCase();
+				case "_":
+					return "";
 				default:
 					errorHandler(err(ERROR.Format_Type, format));
 					return "???";

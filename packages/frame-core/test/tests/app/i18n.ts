@@ -18,6 +18,9 @@ describe("I18n", (scope) => {
 	});
 
 	class BaseI18nProvider implements I18nProvider {
+		getAttributes(): Readonly<I18nProvider.Attributes> {
+			return { locale: "test" };
+		}
 		getText(text: string): string {
 			throw new Error("Method not implemented.");
 		}
@@ -27,33 +30,60 @@ describe("I18n", (scope) => {
 		format(value: any, ...types: any[]): string {
 			throw new Error("Method not implemented.");
 		}
-		getDecimalSeparator(): string {
-			return ".";
-		}
 	}
 
-	test("Set with LazyString directly", () => {
-		class MyI18nProvider extends BaseI18nProvider {
-			override getText() {
-				return "foo";
+	describe("Set with LazyString directly", () => {
+		test("No placeholders", () => {
+			class MyI18nProvider extends BaseI18nProvider {
+				override getText() {
+					return "foo";
+				}
 			}
-		}
-		LazyString.setI18nInterface(new MyI18nProvider() as any);
-		expect(strf("abc")).asString().toBe("foo");
-		LazyString.setI18nInterface();
-		expect(strf("abc")).asString().toBe("abc");
-	});
+			LazyString.setI18nInterface(new MyI18nProvider() as any);
+			expect(strf("abc")).asString().toBe("foo");
+			LazyString.setI18nInterface();
+			expect(strf("abc")).asString().toBe("abc");
+		});
 
-	test("Set with LazyString directly; template literal with parameter", () => {
-		class MyI18nProvider extends BaseI18nProvider {
-			override getText() {
-				return "bar %s foo";
+		test("Template literal with placeholder", () => {
+			class MyI18nProvider extends BaseI18nProvider {
+				override getText() {
+					return "bar %s foo";
+				}
 			}
-		}
-		LazyString.setI18nInterface(new MyI18nProvider() as any);
-		expect(strf`foo ${123} bar`)
-			.asString()
-			.toBe("bar 123 foo");
+			LazyString.setI18nInterface(new MyI18nProvider() as any);
+			expect(strf`foo ${123} bar`)
+				.asString()
+				.toBe("bar 123 foo");
+		});
+
+		test("Translate with tags", () => {
+			class MyI18nProvider extends BaseI18nProvider {
+				override getText(s: string) {
+					let tag = s.match(/^##(\w+)/)?.[1];
+					switch (tag) {
+						case "TAG":
+							return "##TAG Le tag";
+						case "BARE":
+							return "Le bare";
+					}
+					return s;
+				}
+			}
+			LazyString.setI18nInterface(new MyI18nProvider() as any);
+			expect(strf("##TAG The tag")).asString().toBe("Le tag");
+			expect(strf("##TAG:string with a tag")).asString().toBe("Le tag");
+			expect(strf("##BARE The bare")).asString().toBe("Le bare");
+			expect(strf("##BARE:With description:The bare"))
+				.asString()
+				.toBe("Le bare");
+			expect(strf("##NO_MATCH No match")).asString().toBe("No match");
+			LazyString.setI18nInterface();
+			expect(strf("##BARE")).asString().toBe("");
+			expect(strf("##EMPTY:Nothing goes here")).asString().toBe("");
+			expect(strf("##SPACE:A single space: ")).asString().toBe(" ");
+			expect(strf("##STARTS_WITH_SPACE:: abc")).asString().toBe(" abc");
+		});
 	});
 
 	test("Set with global context", () => {
@@ -83,8 +113,11 @@ describe("I18n", (scope) => {
 
 	test("Decimal separator", () => {
 		class MyI18nProvider extends BaseI18nProvider {
+			override getAttributes = () => ({
+				locale: "test",
+				decimalSeparator: ",",
+			});
 			override getText = (s: string) => s;
-			override getDecimalSeparator = () => ",";
 		}
 		LazyString.setI18nInterface(new MyI18nProvider() as any);
 		expect(strf("%.2f", 1)).asString().toBe("1,00");
@@ -98,7 +131,6 @@ describe("I18n", (scope) => {
 				s === "%n book#{/s}" ? "%n livre#{/s}" : s;
 			override getPlural = (n: number, forms: string[]) =>
 				forms[n < 2 ? 0 : 1] || "";
-			override getDecimalSeparator = () => ".";
 		}
 		expect(strf("%n book#{/s}", 0)).asString().toBe("0 books");
 		expect(strf("%n book#{/s}", 1)).asString().toBe("1 book");

@@ -2,17 +2,19 @@ import {
 	Observer,
 	RenderContext,
 	UICell,
-	UICellStyle,
-	UIColor,
+	UIColumn,
 	UIContainer,
 	UILabel,
-	UILabelStyle,
+	UIRow,
 	UISeparator,
 	UISpacer,
+	UIStyle,
 	UITheme,
+	UIVariant,
 	ViewComposite,
 	ViewEvent,
 	app,
+	ui,
 } from "@desk-framework/frame-core";
 import { reduceElementMotion } from "../renderer/WebOutputTransform.js";
 
@@ -31,63 +33,60 @@ const _containerPosition = {
  *
  * @see {@link WebContextOptions}
  * @see {@link UITheme.ModalControllerFactory}
- *
- * @example
- * useWebContext((options) => {
- *   options.modalMenuStyles.ContainerStyle =
- *     options.modalMenuStyles.ContainerStyle.extend({
- *       padding: 0,
- *       borderRadius: 0,
- *     })
- * });
  */
 export class ModalMenuStyles {
 	/**
-	 * The cell style used for the outer menu container
-	 * - The default style includes properties for dimensions, padding, background, border radius, and drop shadow
+	 * The cell variant used for the outer menu container
+	 * - The default style includes properties for padding, background, and border radius. A drop shadow effect is also applied to the container.
 	 */
-	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@background"],
-		borderRadius: 12,
-		padding: { y: 8 },
-		dropShadow: 0.8,
-		width: "100%",
-		minWidth: 200,
-		maxWidth: 280,
+	containerVariant = new UIVariant(UICell, {
+		accessibleRole: "menu",
+		effect: ui.effect.ELEVATE,
+		style: ui.style.CELL_BG.extend({
+			padding: { y: 8 },
+			borderRadius: 12,
+			grow: 0,
+		}),
+	});
+
+	/** The default width that's used if none is specified in menu options */
+	defaultWidth = 260;
+
+	/**
+	 * The cell variant used for each menu item
+	 * - The default style includes properties for padding, cursor, and (hover/focus) background color
+	 */
+	itemCellVariant = new UIVariant(UICell, {
+		accessibleRole: "menuitem",
+		style: ui.style.CELL.extend(
+			{
+				padding: { x: 16 },
+				css: { cursor: "pointer" },
+			},
+			{
+				[UIStyle.STATE_HOVERED]: true,
+				background: ui.color.PRIMARY_BG,
+				textColor: ui.color.PRIMARY_BG.text(),
+			},
+			{
+				[UIStyle.STATE_FOCUSED]: true,
+				background: ui.color.PRIMARY_BG,
+				textColor: ui.color.PRIMARY_BG.text(),
+			},
+		),
 	});
 
 	/**
-	 * The cell style used for each menu item
-	 * - The default style includes properties for padding, cursor, and (hover/focus) background color
-	 */
-	ItemStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend(
-		{
-			padding: { x: 16 },
-			css: { cursor: "pointer" },
-		},
-		{
-			[UITheme.STATE_HOVERED]: true,
-			background: UIColor["@primaryBackground"],
-			textColor: UIColor["@primaryBackground"].text(),
-		},
-		{
-			[UITheme.STATE_FOCUSED]: true,
-			background: UIColor["@primaryBackground"],
-			textColor: UIColor["@primaryBackground"].text(),
-		},
-	);
-
-	/**
 	 * The label style used for each menu item label
-	 * - This property defaults to {@link UILabelStyle} itself.
+	 * - This property defaults to the default label style.
 	 */
-	LabelStyle: UITheme.StyleClassType<UILabelStyle> = UILabelStyle;
+	labelStyle = ui.style.LABEL;
 
 	/**
 	 * The label style used for each menu item hint
 	 * - The default style includes a smaller font size and reduced opacity
 	 */
-	HintStyle: UITheme.StyleClassType<UILabelStyle> = UILabelStyle.extend({
+	hintStyle = ui.style.LABEL.extend({
 		opacity: 0.5,
 		fontSize: 12,
 		shrink: 0,
@@ -109,8 +108,8 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 			app.render(this, {
 				mode: "modal",
 				transform: {
-					show: "@show-menu",
-					hide: "@hide-menu",
+					show: ui.animation.SHOW_MENU,
+					hide: ui.animation.HIDE_MENU,
 				},
 				...place,
 			});
@@ -122,17 +121,14 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 	}
 
 	override createView() {
-		// create modal container
-		let container = new UICell();
-		container.accessibleRole = "menu";
-		container.position = _containerPosition;
-		container.cellStyle = this.options.width
-			? ModalMenu.styles.ContainerStyle.override({
-					width: this.options.width,
-					minWidth: 0,
-					maxWidth: "none",
-			  })
-			: ModalMenu.styles.ContainerStyle;
+		// create modal container and items column
+		let column = new UIColumn();
+		let Outer = ui.cell({
+			variant: ModalMenu.styles.containerVariant,
+			position: _containerPosition,
+		});
+		let container = new Outer(column);
+		column.width = this.options.width || ModalMenu.styles.defaultWidth;
 
 		// reposition the menu after rendering
 		container.listen((e) => {
@@ -140,33 +136,34 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 		});
 
 		// add menu items with label and/or hint
+		const MenuItemCell = ui.cell({
+			variant: ModalMenu.styles.itemCellVariant,
+			allowFocus: true,
+			allowKeyboardFocus: true,
+		});
 		for (let item of this.options.items) {
 			if (item.separate) {
 				// add a separator
-				container.content.add(new UISeparator());
+				column.content.add(new UISeparator());
 				continue;
 			}
 
 			// add a menu item as a (row) cell
-			let itemRow = new UICell();
-			itemRow.accessibleRole = "menuitem";
-			itemRow.cellStyle = ModalMenu.styles.ItemStyle;
-			itemRow.allowFocus = true;
-			itemRow.allowKeyboardFocus = true;
-			itemRow.layout = { axis: "horizontal", distribution: "start" };
-			container.content.add(itemRow);
+			let itemRow = new UIRow();
+			let itemCell = new MenuItemCell(itemRow);
+			column.content.add(itemCell);
 			let itemLabel = new UILabel(item.text);
 			itemRow.content.add(itemLabel);
 			if (item.icon) itemLabel.icon = item.icon;
-			itemLabel.labelStyle = item.labelStyle
-				? ModalMenu.styles.LabelStyle.override(item.labelStyle)
-				: ModalMenu.styles.LabelStyle;
+			itemLabel.style = item.labelStyle
+				? ModalMenu.styles.labelStyle.override(item.labelStyle)
+				: ModalMenu.styles.labelStyle;
 			if (item.hint || item.hintIcon) {
 				let hintLabel = new UILabel(item.hint);
 				if (item.hintIcon) hintLabel.icon = item.hintIcon;
-				hintLabel.labelStyle = item.hintStyle
-					? ModalMenu.styles.HintStyle.override(item.hintStyle)
-					: ModalMenu.styles.HintStyle;
+				hintLabel.style = item.hintStyle
+					? ModalMenu.styles.hintStyle.override(item.hintStyle)
+					: ModalMenu.styles.hintStyle;
 				let spacer = new UISpacer();
 				spacer.minWidth = 8;
 				itemRow.content.add(spacer, hintLabel);
@@ -182,13 +179,13 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 					self._resolve?.(item.key);
 				}
 				onArrowDownKeyPress() {
-					itemRow.requestFocusNext();
+					itemCell.requestFocusNext();
 				}
 				onArrowUpKeyPress() {
-					itemRow.requestFocusPrevious();
+					itemCell.requestFocusPrevious();
 				}
 			}
-			new ItemObserver().observe(itemRow);
+			new ItemObserver().observe(itemCell);
 		}
 		return container;
 	}

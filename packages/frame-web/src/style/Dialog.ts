@@ -1,38 +1,37 @@
 import {
 	RenderContext,
 	UICell,
-	UICellStyle,
-	UIColor,
-	UIComponent,
 	UITheme,
-	UIViewRenderer,
+	UIVariant,
 	View,
 	ViewComposite,
 	app,
 	bound,
+	ui,
 } from "@desk-framework/frame-core";
 
 /**
  * A class that defines the styles for the default modal dialog view
  * - A default instance of this class is created, and can be modified in the {@link WebContextOptions} configuration callback passed to {@link useWebContext}.
- * - These styles are used by the default message dialog view referenced by the {@link UITheme} implementation — and therefore also by {@link GlobalContext.showAlertDialogAsync app.showAlertDialogAsync()} and {@link GlobalContext.showConfirmDialogAsync app.showConfirmDialogAsync()}.
+ * - These styles are used for dialog views created by the {@link GlobalContext.showDialogAsync app.showDialogAsync()} function. Note that message dialog styles are configured separately using {@link MessageDialogStyles}.
  */
 export class DialogStyles {
 	/**
-	 * The cell style used for the outer dialog container
-	 * - The default style includes properties for dimensions, background, border radius, and drop shadow
+	 * The cell variant (and style) used for the outer dialog container
+	 * - The default style is based on `ui.style.CELL_BG` and includes properties for dimensions and border radius.
+	 * - Margin is set to `auto` to center the dialog on the screen if possible.
+	 * - An `Elevate` effect is applied to add a drop shadow to the dialog.
 	 */
-	ContainerStyle: UITheme.StyleClassType<UICellStyle> = UICellStyle.extend({
-		background: UIColor["@pageBackground"],
-		borderRadius: 12,
-		dropShadow: 0.8,
-		width: "auto",
-		minWidth: 360,
-		grow: 0,
+	containerVariant = new UIVariant(UICell, {
+		margin: "auto",
+		effect: ui.effect.ELEVATE,
+		style: ui.style.CELL_BG.extend({
+			width: "auto",
+			minWidth: 360,
+			grow: 0,
+			borderRadius: 12,
+		}),
 	});
-
-	/** The margin that is applied to the outer dialog container, to position the dialog itself */
-	margin: UIComponent.Offsets = "auto";
 }
 
 /** @internal Default modal dialog view; shown synchronously, removed when view is unlinked */
@@ -44,12 +43,11 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 	}
 
 	protected override createView() {
-		return new (UICell.with(
+		return new (ui.cell(
 			{
-				cellStyle: Dialog.styles.ContainerStyle,
-				margin: Dialog.styles.margin,
+				variant: Dialog.styles.containerVariant,
 			},
-			UIViewRenderer.with({
+			ui.renderView({
 				view: bound("dialogView"),
 				onViewUnlinked: "DialogViewUnlinked",
 			}),
@@ -64,10 +62,10 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 		if (this.dialogView.isUnlinked()) return;
 		app.render(this, {
 			mode: "dialog",
-			shade: UITheme.getModalDialogShadeOpacity(),
+			shade: true,
 			transform: {
-				show: "@show-dialog",
-				hide: "@hide-dialog",
+				show: ui.animation.SHOW_DIALOG,
+				hide: ui.animation.HIDE_DIALOG,
 			},
 			...place,
 		});

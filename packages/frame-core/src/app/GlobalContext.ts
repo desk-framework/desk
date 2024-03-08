@@ -5,15 +5,21 @@ import {
 	ManagedObject,
 	StringConvertible,
 } from "../base/index.js";
-import { ERROR, err, errorHandler, setErrorHandler } from "../errors.js";
+import {
+	ERROR,
+	err,
+	errorHandler,
+	safeCall,
+	setErrorHandler,
+} from "../errors.js";
 import { UITheme } from "../ui/UITheme.js";
 import { ActivityContext } from "./ActivityContext.js";
-import type { NavigationPath } from "./NavigationPath.js";
+import type { NavigationController } from "./NavigationController.js";
 import { Activity } from "./Activity.js";
 import type { I18nProvider } from "./I18nProvider.js";
 import { LogWriter } from "./LogWriter.js";
 import { MessageDialogOptions } from "./MessageDialogOptions.js";
-import type { NavigationTarget } from "./NavigationTarget.js";
+import { NavigationTarget } from "./NavigationTarget.js";
 import { RenderContext } from "./RenderContext.js";
 import { Scheduler } from "./Scheduler.js";
 import { Service } from "./Service.js";
@@ -90,7 +96,7 @@ export class GlobalContext extends ManagedObject {
 	 *
 	 * @example
 	 * // Use the viewport size in a view:
-	 * UICell.with(
+	 * ui.cell(
 	 *   { hidden: bound("!viewport.portrait") }
 	 *   // ... portrait cell content
 	 * )
@@ -99,14 +105,15 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * The current internationalization context, an object that implements {@link I18nProvider}
-	 * - You can set `app.i18n` to an object that implements {@link I18nProvider}, to change the current internationalization context. Note that labels and other UI text elements aren't updated until the output is re-rendered: emit a change event on `app.renderer` to trigger a global re-render.
+	 * - You can set `app.i18n` to an object that implements {@link I18nProvider}, to change the current internationalization context.
+	 * - Note that labels and other UI controls that are already rendered won't be updated automatically. If needed, use `app.renderer.remount()` to force a full re-render.
 	 */
 	declare i18n?: I18nProvider;
 
 	/**
 	 * The current theme, an instance of {@link UITheme}
 	 * - The theme instance can be modified, or a new instance can be created in advance.
-	 * - Styling and other properties don't update instantly, a re-render is required after updating the theme: emit a change event on the renderer context to force UI components to evaluate current theme styles.
+	 * - Changing indidivual theme properties may not update the UI immediately. Use `app.renderer.remount()` to force a full re-render, or set the theme property to a new instance.
 	 * - Refer to {@link UITheme} for available properties and methods of `app.theme`.
 	 * @see {@link UITheme}
 	 */
@@ -180,54 +187,47 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * Navigates to the specified path asynchronously
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationPath.navigateAsync()} to navigate to the specified path, which in turn updates the path returned by {@link GlobalContext.getPath app.getPath()} — and may activate or deactivate activities.
-	 * @param target The target location: a path in URL format, or a {@link NavigationTarget} instance
-	 * @param mode The navigation mode, refer to {@link NavigationPath.navigateAsync()}
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which in turn updates the path returned by {@link GlobalContext.getPath app.getPath()} — and may activate or deactivate activities.
+	 * - The target location can be a {@link NavigationTarget} instance, an object that provides a navigation target (i.e. an {@link Activity}), or a URL-like path (i.e. `pageId/detail...`).
+	 * @param target The target location
+	 * @param mode The navigation mode, refer to {@link NavigationController.navigateAsync()}
 	 *
 	 * @example
 	 * // In a web application, navigate to the /foo URL
-	 * app.navigate("/foo");
+	 * app.navigate("foo");
 	 */
 	navigate(
 		target:
-			| StringConvertible
+			| string
+			| LazyString
 			| NavigationTarget
 			| { getNavigationTarget(): NavigationTarget },
-		mode?: NavigationPath.NavigationMode,
+		mode?: NavigationController.NavigationMode,
 	) {
-		if (this.activities.navigationPath) {
-			if (typeof (target as any).getNavigationTarget === "function") {
-				target = (target as any).getNavigationTarget();
-			}
-			this.activities.navigationPath
-				.navigateAsync(String(target), mode)
-				.catch(errorHandler);
+		if (this.activities.navigationController) {
+			safeCall(() =>
+				this.activities.navigationController.navigateAsync(
+					new NavigationTarget(target),
+					mode,
+				),
+			);
 		}
 		return this;
 	}
 
 	/**
 	 * Navigates back to the previous location in the location history stack
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationPath.navigateAsync()} to navigate back, which in turn updates the path returned by {@link GlobalContext.getPath app.getPath()} — and may activate or deactivate activities.
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate back within navigation history, if possible.
 	 */
 	goBack() {
-		if (this.activities.navigationPath) {
-			this.activities.navigationPath
-				.navigateAsync("", { back: true })
-				.catch(errorHandler);
+		if (this.activities.navigationController) {
+			safeCall(() =>
+				this.activities.navigationController.navigateAsync(undefined, {
+					back: true,
+				}),
+			);
 		}
 		return this;
-	}
-
-	/**
-	 * Returns the current application location
-	 *
-	 * @summary
-	 * This method returns {@link NavigationPath.path} from the current {@link ActivityContext} instance. This property is used by the activity context to activate and deactivate activities according to their {@link Activity.navigationPageId} value, if any.
-	 * @note To set the application location (i.e. navigate to a different path), use the {@link GlobalContext.navigate app.navigate()} method.
-	 */
-	getPath() {
-		return this.activities.navigationPath.path;
 	}
 
 	/**
@@ -256,8 +256,8 @@ export class GlobalContext extends ManagedObject {
 	 * @param view The view object to be displayed
 	 * @error This method throws an error if the renderer hasn't been initialized yet.
 	 */
-	showPage(view: View) {
-		if (shownViews.has(view)) return;
+	showPage(view?: View) {
+		if (!view || shownViews.has(view)) return;
 		shownViews.set(view, true);
 
 		// render view directly, removes itself when unlinked
@@ -271,8 +271,8 @@ export class GlobalContext extends ManagedObject {
 	 * @param view The view object to be displayed within a modal dialog
 	 * @error This method throws an error if the theme modal dialog controller can't be initialized (i.e. there's no current theme, or the theme doesn't support modal dialog views).
 	 */
-	showDialog(view: View) {
-		if (shownViews.has(view)) return;
+	showDialog(view?: View) {
+		if (!view || shownViews.has(view)) return;
 		shownViews.set(view, true);
 
 		// use theme modal dialog controller to render view
@@ -365,7 +365,7 @@ export class GlobalContext extends ManagedObject {
 	/**
 	 * Runs an animation on the provided view output element
 	 *
-	 * @summary This method passes a renderer-specific transformation object to an asynchronous function, which may use methods on the transformation object to animate the view output.
+	 * @summary This method passes a renderer-specific transformation object to an asynchronous transformer, which may use methods on the transform object to animate a view.
 	 * @see {@link RenderContext.OutputTransform}
 	 * @see {@link RenderContext.OutputTransformer}
 	 * @see {@link UITheme.animations}
@@ -376,16 +376,13 @@ export class GlobalContext extends ManagedObject {
 	 */
 	async animateAsync(
 		ref: { lastRenderOutput?: RenderContext.Output },
-		animation?: RenderContext.OutputTransformer | `@${string}`,
+		animation?: RenderContext.OutputTransformer,
 	) {
 		if (!this.renderer) throw err(ERROR.GlobalContext_NoRenderer);
 		let out = ref.lastRenderOutput;
-		let t = out && this.renderer.transform(out);
-		let f =
-			typeof animation === "string"
-				? this.theme?.animations.get(animation.slice(1))
-				: animation;
-		if (t && f) await f(t);
+		if (out && animation) {
+			await this.renderer.animateAsync(out, animation);
+		}
 	}
 
 	/**
@@ -398,7 +395,7 @@ export class GlobalContext extends ManagedObject {
 		f: (message: LogWriter.LogMessageData) => void,
 	) {
 		this.log.emitter.listen((e) => {
-			if (e.data.severity >= minLevel) f(e.data);
+			if (e.data.level >= minLevel) f(e.data);
 		});
 	}
 
