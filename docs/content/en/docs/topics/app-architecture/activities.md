@@ -115,7 +115,7 @@ You can override the activity's _lifecycle methods_ to handle state transitions 
 
 ## Using paths for automatic routing {#routing}
 
-Desk provides a simple path-based routing mechanism that can be used to activate and deactivate activities automatically. Rather than providing full pattern matching and route parameters, the {@link NavigationPath} class provides a simple abstraction that breaks down the current path into a single _page ID_ and a _detail_ string.
+Desk provides a simple path-based routing mechanism that can be used to activate and deactivate activities automatically. Rather than providing full pattern matching and route parameters, the {@link NavigationController} class provides a simple abstraction that breaks down the current path into a single _page ID_ and a _detail_ string.
 
 - The page ID is used to match the current path to a specific activity, using the activity's `navigationPageId` property.
 - After activation, or while the activity is still active, the detail string is passed to the activity's `handleNavigationDetailAsync()` method, which can be used to handle additional routing logic.

@@ -187,7 +187,7 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * Navigates to the specified path asynchronously
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which in turn updates the path returned by {@link GlobalContext.getPath app.getPath()} — and may activate or deactivate activities.
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which may in turn activate or deactivate activities using the {@link Activity.navigationPageId} property.
 	 * - The target location can be a {@link NavigationTarget} instance, an object that provides a navigation target (i.e. an {@link Activity}), or a URL-like path (i.e. `pageId/detail...`).
 	 * @param target The target location
 	 * @param mode The navigation mode, refer to {@link NavigationController.navigateAsync()}

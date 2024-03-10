@@ -13,5 +13,5 @@ abstract: This article is not yet available.
 - {@link DialogStyles +}
 - {@link ModalMenuStyles +}
 - {@link MessageDialogStyles +}
-- {@link WebHistoryNavigationPath +}
-- {@link WebHashNavigationPath +}
+- {@link WebHistoryNavigationController +}
+- {@link WebHashNavigationController +}

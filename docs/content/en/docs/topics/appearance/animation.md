@@ -6,4 +6,4 @@ abstract: This article is not yet available.
 
 # Animation
 
-- {@link UIAnimationController +}
+- {@link UIAnimationView +}

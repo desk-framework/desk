@@ -186,6 +186,17 @@ class MyI18nProvider implements I18nProvider {
 app.i18n = new MyI18nProvider();
 ```
 
+### Supplying locale information
+
+The {@link I18nProvider} interface includes a method that must be implemented to supply information about the locale that's implemented by the provider.
+
+- {@link I18nProvider.getAttributes}
+
+This method should return an object that includes _at least_ a locale identifier (e.g. `en-US`) as the `locale` property. In addition, the following properties are used by Desk itself:
+
+- `rtl` — Indicates whether the language follows a right-to-left writing system.
+- `decimalSeparator` — The character that's placed before decimals in regular number notation (i.e. either `.` or `,`).
+
 ### Handling translations
 
 The {@link I18nProvider} interface includes a method that's used to translate text. This method is invoked automatically from {@link LazyString.translate()}, to translate all text passed to `strf`, which may include both markers and placeholders.
@@ -210,10 +221,9 @@ The {@link I18nProvider} interface includes a method that's used to pluralize te
 
 ### Handling formatting
 
-The {@link I18nProvider} interface includes two methods that are used to format data. These methods are invoked automatically from {@link LazyString.format()}.
+Finally, the {@link I18nProvider} interface includes a method that's used to format arbitrary data. This method is invoked automatically from {@link LazyString.format()}.
 
 - {@link I18nProvider.format}
-- {@link I18nProvider.getDecimalSeparator}
 
 The `format` method can be used to format any kind of data, including dates, times, and numbers in a particular currency. The value to be formatted is passed as the first argument, and the format is passed as the second _and any subsequent_ arguments — which can be used to specify date/time formats, or currencies. Typically, the type is specified in a format string using `%{local|...}` or `%[name:local|...]` placeholders.
 
@@ -225,14 +235,17 @@ Use the following example as a starting point for your own i18n provider.
 
 ```ts
 class MyI18nProvider implements I18nProvider {
+	getAttributes(): I18nProvider.Attributes {
+		return {
+			locale: "en-US",
+			decimalSeparator: ".",
+		};
+	}
+
 	getText(text: string) {
 		// use either a ##marker or the original text
 		let marker = text.match(/^##([^: ]+)/)?.[1];
 		return getTranslation(marker || text);
-	}
-
-	getDecimalSeparator() {
-		return "."; // or maybe ","
 	}
 
 	getPlural(n: number, forms: string[]) {

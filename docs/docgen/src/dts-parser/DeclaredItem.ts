@@ -38,6 +38,7 @@ export type DeclaredItem = {
 	isDeprecated?: boolean;
 	deprecation?: string;
 	hideConstructor?: boolean;
+	hideDocs?: boolean;
 };
 
 export type DeclaredItemMembers = {

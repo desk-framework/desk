@@ -83,7 +83,7 @@ export class UITheme {
 	 * A map that defines a set of predefined output transform animations
 	 *
 	 * @description
-	 * The animations defined by this map can be used with the {@link GlobalContext.animateAsync} method, as well as {@link UIAnimationController} and the animations set on the {@link RenderContext.PlacementOptions} object. Default animations are also available as static properties of `ui.animation()`, e.g. `ui.animation.FADE_IN`.
+	 * The animations defined by this map can be used with the {@link GlobalContext.animateAsync} method, as well as {@link UIAnimationView} and the animations set on the {@link RenderContext.PlacementOptions} object. Default animations are also available as static properties of `ui.animation()`, e.g. `ui.animation.FADE_IN`.
 	 */
 	animations = new Map<string, RenderContext.OutputTransformer>();
 

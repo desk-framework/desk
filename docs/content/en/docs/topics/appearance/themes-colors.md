@@ -6,28 +6,12 @@ abstract: This article is not yet available.
 
 # Themes and colors
 
-## Changing the theme
+## Variants, styles, and themes
 
+- {@link UIVariant +}
+- {@link UIStyle +}
 - {@link UITheme +}
 
 ## Using color objects
 
 - {@link UIColor +}
-
-## Using and extending base styles
-
-- {@link UILabelStyle +}
-- {@link UIParagraphLabelStyle +}
-- {@link UIHeading1LabelStyle +}
-- {@link UIHeading2LabelStyle +}
-- {@link UIHeading3LabelStyle +}
-- {@link UICloseLabelStyle +}
-- {@link UIImageStyle +}
-- {@link UIToggleStyle +}
-- {@link UIToggleLabelStyle +}
-- {@link UITextFieldStyle +}
-- {@link UIButtonStyle +}
-- {@link UIPrimaryButtonStyle +}
-- {@link UIPlainButtonStyle +}
-- {@link UIIconButtonStyle +}
-- {@link UICellStyle +}

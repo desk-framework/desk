@@ -63,19 +63,18 @@ useWebContext((options) => {
 	.addActivity(new MainActivity(), true);
 ```
 
-## Using global app navigation {#navigation-context}
+## Using global app navigation {#navigation-controller}
 
 Desk applications use a global navigation context, like a single-page web application that runs in a browser — even if the app is _not_ running in a browser (e.g. while testing, or in a native runtime environment).
 
-The navigation path is a simplified version of the browser's history API, with methods that can be called to navigate between paths, and to control the navigation history.
+The **navigation controller** encapsulates represents a simplified version of the browser's history API, with methods that can be called to navigate between paths, and to go back within the navigation history. Synchronous (non-blocking) versions of these methods are also available on the global `app` object.
 
 - {@link GlobalContext.navigate()}
 - {@link GlobalContext.goBack()}
-- {@link GlobalContext.getPath()}
 
-The navigation path is available as {@link ActivityContext.navigationPath app.activities.navigationPath}, and is overridden automatically depending on the runtime platform (e.g. the browser DOM) with a specific subclass of the {@link NavigationPath} class.
+The navigation controller itself is available as {@link ActivityContext.navigationController app.activities.navigationController}, and is overridden automatically depending on the runtime platform (e.g. the browser DOM) with a specific subclass of the {@link NavigationController} class.
 
-- {@link NavigationPath +}
+- {@link NavigationController +}
 
 ## Rendering views {#rendering}
 

@@ -267,6 +267,10 @@ export class PackageParser {
 			else if (isStatic)
 				title = title.replace(/^(interface|type) /, "$1 " + prefix);
 
+			// parse JSDoc attributes
+			let jsdocAttr = this._parseJSDoc(node.jsdoc);
+			if (jsdocAttr.hideDocs) return;
+
 			// add to index
 			let entry: DeclaredItem = {
 				fileName: node.fileName,
@@ -283,7 +287,7 @@ export class PackageParser {
 				isProtected: node.modifiers?.includes("protected"),
 				signature: node.signature,
 				parent: parent?.id,
-				...this._parseJSDoc(node.jsdoc),
+				...jsdocAttr,
 			};
 			this._index.set(id, entry);
 
@@ -398,6 +402,9 @@ export class PackageParser {
 					break;
 				case "hideconstructor":
 					result.hideConstructor = true;
+					break;
+				case "hidedocs":
+					result.hideDocs = true;
 					break;
 				case "deprecated":
 					result.isDeprecated = true;

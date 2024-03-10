@@ -11,16 +11,18 @@ abstract: This article is not yet available.
 - {@link View +}
 - {@link ViewClass +}
 - {@link UIComponent +}
+- {@link ui +}
 
 ## Using JSX syntax
 
-- {@link JSX +}
+- {@link ui.jsx}
 
 ## Defining view composites
 
 - {@link ViewComposite +}
+- {@link ViewCompositeVariant +}
 
 ## Encapsulating other views
 
 - {@link UIViewRenderer +}
-- {@link UIConditional +}
+- {@link UIConditionalView +}

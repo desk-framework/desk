@@ -91,7 +91,7 @@ In the same vein, you can use the {@link bound.not()} function to create binding
 
 - {@link bound.not}
 
-In practice, boolean bindings are useful for hiding and showing views based on a particular condition. Apply a (negated) binding to the `hidden` property of a UI container, or the `state` property of a {@link UIConditional} view composite, and that part of your view will be shown or hidden depending on the value of an Activity property.
+In practice, boolean bindings are useful for hiding and showing views based on a particular condition. Apply a (negated) binding to the `hidden` property of a UI container, or the `state` property of a {@link UIConditionalView} view composite, and that part of your view will be shown or hidden depending on the value of an Activity property.
 
 {@import bindings:hidden}
 
@@ -102,6 +102,10 @@ You can also convert bound values using the following methods of the {@link Bind
 - {@link Binding.asNumber}
 - {@link Binding.asString}
 - {@link Binding.asBoolean}
+
+Additionally, to add a _type_ in your code that represents either a value or a binding of the same type (or `any`), you can use `BindingOrValue<T>`. This is mostly useful for {@link views view composite preset types}, and is often used by {@link UIComponent} subclasses themselves that use the {@link View.applyViewPreset()} method.
+
+- {@link BindingOrValue +}
 
 ## Binding to list data {#list}
 
@@ -117,7 +121,7 @@ As a special case, you can refer to the first and last items in a **managed list
 - `bound("someList.#first")` — binds to the first item in the list (also allows for nested properties by continuing the path after `#first`, e.g. `someList.#first.name`).
 - `bound("someList.#last")` — binds to the last item (and nested properties).
 
-The following example view uses a binding to populate a list, as well as a binding for `count` to show an alternative view when the list is empty. Also note that within the `<list>` view (i.e. {@link UIList} view) the item itself and its properties can be bound using the `item` property.
+The following example view uses a binding to populate a list, as well as a binding for `count` to show an alternative view when the list is empty. Also note that within the `<list>` view (i.e. {@link UIListView} view) the item itself and its properties can be bound using the `item` property.
 
 {@import bindings:list}
 
@@ -234,7 +238,7 @@ Within views that use JSX syntax, text that's passed to e.g. labels and buttons 
 For more information, refer to the documentation for JSX views.
 
 - {@link views}
-- {@link JSX}
+- {@link ui.jsx}
 
 {@import bindings:jsx}
 

@@ -156,16 +156,16 @@ Since views are typically defined using static `with` methods, which allow you t
 
 There are a few situations where being able to find the emitting view object using the event `source` property may not be enough — notably when the view is contained by another view object (or composite) that's important to understanding the source of the event.
 
-- For events that are emitted by a view object **within a list** (i.e. a {@link UIList} instance), handling the event often requires access to the list item object (or value) that's associated with the view object.
+- For events that are emitted by a view object **within a list** (i.e. a {@link UIListView} instance), handling the event often requires access to the list item object (or value) that's associated with the view object.
 - For events that are emitted from **within a form**, access to the form context object (i.e. {@link UIFormContext} instance) is often useful.
 - For events that are emitted from **within a view composite**, and not handled by the composite itself, access to the composite object is often useful.
 
 In these cases, the event is _delegated_ by the containing view object or composite by emitting a **new** event object, that references both the containing view and the original event object. The new object has its {@link ManagedEvent.delegate delegate} property set to the containing view object, and the {@link ManagedEvent.inner inner} property set to the original event object.
 
-You can use the {@link DelegatedEvent} generic type to describe such events. For events that are emitted from within a list, you can use the more specific {@link UIList.ItemEvent} type.
+You can use the {@link DelegatedEvent} generic type to describe such events. For events that are emitted from within a list, you can use the more specific {@link UIListView.ItemEvent} type.
 
 - {@link DelegatedEvent +}
-- {@link UIList.ItemEvent}
+- {@link UIListView.ItemEvent}
 
 The following example shows how to handle an event that's emitted from within a list.
 
