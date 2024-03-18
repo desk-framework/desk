@@ -1,121 +1,111 @@
-import {
-	bound,
-	JSX,
-	UICellStyle,
-	UIColor,
-	UIIconButtonStyle,
-	UIIconResource,
-	UITextFieldStyle,
-	UITheme,
-} from "@desk-framework/frame-core";
+import { UIStyle, bound, ui } from "@desk-framework/frame-core";
 
-const TextFieldStyle = UITextFieldStyle.extend(
+const TextFieldStyle = ui.style.TEXTFIELD.extend(
 	{
-		background: UIColor["@clear"],
-		textColor: "inherit",
+		background: ui.color.CLEAR,
+		textColor: ui.color("inherit"),
 		padding: { y: 4 },
-		borderColor: UIColor["@separator"],
+		borderColor: ui.color.SEPARATOR,
 		borderThickness: { bottom: 1 },
 		borderRadius: 0,
 		width: "100%",
 	},
 	{
-		[UITheme.STATE_FOCUSED]: true,
-		borderColor: UIColor["@primary"],
+		[UIStyle.STATE_FOCUSED]: true,
+		borderColor: ui.color.PRIMARY,
 	},
 );
-const CloseButtonStyle = UIIconButtonStyle.extend(
+const CloseButtonStyle = ui.style.BUTTON_ICON.extend(
 	{
-		background: UIColor["@clear"],
-		textColor: "inherit",
+		background: ui.color.CLEAR,
+		textColor: ui.color("inherit"),
 	},
 	{
-		[UITheme.STATE_HOVERED]: true,
-		[UITheme.STATE_DISABLED]: false,
-		background: UIColor["@clear"],
-		textColor: "inherit",
+		[UIStyle.STATE_HOVERED]: true,
+		[UIStyle.STATE_DISABLED]: false,
+		background: ui.color.CLEAR,
+		textColor: ui.color("inherit"),
 	},
 );
-const ResultCellStyle = UICellStyle.extend(
+const ResultCellStyle = ui.style.CELL.extend(
 	{
 		padding: { bottom: 8, x: 6 },
 		borderThickness: 2,
 		css: { cursor: "pointer" },
 	},
 	{
-		[UITheme.STATE_HOVERED]: true,
-		background: "var(--nav-hover-background)",
+		[UIStyle.STATE_HOVERED]: true,
+		background: ui.color("var(--nav-hover-background)"),
 	},
 	{
-		[UITheme.STATE_FOCUSED]: true,
-		borderColor: UIColor["@primary"],
+		[UIStyle.STATE_FOCUSED]: true,
+		borderColor: ui.color.PRIMARY,
 		borderThickness: 2,
 	},
 );
 
 export default (
-	<cell
-		cellStyle={{ shrink: 1 }}
-		padding={{ start: 16 }}
-		layout={{ distribution: "start" }}
-	>
-		<cell
-			cellStyle={{
-				height: 72,
-				grow: 0,
-				shrink: 0,
-				padding: { start: 8, end: 12 },
-			}}
-		>
-			<row>
-				<textfield
-					textFieldStyle={TextFieldStyle}
-					requestFocus
-					disableSpellCheck
-					onInput="SearchInput"
-					onArrowDownKeyPress="ArrowDownOnInput"
-					onEnterKeyPress="GoToFirstResult"
-				>
-					Search...
-				</textfield>
-				<button
-					buttonStyle={CloseButtonStyle}
-					icon={UIIconResource["@close"]}
-					iconColor="inherit"
-					onClick="Close"
-				/>
-			</row>
-		</cell>
-		<cell
-			hidden={bound.boolean("!hasInput").or("!loading")}
-			padding={{ y: 32 }}
-		>
-			<label>Loading...</label>
-		</cell>
-		<scrollcontainer>
-			<list items={bound.list("results")} maxItems={50} allowKeyboardFocus>
-				<cell
-					cellStyle={ResultCellStyle}
-					layout={{ gravity: "start" }}
-					allowFocus
-					onClick="GoToResult"
-					onEnterKeyPress="GoToResult"
-					onArrowUpKeyPress="FocusPrevious"
-					onArrowDownKeyPress="FocusNext"
-				>
-					<row>
-						<label labelStyle={{ fontWeight: 500, shrink: 0 }}>
-							{bound.string("item.title")}
-						</label>
-						<label labelStyle={{ opacity: 0.5 }}>
-							{bound.string("item.showId")}
-						</label>
-					</row>
-					<label labelStyle={{ padding: 0, fontSize: 14 }} htmlFormat>
-						{bound.string("item.abstract")}
-					</label>
-				</cell>
-			</list>
-		</scrollcontainer>
+	<cell style={{ shrink: 1 }}>
+		<column padding={{ start: 16 }}>
+			<cell
+				style={{
+					height: 72,
+					grow: 0,
+					shrink: 0,
+					padding: { start: 8, end: 12 },
+				}}
+			>
+				<row>
+					<textfield
+						style={TextFieldStyle}
+						requestFocus
+						disableSpellCheck
+						onInput="SearchInput"
+						onArrowDownKeyPress="ArrowDownOnInput"
+						onEnterKeyPress="GoToFirstResult"
+					>
+						Search...
+					</textfield>
+					<button
+						style={CloseButtonStyle}
+						icon={ui.icon.CLOSE}
+						iconColor={ui.color("inherit")}
+						onClick="Close"
+					/>
+				</row>
+			</cell>
+			<cell
+				hidden={bound.boolean("!hasInput").or("!loading")}
+				padding={{ y: 32 }}
+			>
+				<label>Loading...</label>
+			</cell>
+			<cell>
+				<scroll position={{ gravity: "cover" }}>
+					<list items={bound.list("results")} maxItems={50} allowKeyboardFocus>
+						<cell
+							allowFocus
+							style={ResultCellStyle}
+							onClick="GoToResult"
+							onEnterKeyPress="GoToResult"
+							onArrowUpKeyPress="FocusPrevious"
+							onArrowDownKeyPress="FocusNext"
+						>
+							<column align="start">
+								<row>
+									<label style={{ fontWeight: 500, shrink: 0 }}>
+										{bound.string("item.title")}
+									</label>
+									<label dim>{bound.string("item.showId")}</label>
+								</row>
+								<label style={{ padding: 0, fontSize: 14 }} htmlFormat>
+									{bound.string("item.abstract")}
+								</label>
+							</column>
+						</cell>
+					</list>
+				</scroll>
+			</cell>
+		</column>
 	</cell>
 );

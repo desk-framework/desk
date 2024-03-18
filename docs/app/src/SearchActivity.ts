@@ -1,6 +1,6 @@
 import {
 	app,
-	UIList,
+	UIListView,
 	UITextField,
 	Activity,
 	ViewEvent,
@@ -12,7 +12,7 @@ import SearchView from "./SearchView";
 export class SearchActivity extends Activity {
 	protected override ready() {
 		this.view = new SearchView();
-		app.render(this.view, "docpage-search");
+		app.render(this.view!, "docpage-search");
 	}
 
 	search = new Search();
@@ -65,7 +65,7 @@ export class SearchActivity extends Activity {
 	}
 
 	protected onArrowDownOnInput() {
-		let list = this.findViewContent(UIList)[0];
+		let list = this.findViewContent(UIListView)[0];
 		if (list) {
 			list.lastFocusedIndex = 0;
 			list.requestFocus();
@@ -78,7 +78,7 @@ export class SearchActivity extends Activity {
 		}
 	}
 
-	protected async onGoToResult(e: UIList.ItemEvent<SearchResult>) {
+	protected async onGoToResult(e: UIListView.ItemEvent<SearchResult>) {
 		if (e.delegate.item.url) {
 			await swapPageAsync(e.delegate.item.url);
 		}

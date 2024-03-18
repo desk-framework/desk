@@ -38,7 +38,10 @@ export const template = async (html, data, builder) => `
 		<div class="docpage_wrapper">
 			<div class="docpage_searchbar">
 				<div id="docpage-search"></div>
-				<div class="docpage_navbar_footer"></div>
+				<div class="docpage_navbar_footer">
+					<i class="material-icons-outlined">arrow_upward</i>
+					<a href="#" id="back-to-top">Back to top</a>
+				</div>
 			</div>
 			<div class="docpage_navbar" id="docpage-navbar">
 				<div class="docpage_navbar_header">
