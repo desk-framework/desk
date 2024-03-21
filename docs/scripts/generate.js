@@ -18,7 +18,7 @@ const builder = RefDocBuilder.fromPackages(
 );
 
 // output generated content
-builder.writeItems("./content/en/_docgen_");
+builder.writeItems("./content/en/_generated_");
 for (let warning of builder.getWarnings()) {
 	console.error(`WARNING: ${warning}`);
 }

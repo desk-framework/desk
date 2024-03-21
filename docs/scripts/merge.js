@@ -28,7 +28,7 @@ let builder = await new DocBuilder()
 		INHERITED: "Inherited Members",
 		RELATED: "Related",
 	})
-	.readItems("./content/en/_docgen_/*.md")
+	.readItems("./content/en/_generated_/*.md")
 	.merge(
 		new DocBuilder().readItems("./content/en/docs/**/*.md", {
 			lang: "en-US",

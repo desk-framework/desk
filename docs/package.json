@@ -16,7 +16,7 @@
 		"check-format:docgen": "cd docgen && npm run check-format",
 		"check-format:app": "cd app && npm run check-format",
 		"validate": "node scripts/validate.js",
-		"generate": "rimraf content/en/_docgen_ && node scripts/generate.js",
+		"generate": "rimraf content/en/_generated_ && node scripts/generate.js",
 		"merge": "rimraf ../_site && node scripts/merge.js"
 	},
 	"prettier": {
