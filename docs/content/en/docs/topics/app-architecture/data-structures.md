@@ -14,7 +14,7 @@ An important aspect of an application's architecture is its **data model**. With
 
 Desk offers a set of data structures that can be used to model data hierarchically, building on the features of {@link objects managed objects}, attachment, bindings, and events — allowing data to be reflected seamlessly in the UI.
 
-> **Note:** The data structures provided by Desk are not meant to replace existing solutions completely, and using them is _not mandatory_. You can continue to use your own data model or use a third-party library, however you may need to trigger UI updates using a view model or by manually re-assigning activity properties.
+> **Note:** The data structures provided by Desk are not meant to replace regular JavaScript patterns completely, and using them is _not mandatory_. You can continue to use your own data model or use a third-party library, however in this case you may need to trigger UI updates using a separate view model or by manually re-assigning activity properties.
 
 ## Using managed records {#records}
 
@@ -25,6 +25,8 @@ The {@link ManagedRecord} class is a simple extension of the {@link ManagedObjec
 **Creating a managed record** — You can create a managed record by extending the `ManagedRecord` class, adding your own properties and methods. Properties must be assigned an **initial value** explicitly in the class definition (or the constructor) to ensure that they can be bound.
 
 To create an instance, use the `new` method, or use the static {@link ManagedRecord.create create} method that's unique to the {@link ManagedRecord} class. This method first calls the constructor without parameters, and then copies the provided properties to the new instance.
+
+- {@link ManagedRecord.create}
 
 ```ts
 class PersonRecord extends ManagedRecord {
@@ -70,9 +72,11 @@ Specifically for modeling data structures, lists are useful in several scenarios
 
 ### Representing a catalog
 
-A list of records can be used to represent a catalog of all (loaded or available) items, with each item being a record in the list. In this case, the list corresponds to a single database table, when all items are loaded at once.
+A list of records can be used to represent a catalog of all (loaded or available) items, with each item being a record in the list. In this case, the list corresponds to a single database table, with all items loaded at once.
 
-However, if the catalog _could_ grow too large to be represented in-memory as full JavaScript objects, you may want to use an actual database (e.g. IndexedDB on the web, or a native database on mobile or desktop) to store and query items. In this case, a managed list could be used to represent a view or _subset_ of the catalog, with only a few items loaded at a time. Either way, this use of lists is best encapsulated in a service, to hide the implementation details from the rest of the application.
+If the catalog _could_ grow too large to be represented in-memory as full JavaScript objects, you may want to use an actual database (e.g. IndexedDB on the web, or a native database on mobile or desktop) to store and query items. In this case, a managed list could be used to represent a view, query result, or _subset_ of the catalog, with only a few items loaded at a time.
+
+Either way, this use of lists is best encapsulated in a service, to hide the implementation details from the rest of the application.
 
 ```ts
 class CatalogService extends Service {
@@ -82,13 +86,12 @@ class CatalogService extends Service {
 		// use `find()` or an internal index to find the item
 	}
 
-	// ... etc.
+	// ...
 
-	private readonly _items = this.attach(new ManagedList().restrict(ItemRecord));
+	// catalog with all items loaded in memory
+	private readonly _items = this.attach(new managedlist().restrict(itemrecord));
 }
 ```
-
-Even if the catalog is represented in a database, managed lists can still be used to represent parts of the data structure — either as denormalized data within a single record, or as a view model that's used to filter, sort, and paginate the data.
 
 ### Using a subrecord list
 
@@ -97,10 +100,12 @@ As part of a record, a managed list can be used to represent a list of subrecord
 ```ts
 class OrderRecord extends ManagedRecord {
 	id = "";
+
+	// use a denormalized customer record:
 	customer?: OrderCustomerRecord = undefined;
 
+	// use an attached list of denormalized order items:
 	readonly items = this.attach(new ManagedList().restrict(OrderItemRecord));
-	// ...
 }
 ```
 
@@ -115,7 +120,7 @@ class CustomerOrderViewModel extends ManagedObject {
 	// keep track of visible orders, which can be bound in the view
 	readonly list = new ManagedList().restrict(OrderRecord);
 
-	// ...methods to initialize, filter, sort, and paginate
+	// ... methods to initialize, filter, sort, and paginate
 	// (note that these don't modify records, only the list)
 }
 
@@ -128,7 +133,7 @@ class CustomerActivity extends Activity {
 
 // now, in a view:
 export default (
-	<cell>
+	<column>
 		<h2>Orders</h2>
 		<list items={bind.list("customerOrders.list")}>
 			<row>
@@ -136,7 +141,7 @@ export default (
 				{/* ... */}
 			</row>
 		</list>
-	</cell>
+	</column>
 );
 ```
 

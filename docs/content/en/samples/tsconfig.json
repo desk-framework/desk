@@ -5,6 +5,6 @@
 		"moduleResolution": "node",
 		"noEmit": true,
 		"jsx": "react",
-		"jsxFactory": "JSX"
+		"jsxFactory": "ui.jsx"
 	}
 }

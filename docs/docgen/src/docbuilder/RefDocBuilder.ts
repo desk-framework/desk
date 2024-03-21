@@ -108,11 +108,10 @@ export class RefDocBuilder extends DocBuilder {
 			this.warn("Title contains '}' character:", refTitle, "in", decl.fileName);
 			refTitle = decl.id;
 		}
-		let refBlock = "{@link " + decl.id + " " + refTitle + "}";
-		if (doctags) refBlock += " " + doctags;
-		refBlock += "<span>" + abstract + "</span>";
+		let refBlockLink = "{@link " + decl.id + " " + refTitle + "}";
+		if (doctags) refBlockLink += " " + doctags;
 		docItem.data.ref_title = refTitle;
-		docItem.data.ref_block = refBlock;
+		docItem.data.ref_blocklink = refBlockLink;
 		docItem.data.ref_type = REF_TYPES[decl.type];
 		docItem.data.menu_type = REF_TYPES[decl.type];
 		docItem.data.menu_title = decl.title.replace(/\(.*/, "");
@@ -150,7 +149,7 @@ export class RefDocBuilder extends DocBuilder {
 		}
 		if (decl.notes) {
 			docItem.appendContent(
-				"### Notes",
+				decl.notes.startsWith("> ") ? "" : "### Notes",
 				this._expandLinks(decl.notes, p, decl),
 			);
 		}

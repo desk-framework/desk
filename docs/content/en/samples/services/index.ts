@@ -1,6 +1,7 @@
 // Compile/run: npx tsc -p . && node dist
 
 import { Activity, ConfigOptions, Service } from "@desk-framework/frame-core";
+import { useWebContext } from "@desk-framework/frame-web";
 
 {
 	class AuthService extends Service {
@@ -74,8 +75,14 @@ import { Activity, ConfigOptions, Service } from "@desk-framework/frame-core";
 	opts.timeout = 10_000;
 	const s2 = new MyService(opts);
 
-	const s3 = new MyService((options) => {
-		options.timeout = 10_000;
-	});
+	// or use a callback, e.g.:
+	useWebContext((options) => {
+		// ... note options here is also a ConfigOptions instance
+	}).addService(
+		new MyService((options) => {
+			// ... set service specific options
+			options.timeout = 10_000;
+		}),
+	);
 	// @doc-end
 }

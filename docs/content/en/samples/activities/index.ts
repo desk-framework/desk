@@ -2,16 +2,15 @@
 
 import {
 	Activity,
-	AsyncTaskQueue,
 	ManagedObject,
-	NavigationPath,
 	NavigationTarget,
 	UICell,
 	app,
+	ui,
 } from "@desk-framework/frame-core";
 
 {
-	const MyView = UICell.with({});
+	const MyView = ui.cell({});
 
 	// @doc-start activities:showing-views
 	class MyActivity extends Activity {
@@ -54,7 +53,7 @@ import {
 }
 {
 	class ReportOutput extends ManagedObject {}
-	const MyView = UICell.with({});
+	const MyView = ui.cell({});
 
 	// @doc-start activities:routing
 	class MyActivity extends Activity {
@@ -93,7 +92,7 @@ import {
 			// ... show a sidebar view
 		}
 
-		async navigateAsync(target: string | NavigationTarget) {
+		async navigateAsync(target: NavigationTarget) {
 			// called when a button is clicked within the view,
 			// handle navigation here and close the sidebar:
 			await super.navigateAsync(target);
@@ -109,7 +108,7 @@ import {
 
 		refreshQueue = this.createActiveTaskQueue((options) => {
 			options.throttleDelay = 10_000;
-		}).add(this.refreshDataAsync.bind(this));
+		}).add(() => this.refreshDataAsync());
 
 		async refreshDataAsync() {
 			try {

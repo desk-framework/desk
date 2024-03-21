@@ -7,14 +7,12 @@ import {
 	ManagedObject,
 	Observer,
 	Service,
-	UIButton,
-	UICell,
-	UIList,
-	UIRow,
+	UIListView,
 	UITextField,
 	ViewEvent,
 	app,
 	bound,
+	ui,
 } from "@desk-framework/frame-core";
 
 class MyObject extends ManagedObject {}
@@ -187,15 +185,15 @@ class MyObject extends ManagedObject {}
 {
 	// @doc-start event-handling:view-events
 	// Use event names in the view:
-	const View = UICell.with(
+	const View = ui.cell(
 		// ...
-		UIRow.with(
-			UITextField.with({
+		ui.row(
+			ui.textField({
 				placeholder: "Enter text",
 				onFocusIn: "InputFocusIn",
 				onEnterKeyPress: "ConfirmInput",
 			}),
-			UIButton.withLabel("Confirm", "ConfirmInput"),
+			ui.button("Confirm", "ConfirmInput"),
 		),
 	);
 
@@ -219,13 +217,13 @@ class MyObject extends ManagedObject {}
 
 	// @doc-start event-handling:view-delegate
 	// Use events from within a list:
-	const View = UICell.with(
+	const View = ui.cell(
 		// ...
-		UIList.with(
+		ui.list(
 			{ items: bound("items") },
-			UIRow.with(
+			ui.row(
 				// ...
-				UIButton.withLabel("Delete", "DeleteItem"),
+				ui.button("Delete", "DeleteItem"),
 			),
 		),
 	);
@@ -234,7 +232,7 @@ class MyObject extends ManagedObject {}
 	class MyActivity extends Activity {
 		// ...
 
-		onDeleteItem(event: UIList.ItemEvent<MyItem>) {
+		onDeleteItem(event: UIListView.ItemEvent<MyItem>) {
 			// ...
 			// => event.delegate is a UIList.ItemController
 			// => event.delegate.item is typed as MyItem

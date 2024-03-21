@@ -30,7 +30,7 @@ menu_type: index
 - {@link internationalization +}
 - {@link errors-logging +}
 
-## Views (UI) {#views}
+## Views {#views}
 
 - {@link views +}
 - {@link containers +}

@@ -10,21 +10,21 @@ abstract: Learn how to use bindings, to communicate property changes between att
 
 ## Overview {#overview}
 
-In a Desk app, bindings are used to act on changes to property data — for example to update the UI when the state of an activity changes, or a property of a view model is updated.
+In a Desk app, bindings are used to handle changes to property data — for example to update the UI when the state of an activity changes, or when a property of a view model is updated.
 
 **Why?** — Bindings are a powerful tool for keeping the UI in sync with the rest of the application, while keeping business logic out of the view. Bindings also have their place in other parts of a complex app, such as services and data or view models, as a means to _decouple_ different parts of the application.
 
 This way, it's easier to distinguish between objects that contain business logic, _providing_ data (properties), and objects that _consume_ this data (using bindings), such as views. As an application grows, this separation of concerns becomes increasingly important.
 
-**Implementation** — Bindings are applied to {@link objects managed objects}, and watch for changes to attached 'parent' objects and their properties. When the object is attached, and a property with a specified name is available, the binding starts to observe the source property. A binding can either directly update a target property, or call a callback function whenever the value changes.
+**Implementation** — Bindings are applied to {@link objects managed objects}, and watch for changes to attached 'parent' objects and their properties. When an object is attached, and a property with a specified name is available on a parent (or parent's parent, and so on), the binding starts to observe the source property. From there, the binding typically updates a bound target property directly.
 
-Hence, the source object is always the _first parent in the managed object hierarchy that provides a property with the specified name_. If the target object is not attached yet, or none of the parents have a property with the specified name then the binding is unbound, and is reevaluated each time a _new_ parent is attached further up the hierarchy.
+Hence, the source object is always the _first parent in the managed object hierarchy that provides a property with the specified name_. If the target object is not attached yet, or none of the parents have a property with the specified name then the binding is 'unbound', and will be reevaluated each time a _new_ parent is attached further up the hierarchy.
 
 In addition, bindings provide the following features:
 
-- A **source path** can be used to watch nested properties instead of a single property.
+- **Source paths** instead of single property names can be used to watch _nested_ properties instead of a single property.
 - **Filters** can be added to manipulate or combine bound values.
-- A **callback** function can be used to handle updates, rather than setting a target property directly.
+- **Callback** functions can be used to handle source updates, rather than setting a target property directly.
 
 ## Creating a binding {#create}
 
@@ -33,13 +33,13 @@ To create a binding, you can use the {@link bound()} function (or one of the spe
 - {@link bound +}
 - {@link Binding +}
 
-Bindings are commonly used to set view properties dynamically — keeping business logic and calculations out of the view. View properties can be bound simply by passing the result of the {@link bound} function directly to the `with` method. In JSX syntax, you can use the `bound` function directly in the JSX expression, or use the text binding syntax (see below).
+Bindings are commonly used to set view properties dynamically — keeping business logic and calculations out of the view. View properties can be bound simply by passing the result of the {@link bound} function directly to the `ui` method. In JSX code, you can use the `bound` function directly in the JSX expression, or use the text binding syntax (see below).
 
 ```tsx
 // bind to the text property of a label
-UILabel.with({ text: bound("name") });
+ui.label({ text: bound("name") });
 // ... or
-UILabel.withText(bound("name"));
+ui.label(bound("name"));
 
 // same in JSX, using a property
 <label text={bound("name")} />
@@ -52,7 +52,7 @@ UILabel.withText(bound("name"));
 >
 > It's important to understand that bindings only update data **one-way**. After applying a binding, changing the source property immediately updates the target property — however, setting the target property to another value doesn't affect the source property in any way.
 >
-> The Desk framework doesn't include a facility for two-way bindings. To communicate data back to the source object (e.g. user input) you can use events. For form input (a very specific would-be use case for two-way bindings) Desk provides the {@link form-context form context} view model.
+> The Desk framework doesn't include a facility for two-way bindings, on purpose. To communicate data back to the source object (e.g. user input) you can use events. For form input (a very specific would-be use case for two-way bindings) Desk provides the {@link form-context form context} view model.
 
 ## Setting the binding source {#source}
 
@@ -93,7 +93,7 @@ In the same vein, you can use the {@link bound.not()} function to create binding
 
 In practice, boolean bindings are useful for hiding and showing views based on a particular condition. Apply a (negated) binding to the `hidden` property of a UI container, or the `state` property of a {@link UIConditionalView} view composite, and that part of your view will be shown or hidden depending on the value of an Activity property.
 
-{@import bindings:hidden}
+{@import :hidden}
 
 > **Tip:** You don't need to bind to a boolean value to be able to show or hide a section of your view. Any value that's 'falsy' or 'truethy' will do — which includes strings, numbers, and references to objects. For example, you can hide a section with customer details when the `customer` property of your activity is undefined, rather than having to add an explicit `showCustomerDetails` property.
 
@@ -103,7 +103,7 @@ You can also convert bound values using the following methods of the {@link Bind
 - {@link Binding.asString}
 - {@link Binding.asBoolean}
 
-Additionally, to add a _type_ in your code that represents either a value or a binding of the same type (or `any`), you can use `BindingOrValue<T>`. This is mostly useful for {@link views view composite preset types}, and is often used by {@link UIComponent} subclasses themselves that use the {@link View.applyViewPreset()} method.
+To declare a _type_ in your code that represents either a value or a binding of the same type, you can use the `BindingOrValue<T>` type. This is mostly useful for {@link views view composite preset types}, and is often used by {@link UIComponent} subclasses themselves that use the {@link View.applyViewPreset()} method.
 
 - {@link BindingOrValue +}
 
@@ -123,11 +123,11 @@ As a special case, you can refer to the first and last items in a **managed list
 
 The following example view uses a binding to populate a list, as well as a binding for `count` to show an alternative view when the list is empty. Also note that within the `<list>` view (i.e. {@link UIListView} view) the item itself and its properties can be bound using the `item` property.
 
-{@import bindings:list}
+{@import :list}
 
 ## Setting default values {#default}
 
-You may have noticed that the `bound` function, as well as e.g. `bound.number` accept a second argument that's called `defaultValue`. Use this argument to specify a value that's used instead of `undefined` — whenever the bound value would be undefined **or** null (under the hood, the `??` operator is used to determine the final value).
+You may have noticed that the `bound` function, as well as e.g. `bound.number` accepts a second argument that's called `defaultValue`. Use this argument to specify a value that's used instead of `undefined` — whenever the bound value would be undefined **or** null (under the hood, the `??` operator is used to determine the final value).
 
 - {@link bound}
 
@@ -136,7 +136,7 @@ bound("totalQuantity", 0);
 bound("userName", "?");
 ```
 
-> **Note:** Some view properties don't need to be initialized with a default value rather than undefined. For example, if the {@link UILabel.text} property is set to undefined or null, the label is just rendered as 'empty', which is exactly the same as if this property was set to an empty string.
+> **Note:** Some view properties don't need to be initialized with a default value rather than undefined. For example, if the {@link UILabel.text} property is set to undefined or null, the label is just rendered as 'empty', which is the same as if this property was set to an empty string.
 
 Alternatively, use one of the following methods to supply a different value based on the boolean equivalent of the bound value.
 
@@ -148,12 +148,12 @@ With these methods, you can set a default value that's used when the bound value
 ```ts
 bound.number("total").else("-");
 bound.string("name").else(strf("(Untitled)")); // use strf for i18n
-bound.boolean("inactive").select("x", "check"); // icon names
+bound.boolean("inactive").select(ui.icon("x"), ui.icon("check"));
 ```
 
 ## Using boolean logic on bound values {#boolean}
 
-With the below methods, you can **combine** multiple bindings into a single value. Internally, this creates two separate bindings first which independently observe their source properties. Whenever one or both of these bindings change their values, the resulting binding is also updated; using either the `&&` or `||` operator to derive the result. Note that the resulting bound value isn't a boolean, since `&&` and `||` may return one of their operands.
+With the below methods, you can **combine** multiple bindings into a single value. Internally, this creates two separate bindings that independently observe their source properties. Whenever one or both of these bindings change their values, the resulting binding is also updated; using either the `&&` or `||` operator to derive the result. Note that the resulting bound value isn't a boolean, since `&&` and `||` may return one of their operands.
 
 - {@link Binding.and}
 - {@link Binding.or}
@@ -197,11 +197,11 @@ This method takes an optional second parameter, which is used as a formatter. Th
 - {@link Binding.asString}
 
 ```ts
-bound("item.name").asString("uc");
-bound("totalValue").or("value").asString(".2f");
+bound("item.name").asString("uc"); // uppercase
+bound("totalValue").or("value").asString(".2f"); // float
 ```
 
-**Single value included in a format string** — If you need to _include_ a single bound value in a string, you can use the {@link Binding.strf()} method. This method also works as a 'filter' on top of an existing binding, rather than creating a new binding.
+**Single value included in a format string** — If you need to _include_ a single bound value in a string, you can use the {@link Binding.strf()} method.
 
 - {@link Binding.strf}
 
@@ -211,7 +211,7 @@ bound("item.name").strf("Name: %{uc}");
 bound("totalValue").or("value").strf("Total %.2f");
 ```
 
-> **Note:** This method, as well as the other methods below create a {@link LazyString} instance. This class provides localization and translation features, allowing the resulting string to be translated and formatted for use with other locales. Refer to the documentation about {@link internationalization} for more information.
+> **Note:** This method, as well as the other methods below result in a {@link LazyString} instance. This class provides localization and translation features, allowing the resulting string to be translated and formatted for use with other locales. Refer to the documentation about {@link internationalization} for more information.
 
 **String-formatted binding** — To create a binding that uses a format string together with one or more dynamic (bound) values, without having to use a 'filter' like with the {@link Binding.strf()} method, you can create a {@link StringFormatBinding} instance directly. This class is a subclass of {@link Binding}, but relies on one or more other {@link Binding} instances to observe and update the resulting string value.
 

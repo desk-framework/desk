@@ -2,16 +2,7 @@
 // Run (in folder):
 // npx tsc -p tsconfig.json && node dist/sample-test.js
 
-import {
-	Activity,
-	UIButton,
-	UICell,
-	UILabel,
-	UILabelStyle,
-	UIRow,
-	app,
-	bound,
-} from "@desk-framework/frame-core";
+import { Activity, app, bound, ui } from "@desk-framework/frame-core";
 import {
 	describe,
 	expect,
@@ -22,21 +13,18 @@ import {
 } from "@desk-framework/frame-test";
 
 // Define a label style for the large counter
-const CounterLabelStyle = UILabelStyle.extend({
+const CounterLabelStyle = ui.style.LABEL.extend({
 	fontSize: 36,
 	bold: true,
 });
 
 // Define the page view using static method calls
-const AppPage = UICell.with(
-	UILabel.with({
-		labelStyle: CounterLabelStyle,
-		text: bound.strf("Count: %s", "count"),
-	}),
-	UIRow.with(
+const AppPage = ui.column(
+	ui.label(bound.strf("Count: %s", "count"), CounterLabelStyle),
+	ui.row(
 		{ align: "center" },
-		UIButton.withLabel("Down", "CountDown"),
-		UIButton.withLabel("Up", "CountUp"),
+		ui.button("Down", "CountDown"),
+		ui.button("Up", "CountUp"),
 	),
 );
 
@@ -79,8 +67,9 @@ describe("Example", (scope) => {
 	// test that the Up button works
 	test("Counter goes up", async (t) => {
 		// find the button and click it
-		let out = await t.expectOutputAsync(100, { type: "button", text: "Up" });
-		out.getSingle().click();
+		await t
+			.expectOutputAsync(100, { type: "button", text: "Up" })
+			.then((b) => b.getSingle().click());
 
 		// check that the counter is 1 both in the activity and view
 		expect(activity.count).toBe(1);

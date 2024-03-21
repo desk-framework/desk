@@ -341,15 +341,15 @@ export class DocItem {
 						"from list in",
 						this.id,
 					);
-				} else if (found.data.ref_block) {
-					let refBlock = found.data.ref_block;
-					let refClass = "refblock refblock--" + found.data.ref_type;
-					result.push(`<li class="${refClass}">${refBlock}</li>`);
 				} else {
-					let refLink = `{@link ${found.id} ${found.data.title || found.id}}`;
-					let abstract = found.data.abstract || "";
+					let refLink =
+						found.data.ref_blocklink ||
+						`{@link ${found.id} ${found.data.title || found.id}}`;
+					let abstract = marked.parseInline(found.data.abstract || "");
+					if (typeof abstract !== "string") throw Error("Async marked result");
 					let refBlock = refLink + `<span>${abstract}</span>`;
-					result.push(`<li class="refblock refblock--doc">${refBlock}</li>`);
+					let refClass = "refblock refblock--" + (found.data.ref_type || "doc");
+					result.push(`<li class="${refClass}">${refBlock}</li>`);
 				}
 			} else {
 				if (inRefList) result.push("</ul>");

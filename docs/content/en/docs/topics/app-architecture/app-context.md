@@ -28,7 +28,7 @@ The functionality provided by the application context depends on the runtime pla
 - To initialize a test with full app functionality (activities, rendering, etc.) you'll need to use the {@link useTestContext} function.
 - Currently, no other platforms are supported — but with more platforms, each package would have to export an initialization function to set up its own context objects.
 
-The `use..Context` functions take an `options` argument, which may either be an instance of the particular context's options class, or a function. The function is called with a _default_ options object, which can be modified to customize the context. The {@link ConfigOptions} base class of the options object is available for use elsewhere in your code, e.g. to configure a {@link services service}.
+The `use..Context` functions take an `options` argument, which may either be an instance of the particular context's options class, or a function. The function is called with a _default_ options object, which can be modified to customize the context. The {@link ConfigOptions} base class of the options object is available for use elsewhere in your code, e.g. to configure a {@link services service} (refer to examples below).
 
 - {@link ConfigOptions +}
 
@@ -40,7 +40,7 @@ To use activities effectively, they need to be added to the application hierarch
 
 - {@link GlobalContext.addActivity()}
 
-This method adds the provided activity to the _activity context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of activities, as well as a reference to the _navigation path_ that handles platform-dependent logic for external navigation (see below).
+This method adds the provided activity to the _activity context_, available as {@link GlobalContext.activities app.activities}. This object contains a list of activities, as well as a reference to the _navigation controller_ that handles platform-dependent logic for external navigation (see below).
 
 For more information, refer to the documentation for {@link activities}.
 
@@ -67,7 +67,7 @@ useWebContext((options) => {
 
 Desk applications use a global navigation context, like a single-page web application that runs in a browser — even if the app is _not_ running in a browser (e.g. while testing, or in a native runtime environment).
 
-The **navigation controller** encapsulates represents a simplified version of the browser's history API, with methods that can be called to navigate between paths, and to go back within the navigation history. Synchronous (non-blocking) versions of these methods are also available on the global `app` object.
+The **navigation controller** encapsulates a simplified version of the browser's history API, with methods that can be called to navigate between paths, and to go back within the navigation history. Synchronous (non-blocking) versions of these methods are also available on the global `app` object.
 
 - {@link GlobalContext.navigate()}
 - {@link GlobalContext.goBack()}
@@ -78,7 +78,7 @@ The navigation controller itself is available as {@link ActivityContext.navigati
 
 ## Rendering views {#rendering}
 
-While the app is running, the app context can be used to render the application's UI. Most commonly, an activity will render its view when ready (i.e. from the {@link Activity.ready()} method), using one of the methods below.
+While the app is running, the `app` object is used to render the application's UI. Most commonly, an activity will render its view when ready (i.e. from the {@link Activity.ready()} method), using one of the methods below.
 
 - {@link GlobalContext.showPage()}
 - {@link GlobalContext.showDialog()}
@@ -96,7 +96,7 @@ class MyActivity extends Activity {
 
 ### Predefined modals
 
-The app context also includes methods to render predefined modal views, which can be used at any time — usually from event handlers within the current activity. The alert and confirmation dialogs, as well as modal menus that are displayed, may be rendered using platform-specific UI elements or using a custom view. The {@link GlobalContext.theme app.theme} object includes options for customizing the appearance of these views.
+The app context also includes methods to render predefined modal views, which can be used at any time — usually from event handlers within an activity. The alert and confirmation dialogs, as well as modal menus that are displayed, may be rendered using platform-specific UI elements or using a custom view. The {@link GlobalContext.theme app.theme} object includes options for customizing the appearance of these views.
 
 - {@link GlobalContext.showAlertDialogAsync()}
 - {@link GlobalContext.showConfirmDialogAsync()}
@@ -106,7 +106,7 @@ The app context also includes methods to render predefined modal views, which ca
 // simple usage example:
 app.showAlertDialogAsync("An error occurred");
 
-// with options:
+// with options and i18n:
 const errorDialog = new MessageDialogOptions(
 	[
 		strf("An error occurred: %[message]"),

@@ -10,7 +10,7 @@ abstract: Use task queues to manage lists of prioritized asynchronous tasks.
 
 ## Overview {#overview}
 
-Task scheduling is a common requirement in many applications, whether to control or throttle a long series of callbacks, or to manage a group of parallel asynchronous tasks. Desk provides a simple way to manage lists of tasks, with the ability to start, pause, resume, and cancel tasks as needed, using the {@link AsyncTaskQueue} object.
+Task scheduling is a common requirement in many applications, whether to control or throttle a long series of callbacks, or to manage a group of asynchronous parallel tasks. Desk provides a simple way to manage such tasks, with the ability to start, pause, resume, and cancel tasks as needed, using the {@link AsyncTaskQueue} object.
 
 - {@link AsyncTaskQueue +}
 
@@ -31,6 +31,10 @@ class MyActivity extends Activity {
 	private _queue = this.createActiveTaskQueue();
 }
 ```
+
+For more information, refer to the following topic:
+
+- {@link activities}
 
 **Creating a task queue using the global scheduler** — A task queue that's created using the global scheduler _must_ have a unique name (or symbol) that identifies it. The scheduler keeps track of all task queues created, and can be used to replace queues, or stop all of them at the same time.
 
@@ -58,7 +62,7 @@ Once a task queue has been created, tasks will start running as soon as they're 
 - {@link AsyncTaskQueue.resume}
 - {@link AsyncTaskQueue.stop}
 
-> **Note:** Currently running tasks can't be stopped, but any tasks that haven’t been invoked will no longer run on a stopped queue. Tasks that have already been started should check the `cancelled` property of the AsyncTaskQueue.Task function argument (see below).
+> **Note:** Currently running (already-called) tasks can't be stopped, but any tasks that haven’t been invoked will no longer run on a stopped queue. Asynchronous tasks that have already been started should check the `cancelled` property of the AsyncTaskQueue.Task function argument if needed (see below).
 
 ## Adding tasks to a queue {#adding}
 

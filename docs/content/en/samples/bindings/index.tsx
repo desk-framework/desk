@@ -1,24 +1,17 @@
-import {
-	UICell,
-	JSX,
-	bound,
-	Activity,
-	app,
-	Binding,
-} from "@desk-framework/frame-core";
-/** @jsx JSX */
+import { bound, Activity, app, Binding, ui } from "@desk-framework/frame-core";
+/** @jsx ui.jsx */
 
 {
 	// @doc-start bindings:hidden
 	const SampleView = (
-		<cell>
+		<column>
 			<row>
 				<button onClick="ToggleDetails">Toggle</button>
 			</row>
 			<cell hidden={bound.not("showDetails")}>
 				<label>Details go here...</label>
 			</cell>
-		</cell>
+		</column>
 	);
 
 	class SampleActivity extends Activity {
@@ -38,7 +31,7 @@ import {
 {
 	// @doc-start bindings:list
 	const View = (
-		<cell>
+		<column>
 			<list items={bound.list("customers")}>
 				<row>
 					<label>%[item.name]</label>
@@ -47,7 +40,7 @@ import {
 			<row hidden={bound("customers.count")}>
 				<label>No matching customers</label>
 			</row>
-		</cell>
+		</column>
 	);
 	// @doc-end
 }
@@ -55,7 +48,7 @@ import {
 	// @doc-start bindings:jsx
 	// A view with automatic JSX string-formatted bindings
 	const View = (
-		<cell>
+		<column>
 			<label>Report for %[today:local|date]</label>
 			<list items={bound.list("customerTickets")}>
 				<row>
@@ -63,7 +56,7 @@ import {
 					<label>%[item.nClosed] / %[item.total]</label>
 				</row>
 			</list>
-		</cell>
+		</column>
 	);
 	// @doc-end
 }

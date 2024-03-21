@@ -35,7 +35,7 @@ The easiest way to create localizable text is to use the {@link strf()} function
 // DON'T:
 let msg = `Hello, ${user.fullName}`;
 throw new Error("Oops, something went wrong: " + err.message);
-UITextField.with({
+ui.textField({
 	formField: "username",
 	placeholder: "Enter your name",
 });
@@ -43,7 +43,7 @@ UITextField.with({
 // DO:
 let msg = strf("Hello, %s", user.fullName);
 throw new MyAPIError(err);
-UITextField.with({
+ui.textField({
 	formField: "username",
 	placeholder: strf("Enter your name"),
 });
@@ -172,11 +172,13 @@ For more information on message dialogs, refer to the following article:
 
 The mechanism by which Desk translates and formats lazily-evaluated strings includes an **i18n provider**. This provider is responsible for providing translations, pluralizers, and formatters for the current locale.
 
-The provider is an object that conforms to the {@link I18nProvider} interface, that's assigned to the {@link GlobalContext.i18n} property. You can create your own provider, and set this property to change the current locale.
+The provider is an object that conforms to the {@link I18nProvider} interface, that's assigned to the {@link GlobalContext.i18n} property.
+
+To create your own provider (which you'll need to do to support multiple locales), create your own provider class and implement all of the mandatory interface methods. Then, create an instance at runtime and assign it to `app.i18n`. Refer to the sections below for details.
 
 - {@link I18nProvider +}
 
-> **Note:** If you're changing the locale at runtime, text that's already rendered won't be updated automatically. If needed, re-render all views by emitting a renderer change event, i.e. `app.renderer.emitChange()`.
+> **Note:** If you're changing the locale at runtime, text that's already rendered won't be updated automatically. If needed, re-render all views using `app.renderer.remount()`.
 
 ```ts
 class MyI18nProvider implements I18nProvider {
@@ -192,42 +194,47 @@ The {@link I18nProvider} interface includes a method that must be implemented to
 
 - {@link I18nProvider.getAttributes}
 
-This method should return an object that includes _at least_ a locale identifier (e.g. `en-US`) as the `locale` property. In addition, the following properties are used by Desk itself:
+This method should return an object that includes _at least_ a locale identifier (e.g. `en-US`). The object may have the following properties:
 
-- `rtl` — Indicates whether the language follows a right-to-left writing system.
-- `decimalSeparator` — The character that's placed before decimals in regular number notation (i.e. either `.` or `,`).
+- `locale` — The locale identifier.
+- `rtl` — Indicates whether the language follows a right-to-left writing system (optional, defaults to false).
+- `decimalSeparator` — The character that's placed before decimals in regular number notation (i.e. decimal point, either `.` or `,`, defaults to `.` if omitted).
 
 ### Handling translations
 
-The {@link I18nProvider} interface includes a method that's used to translate text. This method is invoked automatically from {@link LazyString.translate()}, to translate all text passed to `strf`, which may include both markers and placeholders.
+The {@link I18nProvider} interface includes a method that's used to translate text. This method is invoked automatically from {@link LazyString.translate()}, to (lazily) translate all text passed to `strf`, which may include both markers and placeholders.
 
 - {@link I18nProvider.getText}
 
-While Desk doesn't provide a standard way to store and retrieve translations, the `getText` method typically uses a `Map` or a similar data structure to store translations, either indexed by a marker or by the full text. If a translation is not found, the method may use a fallback language, or return the original string. Any markers and descriptions still left in the translation will be removed automatically.
+While Desk doesn't provide a standard way to store and retrieve translations, the `getText` method typically uses a `Map` or a similar data structure to store translations, either indexed by a marker (see above) or by the full text in the source language. If a translation is not found, the method may use a fallback language, or return the original string. Any markers and descriptions still left in the translation will be removed automatically.
 
-**Finding text to translate** — In a simple app, providing translations for all text can be done manually, and translations may even be stored in the code.
+**Finding text to translate** — In a simple app, providing translations for all text can be done manually, and translations can be stored within the source code.
 
-For larger applications, external tooling can be used to extract text from your code, and manage translations in a separate file or database.
+For larger applications, external tooling can be used to extract text from your code, and you'll need to manage translations in a separate file or database.
 
 - If you use markers consistently, you can use a tool to extract all markers using a regular expression.
-- If you don't use markers, you can still extract text by searching for `strf(...`, `withText(...`, and `withLabel(...` in your code, and analyze their (first) string arguments.
+- If you don't use markers, you can still extract text by searching for `strf(...` in your code, and analyze their (first) string arguments.
 - If you use JSX without markers, you'll also need to extract text from JSX tag content.
+
+After you've established a process for finding the source text (or markers) in your application code, the steps for providing and storing translations depends entirely on your ops and deployment processes, and are outside the scope of this documentation.
 
 ### Handling plural forms
 
-The {@link I18nProvider} interface includes a method that's used to pluralize text. This method is invoked automatically from {@link LazyString.format()}, with the number value (argument to `strf`) and specified plural forms (from the format string).
+The {@link I18nProvider} interface includes a method that's used to pluralize text. This method is invoked automatically from {@link LazyString.format()}, with a number value (argument to `strf`) and specified plural forms (from the format string).
 
 - {@link I18nProvider.getPlural}
 
+This method should return one of the provided plural forms based on the input number value. For example, a method for the English language would return the first form only if the input value is exactly 1, and the second form otherwise.
+
 ### Handling formatting
 
-Finally, the {@link I18nProvider} interface includes a method that's used to format arbitrary data. This method is invoked automatically from {@link LazyString.format()}.
+Finally, the {@link I18nProvider} interface also includes a method that's used to format arbitrary data. This method is invoked automatically from {@link LazyString.format()}.
 
 - {@link I18nProvider.format}
 
-The `format` method can be used to format any kind of data, including dates, times, and numbers in a particular currency. The value to be formatted is passed as the first argument, and the format is passed as the second _and any subsequent_ arguments — which can be used to specify date/time formats, or currencies. Typically, the type is specified in a format string using `%{local|...}` or `%[name:local|...]` placeholders.
+The `format` method can be used to format any kind of data, including dates, times, and money (currency) values. The value to be formatted is passed as the first argument, and the format is passed as the second _and any subsequent_ arguments — which can be used to specify date/time formats, or e.g. currency symbols. Typically, the type is specified within the format string using `%{local|...}` or `%[name:local|...]` placeholders.
 
-> **Note:** Desk doesn't specify minimum requirements for the types of data that can be formatted, or the formats that are supported. The `format` method is intentionally flexible, and can be adapted to your application while maintaining a consistent interface.
+> **Note:** Desk doesn't specify minimum requirements for the types of data that can be formatted, or the formats that are supported. The `format` method is intentionally flexible, allows for fallback (sub)types, and can be adapted to your application while maintaining a consistent interface.
 
 ### Example
 
@@ -282,7 +289,7 @@ To accommodate for translated text in your app, your may need to adjust your vie
 
 ### Mirrored icons
 
-If your app uses icons, you may need to provide mirrored versions of these icons for right-to-left languages. Be aware that _not all_ icons need to be mirrored (e.g. clocks), and that some icons may need to be mirrored only in certain contexts (e.g. arrows).
+If your app uses icons, you may need to provide mirrored versions of these icons for right-to-left languages. Be aware that _not all_ icons need to be mirrored (e.g. a clock icon should look the same in RTL text direction), and that some icons may need to be mirrored only in certain contexts (e.g. arrows).
 
 The {@link UIIconResource} class provides some support for mirrored icons, but full support depends on the icon set and platform that's used by your app.
 

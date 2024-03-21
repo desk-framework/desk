@@ -32,7 +32,7 @@ Great use cases for the Desk framework include:
 - Immersive full-screen apps, as Single-Page Applications (SPAs) e.g. productivity apps, business apps, dashboards, e-learning, and customer portals. These applications usually require login and rely on client-side application logic for a responsive user experience (UX).
 - Mobile apps, and mobile-first web applications.
 - Complex forms, calculators, and other website components, e.g. support ticket or insurance claim forms, mortgage calculators, and chat widgets.
-- Prototypes and MVPs: quickly test ideas with a focus on user interaction. Desk provides good UI defaults with a minimal amount of setup. Static content can be moved to the server later, if needed.
+- Prototypes and MVPs. You can use Desk to quickly test ideas with a focus on user interaction. The framework provides good UI defaults with a minimal amount of setup. Static content can be moved to the server later, if needed.
 
 ## Architecture {#architecture}
 
@@ -40,8 +40,8 @@ Just like other frameworks, Desk helps to break down application code into small
 
 The architecture of a Desk application includes the following main parts:
 
-- **Views** represent your user interface (UI), defining the layout, content, and appearance of your app. Views may be composed of other views, and can be nested to any depth. Desk includes several basic UI components, with configurable styles that can be used out of the box.
-- **Activities** represent the logic behind different screens, dialogs, or other parts of your app. Each activity may _contain_ a view, providing it with data, and handling its events.
+- **Views** represent your user interface (UI), defining the layout, content, and appearance of your app. Views may be composed of other views, and can be nested to any depth. Desk includes several basic UI components out of the box, with configurable styles.
+- **Activities** represent the logic behind different screens, dialogs, or other parts of your app. Each activity contains a view, providing it with data, and handling events.
 - **Services** provide functionality that's shared between activities, including business logic, data access, and authentication.
 
 Together, these parts take care of common tasks such as rendering the UI, handling user input, and managing application state while the user moves around your app.
@@ -50,11 +50,11 @@ A singleton **app** module is also available at all times, representing the enti
 
 ![Desk architecture](/docs/en/assets/desk-architecture.png)
 
-Desk apps are **object-oriented**, and use a **hierarchical** structure. To communicate between objects you can use standard properties and methods, but the framework also provides features to **attach** objects. This enables the following special features:
+Desk apps are **object-oriented**. In addition to standard properties and methods, Desk introduces the concept of **attaching** objects to form a strict hierarchy. Within this hierarchy, you can use **bindings** and **events** to communicate between objects.
 
 - **Property bindings** automatically observe and copy property data from a parent object to a contained object (one-way only, e.g. to update views when the activity is updated).
 - Objects emit **events** that can be handled by containing objects (the other way around from bindings, e.g. to handle user input).
-- Objects can be **unlinked** from the hierarchy when they're no longer needed, clearing event handlers and bindings automatically, as well as unlinking further child objects.
+- Objects can be **unlinked** from the hierarchy when they're no longer needed. This automatically clears event handlers and bindings, and unlinks further contained objects.
 
 ## Example {#example}
 
@@ -66,32 +66,32 @@ We'll make an app that shows a counter, and two buttons to increment or decremen
 
 Refer to the end of this section for a link to the online version of this sample app.
 
-**Creating a view** — First, let's create a view. Views are defined **statically** — meaning we create a _class_ that can be instantiated using `new` whenever we need to show the view.
+**Creating a view** — First, let's create a view. In a Desk app, views are defined _statically_, as a class that can be instantiated when needed using `new`. However, for basic views we don't use the `class` keyword at all: we can use special `ui` method, or JSX syntax.
 
-Desk views can be defined using JSX syntax, as illustrated below.
+The example below defines a view using JSX syntax. Note that the result (i.e. the `AppPage` variable) is still a regular JavaScript class.
 
 {@import :sample-view-jsx}
 
-Note that even though JSX looks like HTML, views are _not_ HTML elements. Rather, each JSX element results in a constructor — meaning `AppPage` is a regular TypeScript class.
-
-The code below is functionally the same, using static methods rather than JSX syntax. This is useful if you're writing code in JavaScript, or if you simply don't like to use JSX.
+The code below is functionally the same, using methods to create our view classes rather than JSX syntax.
 
 {@import :sample-view}
 
 In the example code, note the following:
 
-- This view consists of UI elements (a text label and two buttons), and containers to arrange them. These components are included with the framework, and use default styles that are also included.
-- The text for the `UILabel` object depends on a **binding**. Therefore, the text will be updated automatically when the value of `count` changes in the parent object (see below).
-- The `UIButton` objects define _aliases_ for their Click event, which will allow us to handle both of these using a unique name (see below).
+- This view consists of UI elements (a text label and two buttons), and containers to arrange them. These view classes are included with the framework, and use default styles that are also included.
+- The text for the `label` view depends on a **binding**. Therefore, the text will be updated automatically when the value of `count` changes in the containing object (see below).
+- The `button` objects define _aliases_ for their Click event, which will allow us to handle both of these using a unique name (see below).
 - The label element has a **style** applied to it, which we'll need to define along with the view.
 
-There are various ways to define a custom style, and you can also change the overall look of your app using a **theme** — but in this example we'll _extend_ the default label style and assign it to a new (class) variable.
+**Styling UI elements** — There are various ways to define a custom style, and you can also change the overall look of your app using a **theme**. For reused styles, you can _extend_ a default style and assign it to a new variable or export from a module. The result is also a class, although we'll never have to instantiate it ourselves.
 
 {@import :sample-style}
 
-In this example, we could also have included these style properties inline, as below. This is useful for simple styles that aren't reused.
+For simple styles that aren't reused, you can also pass an object inline. In this example, we could have just set the `style` attribute as below.
 
-{@import :sample-inline-style}
+{@import :sample-inline-style-jsx}
+
+**More complex views** — As your app increases in complexity, you'll likely break up your views into multiple files (partial views). Since views are defined as classes, you can combine them using standard JavaScript module imports. For groups of UI elements that are reused throughout your app, you can also define **composite views**, or use activities to group views and business logic together.
 
 **Creating the activity** — Next, we'll create an activity that contains the view above, and matches its bindings and events. To do this, we'll create a class that extends the `Activity` class, with a `ready()` method that shows our view, and some event handlers to handle button clicks.
 
@@ -105,20 +105,19 @@ This activity performs three main tasks:
 
 Notice that the code in the activity does **not** need to know what the view looks like — neither does the view code need to know what the activity does with its events. This _separation of concerns_ is an important concept in Desk, which makes the overall application more maintainable and easier to extend.
 
-While we activate a single activity immediately in this example (invoking its `ready()` method), a more complex app could include multiple (nested) activities that are activated and deactivated as the user moves around the application UI.
+In our example app, this single activity can be created and _activated_ immediately, invoking its `ready()` method and displaying the view.
 
-**Initializing the app** — Finally, we'll need to tell the app to start, initializing the renderer (for now, just the browser DOM — but other renderers may be available in the future) and adding the activity to the app.
+**More complex activities** — A larger, more complex app includes multiple activities that are activated and deactivated as the user moves around the application UI. Activities can also be nested, and created dynamically to show parts of the UI or display particular data. In a web app, activities may respond to changes to the current URL.
+
+**Initializing the app** — After defining view and activity classes, we'll need to tell the app to start. This initializes the renderer (for now, just using the browser DOM — but other renderers may be available in the future). The activity object is added to the app and activated right away.
 
 {@import :sample-app}
 
-At this point, we set up the following:
-
-- Options for the web platform renderer and DOM location-based router.
-- All activities and services that are used in the app.
+At this point, a more complex app would also set options for the renderer and DOM-based 'router', and add more activities that may be activated dynamically.
 
 > **Run this app:** The finished app is available online HERE.
 
-**Compiling, bundling, and running** — The code above fits in a single file, but most real-world applications would be developed using multiple source code files, assets, dependencies, and configuration files — which need to be compiled and bundled into a distributable output package.
+**Compiling, bundling, and running** — The code above fits in a single file, but most real-world applications would be developed using multiple source code files, assets, dependencies, and configuration files — which all need to be compiled and bundled into a distributable output format.
 
 The Desk framework does **not** depend on a specific build tool or bundler. Refer to the {@link tutorials Tutorials} section for more information on how to set up a complete project and deploy it to the web or a native runtime environment.
 
@@ -126,7 +125,7 @@ The Desk framework does **not** depend on a specific build tool or bundler. Refe
 
 Desk includes built-in functionality to test your application, including unit tests and integration tests.
 
-By replacing the `useWebContext()` call to `useTestContext()` in the example above, we can run the app from the command line, without a browser. Instead of rendering the UI to a browser or other platform, or even simulating the DOM API, Desk simply keeps all view output in memory and allows us to query the result to validate that the output is correct.
+By replacing the `useWebContext()` call to `useTestContext()` in the example above, we can _run the app from the command line_, without a browser. Instead of rendering the UI to a browser or other platform, or even simulating the DOM API, Desk simply keeps all view output in memory and allows us to query the result to validate that the output is correct.
 
 The following example shows how to test our counter program, with integration tests that inspect both the activity instance and its view — simulating a button press to invoke one of the event handlers, and checking the new output.
 
@@ -134,7 +133,7 @@ The following example shows how to test our counter program, with integration te
 
 ## Other features {#other-features}
 
-Desk includes many other features, such as:
+Desk includes many other features that are not demonstrated in the example above:
 
 - Navigation and routing
 - Modal dialogs and menus
@@ -144,7 +143,7 @@ Desk includes many other features, such as:
 - Internationalization (i18n)
 - Themes, icons, and colors
 
-Many of these features can be accessed through the global {@link app-context application context} object, and can be customized to fit your specific needs.
+Many of these features can be accessed through the global {@link app-context application context} object. Documentation is available both on this website, and from the package's `.d.ts` files — which should show up automatically in your code editor.
 
 ## Next steps {#next-steps}
 

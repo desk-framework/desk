@@ -10,7 +10,7 @@ abstract: Learn how text and data can be formatted, combined, and translated usi
 
 ## Overview {#overview}
 
-Text formatting is a core concept in Desk, that's tightly integrated into many parts of the framework.
+Text formatting is a core concept in Desk, that's tightly integrated with many other parts of the framework.
 
 **Why?** — Once an application grows in complexity, it becomes difficult to add features such as translation (including pluralization), internationalization (e.g. number formatting), and structured logging in a consistent way. Using the framework's core features from the start can help to avoid these issues.
 
@@ -101,44 +101,41 @@ The syntax of the format string is the same as for `strf()`, and the placeholder
 
 You can assign the result of `strf()` directly to a property any UI component that displays text, such as a label, button, or text field (for its placeholder text).
 
-Additionally, some strings are **automatically** passed to `strf()`:
-
-- Using JSX syntax: all plain text between tags is passed to `strf()` when creating the view class (i.e. `<p>text</p>`).
-- Using the static `.withText()` and `.withLabel()` methods of labels and buttons: string parameter values are passed to `strf()` first.
+Additionally, plain text within JSX code is **automatically** passed to `strf()` (making it localizable).
 
 ```tsx
-// using .with()
-const view = UICell.with(
+// using static methods
+const view = ui.column(
 	{ padding: 16 },
-	UILabel.withText("Enter your name:"),
-	UITextField.with({ placeholder: strf("Your name") }),
+	ui.label(strf("Enter your name:")),
+	ui.textField({ placeholder: strf("Your name") }),
 );
 
 // using JSX
 export default (
-	<cell padding={16}>
+	<column padding={16}>
 		<label>Enter your name:</label>
 		<textfield placeholder={strf("Your name")} />
-	</cell>
+	</column>
 );
 ```
 
 ### Using string-formatted bindings
 
-You can also assign the result of `bound.strf()` directly to a property of a UI component — wherever a binding is valid, and the property is typed as {@link StringConvertible}. The result of `bound.strf()` is a {@link StringFormatBinding}, not a {@link LazyString}.
+You can assign the result of `bound.strf()` directly to a property of a UI component — wherever a binding is valid, and the property is typed as {@link StringConvertible}. The result of `bound.strf()` is a {@link StringFormatBinding}, not a {@link LazyString}.
 
 ```ts
-const view = UICell.with(UILabel.withText(bound.strf("Hello, %s!", "name")));
+const view = ui.cell(ui.label(bound.strf("Hello, %s!", "name")));
 ```
 
 **JSX text bindings** — In addition, you can use `%[...]` placeholders in JSX text. Text content will be scanned for these placeholders automatically, inserting string-formatted bindings at runtime.
 
 ```tsx
 export default (
-	<cell>
+	<column>
 		<label>Hello, %[name]</label>
 		<label>New messages: %[messages.count]</label>
-	</cell>
+	</column>
 );
 ```
 
@@ -147,11 +144,11 @@ For more information on bindings and JSX syntax, refer to the following articles
 - {@link bindings}
 - {@link views}
 
-### Predefining dialog messages
+### Formatting dialog message text
 
-Since message dialogs are a common way to display formatted text to the user, including the messages themselves _as well as_ the available option buttons, Desk provides a way to group these together in a single object.
+Message dialogs are a common way to display _formatted_ text to the user. To make it easier to define all text in your application away from business logic, Desk provides a way to group this text together in a single object.
 
-Use the {@link MessageDialogOptions} class to store text and options for an alert or confirmation dialog, including placeholders for data that should be filled in when displaying the dialog. Instances of this class can be passed to the {@link GlobalContext.showAlertDialogAsync app.showAlertDialogAsync()} and {@link GlobalContext.showConfirmDialogAsync app.showConfirmDialogAsync()} methods, and can be formatted with data using the {@link MessageDialogOptions.format format()} method.
+Use the {@link MessageDialogOptions} class to store text and options for an alert or confirmation dialog, including placeholders for data that should be filled in _when displaying_ the dialog. Instances of this class can be passed to the {@link GlobalContext.showAlertDialogAsync app.showAlertDialogAsync()} and {@link GlobalContext.showConfirmDialogAsync app.showConfirmDialogAsync()} methods, and can be formatted with data using the {@link MessageDialogOptions.format format()} method.
 
 - {@link MessageDialogOptions}
 
@@ -179,7 +176,7 @@ For more information, refer to the following article:
 
 ## Formatting log messages {#logs}
 
-Log messages can be formatted using the `strf()` function. When the result is passed to a {@link LogWriter} method, the log message is formatted **and** any data that was passed to `strf()` can be stored in a structured format (if supported by the log output sink).
+Log messages can also be formatted using the `strf()` function. When the result is passed to a {@link LogWriter} method, the log message is formatted **and** any data that was passed to `strf()` can be stored in a structured format (if supported by the log output sink).
 
 ```ts
 // Write a formatted log message
