@@ -6,8 +6,8 @@ nav_parent: using
 sort: -15
 applies_to:
   - View
-  - View.compose
   - ViewComposite
+  - ViewComposite.define
   - JSX
 ---
 
@@ -22,26 +22,26 @@ Note that view activities can also be included for display _within_ other views,
 
 ## View composites {#composites}
 
-To define reusable view components with their own (typed) `.with(...)` method, and without using a view activity, use the {@link View.compose()} method.
+To define reusable view components with their own (typed) `.with(...)` method, and without using a view activity, use the {@link ViewComposite.define()} method.
 
-- {@ref View.compose}
+- {@ref ViewComposite.define}
 
-The preset properties that can be passed to the resulting composite `.with(...)` method are made available to the function passed to {@link View.compose()}. Note that this function is usually still only called during the static initialization phase of the application, since it returns another _constructor_, not an object.
+The preset properties that can be passed to the resulting composite `.with(...)` method are made available to the function passed to {@link ViewComposite.define()} (if any). Note that this function is usually still only called during the static initialization phase of the application, since it returns another _constructor_, not an object.
 
 This method is particularly useful for defining complex reusable view components that display and/or manipulate a single value or simple data structure, without any business logic that interfaces with the rest of the application — such as a date picker or interactive containers (e.g. accordion, tab, split views).
 
 ```ts
-const MyCard = View.compose(
+const MyCard = ViewComposite.define(
 	(p: { title: StringConvertible }, ...content: ViewClass[]) =>
 		UICell.with(
 			// use preset properties in the composed view:
 			UIRow.with(UILabel.withText(p.title)),
-			UIColumn.with(...content)
-		)
+			UIColumn.with(...content),
+		),
 );
 ```
 
-View composites may also include event handlers and initialization methods. For more information and several examples, refer to the documentation for the {@link View.compose} method.
+View composites may also include event handlers and other properties. For more information and examples, refer to the documentation for the {@link ViewComposite.define} method.
 
 ## Preset view classes {#presets}
 
@@ -51,20 +51,20 @@ The static `.with(...)` method is used to create a _preset_ view constructor. Th
 
 ```ts
 const myView = UICell.with(
-	{ background: UIColor.Yellow },
-	UIRow.with(UILabel.withText("Hello, world!"))
+	{ background: UIColor["@yellow"] },
+	UIRow.with(UILabel.withText("Hello, world!")),
 );
 ```
 
 Since the result of `.with(...)` is of the same class type, the resulting constructor can be used to define reusable view components.
 
 ```ts
-const YellowCell = UICell.with({ background: UIColor.Yellow });
+const YellowCell = UICell.with({ background: UIColor["@yellow"] });
 
 const myView = YellowCell.with(
 	// content can only be preset once,
 	// but properties can be added multiple times
-	UIRow.with(UILabel.withText("Hello, world!"))
+	UIRow.with(UILabel.withText("Hello, world!")),
 );
 ```
 

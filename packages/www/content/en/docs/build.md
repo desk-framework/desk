@@ -39,8 +39,8 @@ Creating an app using the Desk framework doesn't require a fixed directory struc
   - Activities — If your app includes only one or two activities, just keep their code in a folder within `src`. However, as your app grows, you'll want to create an `activities` folder that contains a separate _folder_ for each activity, along with their accompanying views. Since activities often represent different high-level features of your application, this method separates new features into folders, and allows you to further split activities into sub-activities when they become too large.
   - Services — If your app includes services, keep those in a `services` folder: one file for each service class.
   - Models — Any other classes that don't interact with your UI (which should be everything other than activities, views, and services) should go into a `models` folder.
-  - Views — Reusable views (i.e. view _composites_ created using `View.compose` or by extending View directly) can go into a `views` folder, so that they can be imported by different activities and their specific views.
-  - Styles — If you don't want to keep styles together with views, e.g. if you want to maintain them separately or if your app includes a lot of reusable styles, you can export [`UIStyle`](./main/UIStyle.html), [`UIIcon`](./main/UIIcon.html), and custom [`UIColor`](./main/UIColor.html) objects from files within a `styles` folder.
+  - Views — Reusable views (i.e. view _composites_ created using `ViewComposite` or by extending View directly) can go into a `views` folder, so that they can be imported by different activities and their specific views.
+  - Styles — If you don't want to keep styles together with views, e.g. if you want to maintain them separately or if your app includes a lot of reusable styles, you can export style classes, icons, and custom colors from files within a `styles` folder.
 
 Your app may not need all of these files and folders. However, when adding new code to your application, you'll want to follow this structure to ensure that the final result is easy to understand for others who may need to work with your code in the future.
 
@@ -52,9 +52,9 @@ The Desk framework itself is distributed as an NPM package, which must be refere
 
 In general, you'll need to add the following dependencies to your application.
 
-- `desk-frame` — This includes most of the code for Desk itself.
-- A _platform-specific_ context package — At this time, only `@desk-framework/webcontext` is supported. This includes all code that sets up the Desk runtime environment for rendering within a browser.
-- Optionally, the Desk test library, i.e. `@desk-framework/test` — This package includes functions for running tests, asserting values, and even testing UI output asynchronously.
+- `@desk-framework/frame-core` — This includes most of the code for Desk itself.
+- A _platform-specific_ context package — At this time, only `@desk-framework/frame-web` is supported. This includes all code that sets up the Desk runtime environment for rendering within a browser.
+- Optionally, the Desk test library, i.e. `@desk-framework/frame-test` — This package includes functions for running tests, asserting values, and even testing UI output asynchronously.
 - Any view components that may be distributed as NPM packages.
 - Bundler dependencies — Depending on your choice of tooling, you may need to add one or more packages in order to build your application.
 
@@ -134,12 +134,12 @@ The contents of `package.json` should be as follows:
 		"test": "tsc -p tsconfig.test.json && node .test-run/app.test.js"
 	},
 	"dependencies": {
-		"desk-frame": "file:../../desk/packages/desk-frame",
-		"@desk-framework/webcontext": "file:../../desk/packages/webcontext"
+		"@desk-framework/frame-core": "file:../../desk/packages/frame-core",
+		"@desk-framework/frame-web": "file:../../desk/packages/frame-web"
 	},
 	"devDependencies": {
 		"@types/node": "latest",
-		"@desk-framework/test": "file:../../desk/packages/test",
+		"@desk-framework/frame-test": "file:../../desk/packages/frame-test",
 		"parcel": "2",
 		"typescript": "5.1"
 	}
@@ -203,7 +203,7 @@ Now, let's add a `src` folder to contain all of our source code. You can do this
 Within the `src` folder, create a file `index.html` with the following contents:
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
@@ -222,7 +222,7 @@ In the same folder, create `app.ts` with the following contents:
 
 ```ts
 // app.ts
-import { useWebContext, app } from "@desk-framework/webcontext";
+import { useWebContext, app } from "@desk-framework/frame-web";
 import { CountActivity } from "./counter/CountActivity.js";
 
 useWebContext((options) => {
@@ -244,7 +244,7 @@ In the `src/counter` folder, add `CountActivity.ts` with the following content:
 
 ```ts
 // CountActivity.ts
-import { PageViewActivity } from "desk-frame";
+import { PageViewActivity } from "@desk-framework/frame-core";
 import page from "./page.js";
 
 export class CountActivity extends PageViewActivity {
@@ -278,7 +278,7 @@ Still within the `src/counter` folder, create `page.tsx` with the following cont
 
 ```tsx
 // page.tsx
-import { JSX } from "desk-frame";
+import { JSX } from "@desk-framework/frame-core";
 
 export default (
 	<cell>
@@ -318,7 +318,7 @@ To run the application in development mode, we'll use the `dev` script that's co
 Change the first line of `CountActivity.ts` to include an import for `app`:
 
 ```ts
-import { PageViewActivity, app } from "desk-frame";
+import { PageViewActivity, app } from "@desk-framework/frame-core";
 ```
 
 Then, add a line at the end, to link the surrounding module with the exported class (we need to check for `module` here, otherwise this won't work for tests in Node, without Parcel).
@@ -363,7 +363,7 @@ Within the `src` folder, add a new file `app.test.ts` with the following content
 
 ```ts
 // app.test.ts
-import { formatTestResults, runTestsAsync } from "@desk-framework/test";
+import { formatTestResults, runTestsAsync } from "@desk-framework/frame-test";
 import "./counter/CountActivity.test.js";
 
 runTestsAsync().then((result) => {
@@ -382,7 +382,7 @@ Now, within the `src/counter` folder, create `CountActivity.test.ts` with the fo
 
 ```ts
 // CountActivity.test.ts
-import { describe, test, useTestContext } from "@desk-framework/test";
+import { describe, test, useTestContext } from "@desk-framework/frame-test";
 import { CountActivity } from "./CountActivity.js";
 
 describe("Counter", (ctx) => {

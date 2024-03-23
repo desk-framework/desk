@@ -6,54 +6,41 @@ The documentation for the Desk framework is located at https://desk-framework.co
 
 The content for the Desk framework website is generated from this repository.
 
-- Source content for the website home page and all documentation is located in [`packages/www/content/`](./packages/www/content/)
+- Source content for the website home page and all documentation is located in [`docs`](./docs)
 - Content for reference documentation (for each function, class, method, etc.) is taken from source code (JSDoc) comments.
 
-A build step is required to generate, format, and cross-reference all of this content. The build step is based on [markdown-pipeline](https://github.com/jcormont/markdown-pipeline), in addition to a purpose-built parser for `.d.ts` files.
+A build step is required to generate, format, and cross-reference all of this content. The build step uses a custom parser and markdown static site generator, located in the `docs/docgen` folder.
 
-To view website output for the content in the current repository branch, take the following steps:
+The documentation tools can be used for the following tasks:
 
-1. Install NPM package dependencies
-2. Build all packages
-3. Generate website content
-4. Start a web server to host the generated output
+- Check that all JSDoc comments in the source code are valid (`check-docs`)
+- Generate markdown files from all source code (`generate-docs`)
+- Merge markdown files from `docs/content` folder (`merge-docs`), e.g. for alternative or additional docs content, translations, samples, and other content such as the home page.
 
-Use the following commands from the **repository root** folder:
+The first task can be run on all committed code, to ensure that all JSDoc comments are valid. The second and third tasks are run only when updating the website content in the appropriate branch.
+
+To **check** JSDoc for the content in the current branch, run the following commands from the root folder:
 
 ```sh
 npm install
 npm run build
-npm run www
+npm run check-docs
 npx http-server _site
 ```
 
-After making a change to markdown content _only_, repeat the `npm run www` command. If you've also changed the pipeline or docgen code, run the `npm run www-build` command instead.
+To **build** the entire website and start serving it on your local system, run the following commands from the root folder:
+
+```sh
+npm install
+npm run build
+npm run generate-docs
+npm run merge-docs
+npx http-server _site
+```
 
 ## Writing docs
 
-### Information architecture
-
-The information in the Desk docs is arranged by _task_, as much as possible.
-
-- Getting started — _Top-down exploration_
-  - Introduction — **Task:** initial exploration, getting to know the framework from scratch. This article discusses goals, and high-level architecture.
-  - Building an app — **Task:** initial exploration of the build process. This article shows what's required to get to a working app. (Includes _tutorial_ for a simple web app only, the article isn't meant to discuss all possible setups; examples work better for that)
-  - Examples — **Task:** browsing more example materials for inspiration, or finding a working build setup using a specific tool/platform. This article refers to the examples repo on GitHub.
-- Guides — *Exploration by topic*
-  - **Task:** Finding out how to get started with a particular feature, e.g. handling events, creating activities, creating views, etc.
-  - These guides provide context, but don't duplicate specific information that's already in the reference docs (where possible). This way, the developer can read through the article for an overview to understand what's going on, but may need to dip into reference docs for details.
-  - Guides may include _tutorials_ (TBD), but only where it makes sense.
-- Reference — _Bottom-up information_
-  - **Task:** Finding out more information about a specific API symbol.
-  - These docs provide direct information to answer a question, if the developer already knows what they're looking for, AND
-  - These docs link back to relevant guides, to provide more context or alternative solutions.
-  - These docs do NOT describe context outside of the current symbol (but may include further links), and do NOT include tutorials (but may include simple examples).
-
-> **Note:** the docs for this project have been through a massive evolution over the years, and it's likely that some of the information would be better placed elsewhere. Feel free to open an issue in GitHub if you have an idea for such an improvement; avoid a large PR to move docs around.
-
-### Voice
-
-Some general notes on writing style:
+Contributions to the documentation are welcome. Take note of the following pointers when writing content.
 
 - Use active voice as much as possible.
 - You can address the user where appropriate (as 'you'), generally in phrases such as _You can also ..., because ... you must ..._ or to avoid passive tone.
@@ -138,48 +125,48 @@ The following example shows the use of JSDoc tags to populate the appropriate se
  * @see {@link SomeOtherClass}
  */
 class MyClass {
-  /**
-   * Performs a task described here
-   *
-   * @summary This summary will be displayed _above_ parameters,
-   * exceptions, and return type. It should not be too long.
-   *
-   * @param num The input for this method
-   * @returns The result of this method
-   * @error Throws an error when the number is too large
-   * @error Throws another error when the number is too small
-   *
-   * @description
-   * This is a longer description that appears below the
-   * param/returns/error sections. It can be used to provide
-   * details about specific conditions.
-   *
-   * @see {@link otherMethod()}
-   */
-  myMethod(num: number): string {
-    // ...
-  }
+	/**
+	 * Performs a task described here
+	 *
+	 * @summary This summary will be displayed _above_ parameters,
+	 * exceptions, and return type. It should not be too long.
+	 *
+	 * @param num The input for this method
+	 * @returns The result of this method
+	 * @error Throws an error when the number is too large
+	 * @error Throws another error when the number is too small
+	 *
+	 * @description
+	 * This is a longer description that appears below the
+	 * param/returns/error sections. It can be used to provide
+	 * details about specific conditions.
+	 *
+	 * @see {@link otherMethod()}
+	 */
+	myMethod(num: number): string {
+		// ...
+	}
 
-  /**
-   * Returns a magic number.
-   * This text appears under the Notes section.
-   * @param x The original number
-   * @returns The magic number
-   * @note This note also appears in the Notes section.
-   */
-  otherMethod(x: number): number {}
+	/**
+	 * Returns a magic number.
+	 * This text appears under the Notes section.
+	 * @param x The original number
+	 * @returns The magic number
+	 * @note This note also appears in the Notes section.
+	 */
+	otherMethod(x: number): number {}
 
-  /**
-   * Creates trouble for the user
-   * @deprecated This method is deprecated in favor of
-   * {@link someOtherMethod()}
-   */
-  isDeprecated() {}
+	/**
+	 * Creates trouble for the user
+	 * @deprecated This method is deprecated in favor of
+	 * {@link someOtherMethod()}
+	 */
+	isDeprecated() {}
 
-  /** Returns a daily quote from the internet */
-  dailyQuote(): string {
-    // One-liners may be acceptable in some cases,
-    // resulting in _only_ an abstract and declaration
-  }
+	/** Returns a daily quote from the internet */
+	dailyQuote(): string {
+		// One-liners may be acceptable in some cases,
+		// resulting in _only_ an abstract and declaration
+	}
 }
 ```

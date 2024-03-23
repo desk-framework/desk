@@ -7,13 +7,13 @@ sort: -20
 applies_to:
   - ManagedObject
   - ManagedObject.attach
-  - ManagedObject.observeAttach
+  - ManagedObject.autoAttach
   - ManagedObject.emit
   - ManagedObject.emitChange
   - ManagedEvent
   - ManagedChangeEvent
   - DelegatedEvent
-  - UIComponentEvent
+  - ViewEvent
   - Binding
   - StringFormatBinding
   - bound
@@ -53,21 +53,21 @@ To alleviate these issues, the {@link ManagedObject} class includes a way to lin
 
 - An object can only be attached to one object (its parent, or owner).
 - You can find out to which parent an object is attached, if any.
-- Multiple objects can be attached to a single parent, using properties, or as part of a list or map (see below).
+- Multiple objects can be attached to a single parent, using properties, or as part of a managed list (see below).
 - Attaching an object to another parent _detaches_ it from the first.
 - After an object is no longer needed, you can **unlink** it: this also _recursively_ unlinks all attached objects automatically, and informs the parent object if needed.
 - After unlinking, the object can no longer be attached, and other features such as events and bindings stop working.
 
 This pattern has two main advantages for managing an application at runtime:
 
-**Ownership** — While any object may _reference_ any other object, a {@link ManagedObject} only has one _attached_ parent (an object, or a list or map). This makes it clear when objects are no longer needed, and should be cleaned up along with their parent(s) and/or other attached objects.
+**Ownership** — While any object may _reference_ any other object, a {@link ManagedObject} only has one _attached_ parent (an object or a managed list). This makes it clear when objects are no longer needed, and should be cleaned up along with their parent(s) and/or other attached objects.
 
 **Events and bindings** — Arranging objects in a simple parent-child hierarchy also allows for simple event handling, and _binding_ property values by dynamically observing parent properties — as well as cleaning up after event handlers and bindings when objects are detached or unlinked.
 
 Use the following methods to attach and detach objects.
 
 - {@ref ManagedObject.attach}
-- {@ref ManagedObject.observeAttach}
+- {@ref ManagedObject.autoAttach}
 - {@ref ManagedObject.unlink}
 
 #### Example
@@ -83,13 +83,13 @@ class MyObject extends ManagedObject {
 }
 ```
 
-On the other hand, watched properties are usually not initialized right away, and the call to `observeAttach` is best placed in a constructor.
+On the other hand, watched properties are usually not initialized right away, and the call to `autoAttach` is best placed in a constructor.
 
 ```ts
 class MyObject extends ManagedObject {
 	constructor() {
 		super();
-		this.observeAttach("someObject");
+		this.autoAttach("someObject");
 	}
 
 	// This property is watched
@@ -121,19 +121,18 @@ class MyActivity extends PageViewActivity {
 }
 ```
 
-## Attaching objects through lists and maps {#attach-lists}
+## Attaching objects through managed lists {#attach-lists}
 
-Rather than attaching objects one by one, you can also attach objects using _lists and maps_ — that's, instances of {@link ManagedList} and {@link ManagedMap}. These classes have been specifically designed to contain {@link ManagedObject} instances, and they can be attached, too.
+Rather than attaching objects one by one, you can also attach objects using _managed lists_ — that is, instances of {@link ManagedList}. This class has been specifically designed to contain {@link ManagedObject} instances, and they can be attached, too.
 
-- After a list (or map) is attached to a {@link ManagedObject} (which includes any other list or map), all objects contained by it are attached to the list itself.
-- Any objects that are added to the list (or map) afterwards, are also automatically attached to it.
-- When an object is unlinked, it's removed from the list/map automatically.
-- To prevent this behavior, you can use the {@link ManagedList.autoAttach autoAttach()} method.
+- After a list is attached to a {@link ManagedObject} (which includes any other list), all objects contained by it are attached to the list itself.
+- Any objects that are added to the list afterwards, are also automatically attached to it.
+- When an object is unlinked, it's removed from the list automatically.
+- To prevent this behavior, you can use the {@link ManagedList.attachAll attachAll()} method.
 
-Refer to the documentation below to learn more about managed lists and maps.
+Refer to the documentation below to learn more about managed lists.
 
 - {@ref ManagedList}
-- {@ref ManagedMap}
 
 ## Understanding attached objects as part of an application {#attach-apps}
 
@@ -141,16 +140,16 @@ A running Desk application consists of different framework objects, mostly arran
 
 By enforcing strict ownership, the lifetime of event handlers and property bindings becomes linked to the state of the objects themselves — for example, when the user moves to another part of your application, views and/or activities are unlinked, and all references between objects are automatically removed.
 
-- The {@link app} singleton object owns an _activation context_ object, i.e. an instance of {@link ActivationContext} (attached).
-- The activation context contains a {@link ManagedList} that contains all of the current 'root' activities (i.e. instances of {@link Activity}, attached).
-- Activities can be attached to other activities, through properties or other lists. By attaching activities (indirectly) to the {@link app} object, they're able to find the activation context (for routing) and renderer (to render their views, if any).
+- The {@link app} singleton object owns an _activity context_ object, i.e. an instance of {@link ActivityContext} (attached).
+- The activity context contains a {@link ManagedList} that contains all of the current 'root' activities (i.e. instances of {@link Activity}, attached).
+- Activities can be attached to other activities, through properties or other lists. By attaching activities (indirectly) to the {@link app} object, they're able to find the activity context (for routing) and renderer (to render their views, if any).
 - Each {@link ViewActivity} object creates and unlinks its view automatically, from a static constructor, and then assigns the view instance to the {@link ViewActivity.view} property (attached).
 - Views have different ways of containing other views. For example, {@link UIContainer} instances contain other views through the {@link UIContainer.content} list (attached).
 
 Refer to the documentation for the following classes to learn more.
 
 - {@ref GlobalContext}
-- {@ref ActivationContext}
+- {@ref ActivityContext}
 - {@ref Activity}
 - {@ref ViewActivity}
 - {@ref View}
