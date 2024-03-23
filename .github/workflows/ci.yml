@@ -15,6 +15,6 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run check-format
-      - run: npm run check-docs
       - run: npm run build
+      - run: npm run check-docs
       - run: npm test
