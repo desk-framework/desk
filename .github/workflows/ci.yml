@@ -15,5 +15,6 @@ jobs:
         uses: actions/setup-node@v3
       - run: npm ci
       - run: npm run check-format
+      - run: npm run check-docs
       - run: npm run build
       - run: npm test

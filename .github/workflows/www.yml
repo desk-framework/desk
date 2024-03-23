@@ -19,7 +19,8 @@ jobs:
         uses: actions/setup-node@v3
       - run: npm install
       - run: npm run build
-      - run: npm run www
+      - run: npm run generate-docs
+      - run: npm run merge-docs
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v2
         with:
