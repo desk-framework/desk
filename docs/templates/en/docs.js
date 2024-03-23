@@ -28,8 +28,8 @@ export const template = async (html, data, builder) => `
 				/>
 			</a>
 			<div class="header_links">
-				<a href="/en/about.html">About</a>
-				<a href="/en/docs/index.html">Docs</a>
+				<a href="/docs/en/introduction.html">About</a>
+				<a href="/docs/en/">Docs</a>
 				<a href="https://github.com/desk-framework/desk" target="_blank">
 					<img src="/github-mark-white.svg" alt="GitHub" />
 				</a>

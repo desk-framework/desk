@@ -56,10 +56,9 @@ menu_type: index
 
 ## Testing {#testing}
 
-- {@link test-context +}
 - {@link tests +}
 - {@link assertions +}
-- {@link ui-tests +}
+- {@link test-context +}
 
 ## Web platform {#web-platform}
 
