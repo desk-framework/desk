@@ -1,10 +1,14 @@
 ---
 title: Views
 folder: topics
-abstract: This article is not yet available.
+abstract: A high-level description of views, UI components, and JSX syntax.
 ---
 
 # Views
+
+> {@include abstract}
+
+## Overview {#overview}
 
 ## Using views
 
