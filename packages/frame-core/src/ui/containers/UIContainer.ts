@@ -4,12 +4,7 @@ import {
 	ManagedList,
 	Observer,
 } from "../../base/index.js";
-import type {
-	RenderContext,
-	View,
-	ViewClass,
-	ViewEvent,
-} from "../../app/index.js";
+import type { View, ViewClass } from "../../app/index.js";
 import { UIComponent } from "../UIComponent.js";
 import type { UIColor } from "../UIColor.js";
 
@@ -29,7 +24,12 @@ export abstract class UIContainer extends UIComponent {
 				super();
 			}
 			protected override handleEvent(event: ManagedEvent) {
-				this.container.delegateContentEvent(event);
+				if (
+					!event.noPropagation &&
+					!(event as ManagedChangeEvent).isChangeEvent
+				) {
+					this.container.emit(event);
+				}
 			}
 		}
 		this.content = this.attach(new ManagedList(), new ContentObserver(this));
@@ -46,17 +46,13 @@ export abstract class UIContainer extends UIComponent {
 		preset: View.ViewPreset<
 			UIComponent,
 			this,
-			"layout" | "padding" | "spacing"
-		> & {
-			/** True if this container *itself* may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` */
-			allowFocus?: boolean;
-			/** True if this container *itself* may receive input focus using the keyboard and all other methods */
-			allowKeyboardFocus?: boolean;
-			/** True if all content views should be rendered asynchronously (results in smoother updates with slightly longer lead times) */
-			asyncContentRendering?: boolean;
-			/** Event that's emitted by the container renderer when content is being rendered */
-			onContentRendering?: string;
-		},
+			| "layout"
+			| "padding"
+			| "spacing"
+			| "allowFocus"
+			| "allowKeyboardFocus"
+			| "asyncContentRendering"
+		>,
 	) {
 		if (preset.allowKeyboardFocus) preset.allowFocus = true;
 		super.applyViewPreset(preset);
@@ -70,39 +66,6 @@ export abstract class UIContainer extends UIComponent {
 			else match.push(...c.findViewContent(type));
 		}
 		return match;
-	}
-
-	/**
-	 * Delegates events from content view objects
-	 * - This method is called automatically when an event is emitted by any of the content view objects.
-	 * - For most events (see below), the base implementation re-emits the same event on the container view itself; or a new event object with `delegate` property set to the container, if the `emitDelegate` parameter is set to true.
-	 * - Events not re-emitted include (list) change events, renderer events (@link RenderContext.RendererEvent), and cell MouseEnter and MouseLeave events.
-	 * - This method may be overridden to handle events in any other way.
-	 * @param event The event to be delegated (from a content view object)
-	 * @returns True if the event has been re-emitted
-	 */
-	protected delegateContentEvent(event: ManagedEvent, emitDelegate?: boolean) {
-		// propagate all events from components except renderer events
-		// AND MouseEnter / MouseLeave events so that UICell components
-		// do not emit these events for content components, only themselves
-		if (
-			!(event as ManagedChangeEvent).isChangeEvent &&
-			!(event as RenderContext.RendererEvent).isRendererEvent &&
-			event.name !== "MouseEnter" &&
-			event.name !== "MouseLeave"
-		) {
-			if (emitDelegate) {
-				event = new ManagedEvent(
-					event.name,
-					event.source,
-					event.data,
-					this,
-					event,
-				);
-			}
-			this.emit(event);
-			return true;
-		}
 	}
 
 	/** The list of all content view objects */
@@ -148,16 +111,6 @@ export abstract class UIContainer extends UIComponent {
 }
 
 export namespace UIContainer {
-	/** Type definition for an event that's emitted (only) on a container when content is being rendered */
-	export type ContentRenderingEvent<
-		TContainer extends UIContainer = UIContainer,
-	> = RenderContext.RendererEvent &
-		ViewEvent<
-			TContainer,
-			{ output: Array<RenderContext.Output | undefined> },
-			"ContentRendering"
-		>;
-
 	/** Options for layout of components within a container */
 	export type Layout = {
 		/** Axis along which content is distributed (defaults to vertical) */

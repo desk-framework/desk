@@ -594,7 +594,7 @@ export class ManagedList<
 	 *
 	 * When enabled, if the list currently contains any objects, they're immediately attached. Note that the feature can't be disabled once it has been enabled and there are any objects in the list.
 	 *
-	 * When enabled, events emitted on any object in the list are automatically re-emitted on the list itself (propagating the event) — unless the `noEventPropagation` argument is set to true.
+	 * When enabled, events emitted on any object in the list are automatically re-emitted on the list itself (propagating the event) — unless the `noEventPropagation` argument is set to true, or the {@link ManagedEvent.noPropagation} property is set on the event itself.
 	 *
 	 * @note Objects in a list that's itself attached to another object are also automatically attached. On a list that's itself attached, you may use this method to _disable_ this feature before adding any objects.
 	 *
@@ -671,6 +671,8 @@ class AttachObserver extends Observer<ManagedList> {
 		super.stop();
 	}
 	protected override handleEvent(event: ManagedEvent) {
-		if (this.propagate) this.list.emit(event);
+		if (this.propagate && !event.noPropagation) {
+			this.list.emit(event);
+		}
 	}
 }

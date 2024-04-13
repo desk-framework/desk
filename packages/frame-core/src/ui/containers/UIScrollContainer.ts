@@ -1,6 +1,11 @@
-import { RenderContext, View } from "../../app/index.js";
-import type { ManagedEvent } from "../../base/index.js";
+import type { View } from "../../app/index.js";
+import { ManagedEvent } from "../../base/index.js";
 import { UIContainer } from "./UIContainer.js";
+
+/** @internal Helper function to emit a scroll event */
+function emitScroll(source: View, name: string, data: any) {
+	source.emit(new ManagedEvent(name, source, data, undefined, undefined, true));
+}
 
 /**
  * A view class that represents a container component that allows users to scroll, emitting asynchronous scroll events
@@ -58,12 +63,7 @@ export class UIScrollContainer extends UIContainer {
 	 * @note Positioning is platform dependent and may also change with text direction. Use only offset values taken from {@link UIScrollContainer.ScrollEventData}.
 	 */
 	scrollTo(yOffset?: number, xOffset?: number) {
-		this.emit(
-			new RenderContext.RendererEvent("UIScrollTarget", this, {
-				yOffset,
-				xOffset,
-			}),
-		);
+		emitScroll(this, "UIScrollTarget", { yOffset, xOffset });
 	}
 
 	/**
@@ -71,11 +71,7 @@ export class UIScrollContainer extends UIContainer {
 	 * - This action may be handled asynchronously, and may not take effect immediately.
 	 */
 	scrollToTop() {
-		this.emit(
-			new RenderContext.RendererEvent("UIScrollTarget", this, {
-				target: "top",
-			}),
-		);
+		emitScroll(this, "UIScrollTarget", { target: "top" });
 	}
 
 	/**
@@ -83,11 +79,7 @@ export class UIScrollContainer extends UIContainer {
 	 * - This action may be handled asynchronously, and may not take effect immediately.
 	 */
 	scrollToBottom() {
-		this.emit(
-			new RenderContext.RendererEvent("UIScrollTarget", this, {
-				target: "bottom",
-			}),
-		);
+		emitScroll(this, "UIScrollTarget", { target: "bottom" });
 	}
 }
 

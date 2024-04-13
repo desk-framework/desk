@@ -68,12 +68,32 @@ export class ManagedEvent<
 	TName extends string = string,
 > {
 	/**
+	 * Creates a new event with the same properties as the original event, and the specified delegate
+	 * @param event The original event
+	 * @param delegate The managed object to set as the delegate
+	 * @returns A new event object with the specified delegate
+	 */
+	static withDelegate(
+		event: ManagedEvent,
+		delegate?: ManagedObject,
+	): ManagedEvent {
+		return new ManagedEvent(
+			event.name,
+			event.source,
+			event.data,
+			delegate,
+			event,
+		);
+	}
+
+	/**
 	 * Creates a new event with the specified name
 	 * @param name The name of the event
 	 * @param source Managed object that will emit the event
 	 * @param data Object that contains further details about the specific event
 	 * @param delegate Managed object that delegated the event, if any
 	 * @param inner Encapsulated event, if any (intercepted or forwarded)
+	 * @param noPropagation True if the event should not be propagated
 	 */
 	constructor(
 		name: TName,
@@ -81,12 +101,15 @@ export class ManagedEvent<
 		data?: TData,
 		delegate?: ManagedObject,
 		inner?: ManagedEvent,
+		noPropagation?: boolean,
 	) {
 		this.name = name;
 		this.source = source;
-		this.data = data as TData;
+		this.data = data!;
 		this.delegate = delegate;
 		this.inner = inner;
+		this.noPropagation = noPropagation;
+		Object.freeze(this);
 	}
 
 	/** The name of the event, should start with a capital letter */
@@ -95,10 +118,12 @@ export class ManagedEvent<
 	readonly source: TSource;
 	/** Object that contains arbitrary event data (if any) */
 	readonly data: Readonly<TData>;
-	/** An object that delegated the event, if any, e.g. {@link UIForm} or {@link UIListView.ItemControllerView} */
+	/** An object that delegated the event, if any */
 	readonly delegate?: ManagedObject;
 	/** The original event, if the event was intercepted or propagated */
 	readonly inner?: ManagedEvent;
+	/** True if the event should not be propagated or delegated (by managed lists, activities, views, etc.) */
+	readonly noPropagation?: boolean;
 }
 
 /**
@@ -121,7 +146,7 @@ export class ManagedChangeEvent<
 
 /**
  * A generic type definition for an event that has been propagated by a delegate object
- * - The `source` property refers to the object that originally emitted (or intercepted) the event; however, the `delegate` property can be used to find the object that delegated the event, e.g. {@link UIForm} or {@link UIListView.ItemControllerView}.
+ * - The `source` property refers to the object that originally emitted (or intercepted) the event; however, the `delegate` property can be used to find the object that delegated the event, e.g. an activity or view composite.
  */
 export type DelegatedEvent<
 	TDelegate extends ManagedObject,
@@ -131,6 +156,6 @@ export type DelegatedEvent<
 		| undefined,
 	TName extends string = string,
 > = ManagedEvent<TSource, TData, TName> & {
-	/** The object that delegated the event, e.g. {@link UIForm} or {@link UIListView.ItemControllerView} */
+	/** The object that delegated the event, e.g. an activity or view composite */
 	readonly delegate: TDelegate;
 };

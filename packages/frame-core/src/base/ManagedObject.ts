@@ -108,12 +108,14 @@ export class ManagedObject {
 	/**
 	 * Emits an event, immediately calling all event handlers
 	 * - Events can be handled using {@link ManagedObject.listen()} or an {@link Observer}. Refer to {@link ManagedEvent} for details.
+	 * - If the first argument is undefined, no event is emitted at all and this method returns quietly
 	 * @param event An instance of ManagedEvent, or an event name; if a name is provided, an instance of ManagedEvent will be created by this method
 	 * @param data Additional data to be set on {@link ManagedEvent.data}, if `event` is a string
 	 */
-	emit(event: ManagedEvent): this;
+	emit(event?: ManagedEvent): this;
 	emit(event: string, data?: any): this;
-	emit(event: string | ManagedEvent, data?: any) {
+	emit(event?: string | ManagedEvent, data?: any) {
+		if (event === undefined) return this;
 		if (typeof event === "string") event = new ManagedEvent(event, this, data);
 
 		// trigger traps as if event is written to a property

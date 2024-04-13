@@ -96,6 +96,7 @@ export abstract class View extends ManagedObject {
 		if (events) {
 			let _emit = this.emit.bind(this);
 			this.emit = function (event, data?) {
+				if (event === undefined) return this;
 				if (typeof event === "string") {
 					event = new ManagedEvent(event, this, data);
 				} else {
@@ -120,7 +121,8 @@ export abstract class View extends ManagedObject {
 				}
 
 				// emit intercept event with original event as `inner`
-				return this.emit(new ManagedEvent(v, this, data, undefined, event));
+				event = new ManagedEvent(v, this, data, undefined, event);
+				return this.emit(event);
 			};
 		}
 	}

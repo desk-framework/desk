@@ -1,5 +1,6 @@
 import {
 	ManagedChangeEvent,
+	ManagedEvent,
 	Observer,
 	RenderContext,
 	UIComponent,
@@ -89,8 +90,18 @@ export abstract class TestBaseObserver<
 	TUIComponent extends UIComponent,
 > extends Observer<TUIComponent> {
 	override observe(observed: TUIComponent) {
+		this._thisRenderedEvent = new ManagedEvent(
+			"Rendered",
+			observed,
+			undefined,
+			undefined,
+			undefined,
+			true,
+		);
 		return super.observe(observed).observePropertyAsync("hidden", "position");
 	}
+
+	private _thisRenderedEvent?: ManagedEvent;
 
 	/** Handler for base property changes; must be overridden to handle other UI component properties */
 	protected override async handlePropertyChange(
@@ -176,13 +187,26 @@ export abstract class TestBaseObserver<
 	handlePlatformEvent(name: TestOutputElement.PlatformEvent, data?: any) {
 		let baseEvent = _eventNames[name];
 		if (baseEvent && this.observed && !this.observed.isUnlinked()) {
-			this.observed.emit(baseEvent, data);
+			let event = new ManagedEvent(
+				baseEvent,
+				this.observed,
+				data,
+				undefined,
+				undefined,
+				baseEvent === "MouseEnter" || baseEvent === "MouseLeave",
+			);
+			this.observed.emit(event);
 		}
 	}
 
 	/** Render event handler, calls encapsulated render callback with existing or new output */
-	onRender(event: RenderContext.RendererEvent) {
-		if (event.render && event.source === this.observed) {
+	onRender(
+		event: ManagedEvent<UIComponent, { render: RenderContext.RenderCallback }>,
+	) {
+		if (
+			typeof event.data.render === "function" &&
+			event.source === this.observed
+		) {
 			if (!this.element) {
 				// create output element if needed
 				let output = (this.output = this.getOutput());
@@ -198,7 +222,7 @@ export abstract class TestBaseObserver<
 			this.update(this.element);
 
 			// call render callback with new element
-			this.updateCallback = event.render.call(
+			this.updateCallback = event.data.render.call(
 				undefined,
 				this._hidden ? undefined : this.output,
 				() => {
@@ -210,9 +234,7 @@ export abstract class TestBaseObserver<
 
 					// emit Rendered event
 					if (this.observed && !this.observed.isUnlinked()) {
-						this.observed.emit(
-							new RenderContext.RendererEvent("Rendered", this.observed),
-						);
+						this.observed.emit(this._thisRenderedEvent);
 					}
 				},
 			);
@@ -222,7 +244,7 @@ export abstract class TestBaseObserver<
 	updateCallback?: RenderContext.RenderCallback;
 
 	/** Focus current element if possible */
-	onRequestFocus(event: RenderContext.RendererEvent) {
+	onRequestFocus(event: ManagedEvent) {
 		if (event.source === this.observed) {
 			if (this.element)
 				(app.renderer as TestRenderer).tryFocusElement(this.element);
@@ -233,7 +255,7 @@ export abstract class TestBaseObserver<
 	private _requestedFocus?: boolean;
 
 	/** Focus next sibling element if possible */
-	onRequestFocusNext(event: RenderContext.RendererEvent) {
+	onRequestFocusNext(event: ManagedEvent) {
 		if (event.source === this.observed && this.element) {
 			let current = this.element;
 			if (current.parent) {
@@ -251,7 +273,7 @@ export abstract class TestBaseObserver<
 	}
 
 	/** Focus previous sibling element if possible */
-	onRequestFocusPrevious(event: RenderContext.RendererEvent) {
+	onRequestFocusPrevious(event: ManagedEvent) {
 		if (event.source === this.observed && this.element) {
 			let current = this.element;
 			if (current.parent) {
