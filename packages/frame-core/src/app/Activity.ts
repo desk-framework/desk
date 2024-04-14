@@ -168,7 +168,7 @@ export class Activity extends ManagedObject {
 			},
 			async () => {
 				if (this.isUnlinked()) return;
-				this.emitChange("Active");
+				this.emit("Active", { change: this });
 				this._hotInstances?.add(this);
 				await this.afterActiveAsync();
 				this.ready();
@@ -194,7 +194,7 @@ export class Activity extends ManagedObject {
 				return this.beforeInactiveAsync();
 			},
 			() => {
-				this.emitChange("Inactive");
+				this.emit("Inactive", { change: this });
 				return this.afterInactiveAsync();
 			},
 		);

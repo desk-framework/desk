@@ -14,11 +14,8 @@ export type ViewClass<T extends View = View> = new (...args: any[]) => T;
 /** Type definition for an event that's emitted on a view object */
 export type ViewEvent<
 	TSource extends View = View,
-	TData extends Record<string, unknown> | undefined =
-		| Record<string, unknown>
-		| undefined,
-	TName extends string = string,
-> = ManagedEvent<TSource, TData, TName>;
+	TData extends Record<string, unknown> = Record<string, unknown>,
+> = ManagedEvent<TSource, TData>;
 
 /**
  * An abstract class that represents a view

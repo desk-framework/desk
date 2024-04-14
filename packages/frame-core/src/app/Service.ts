@@ -29,6 +29,15 @@ export abstract class Service extends ManagedObject {
 	abstract readonly id: string;
 
 	/**
+	 * Emits a change event on this service
+	 * - A change event is a special type of event that's used to indicate that the service state has changed in some way. The event data includes a `change` property that references the service itself.
+	 * @param name The name of the change event; defaults to "Change"
+	 */
+	emitChange(name = "Change") {
+		return this.emit(name, { change: this });
+	}
+
+	/**
 	 * Observes another service by ID, until the current service is unlinked
 	 * @param id The ID of the service to be observed
 	 * @param observer An {@link Observer} class or instance, or a function that's called whenever a change event is emitted by the target service (with service and event arguments, respectively), and when the target service is unlinked (without any arguments)

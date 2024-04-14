@@ -1,5 +1,4 @@
 import {
-	ManagedChangeEvent,
 	ManagedEvent,
 	Observer,
 	RenderContext,
@@ -107,7 +106,7 @@ export abstract class TestBaseObserver<
 	protected override async handlePropertyChange(
 		property: string,
 		value: any,
-		event?: ManagedChangeEvent,
+		event?: ManagedEvent,
 	) {
 		if (this.observed && this.element) {
 			switch (property) {

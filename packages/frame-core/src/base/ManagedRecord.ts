@@ -59,6 +59,15 @@ export class ManagedRecord extends ManagedObject {
 	}
 
 	/**
+	 * Emits a change event for this record
+	 * - A change event is a special type of event that's used to indicate that the record has been modified in some way. The event data includes a `change` property that references the record itself.
+	 * @param name The name of the change event; defaults to "Change"
+	 */
+	emitChange(name = "Change") {
+		return this.emit(name, { change: this });
+	}
+
+	/**
 	 * Returns the parent record (or parent's parent, etc.) that's an instance of the provided class
 	 * - If no class is provided, the closest ManagedRecord parent is returned, if any.
 	 */

@@ -1,5 +1,5 @@
 import {
-	ManagedChangeEvent,
+	ManagedEvent,
 	RenderContext,
 	UIColumn,
 	UIContainer,
@@ -38,7 +38,7 @@ export class UIContainerRenderer<
 	protected override async handlePropertyChange(
 		property: string,
 		value: any,
-		event?: ManagedChangeEvent,
+		event?: ManagedEvent,
 	) {
 		if (this.observed && this.element) {
 			switch (property) {

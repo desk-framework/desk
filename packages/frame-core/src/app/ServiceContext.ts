@@ -77,7 +77,7 @@ export class ServiceContext extends ManagedObject {
 	private _map?: Map<string, Service>;
 	private _list = this.attach(new ManagedList<Service>(), (list) => {
 		this._map = new Map(list?.map((s) => [s.id, s]));
-		this.emitChange();
+		this.emit("Change", { change: this });
 	});
 }
 

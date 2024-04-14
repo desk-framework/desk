@@ -75,7 +75,7 @@ export class WebViewportContext
 			this.tall = tall;
 			changed = true;
 		}
-		if (changed) this.emitChange();
+		if (changed) this.emit("Resize", { change: this });
 	}
 
 	private _smallBreakpoint: number;

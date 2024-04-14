@@ -39,6 +39,10 @@ describe("Observers", () => {
 		bindFoo() {
 			bound("foo").bindTo(this, "foo");
 		}
+
+		emitChange(name = "Change") {
+			this.emit(name, { change: this });
+		}
 	}
 
 	describe("Synchronous observation", () => {
@@ -832,7 +836,7 @@ describe("Observers", () => {
 						if (event) t.count("change");
 						if (target === attached) t.count("observe");
 					});
-					attached.emitChange();
+					attached.emit("Change", { change: attached });
 				}
 			}
 			new MyObject().go();
@@ -863,7 +867,7 @@ describe("Observers", () => {
 						if (event) t.count("change");
 						if (target instanceof MyObject) t.count("observe");
 					});
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 				}
 			}
 			new MyObject().go();
@@ -897,9 +901,9 @@ describe("Observers", () => {
 						else if (!target) t.count("stop");
 					});
 					this.foo = new MyObject();
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 					this.foo = new MyObject();
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 				}
 			}
 			new MyObject().go();
@@ -935,7 +939,7 @@ describe("Observers", () => {
 						else if (!target) t.count("stop");
 					});
 					this.foo = new MyObject();
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 					this.foo.unlink();
 					expect(this.foo).toBeUndefined();
 				}
@@ -977,14 +981,14 @@ describe("Observers", () => {
 						else if (!target) t.count("stop");
 					});
 					this.foo = new MyObject();
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 					expect(
 						// move object, check that it is no longer attached
 						ManagedObject.whence(new MyObject().attach(this.foo)),
 					).not.toBe(this);
 					expect(this.foo).toBeUndefined();
 					this.foo = new MyObject();
-					this.foo.emitChange();
+					this.foo.emit("Change", { change: this.foo });
 				}
 			}
 			new MyObject().go();

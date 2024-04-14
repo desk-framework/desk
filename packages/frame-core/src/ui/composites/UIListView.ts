@@ -1,7 +1,6 @@
 import { View, ViewClass, ViewComposite } from "../../app/index.js";
 import {
 	BindingOrValue,
-	DelegatedEvent,
 	ManagedEvent,
 	ManagedList,
 	ManagedObject,
@@ -122,7 +121,7 @@ export class UIListView<
 	/**
 	 * The list container component
 	 * - On instances of preset UIList classes, this property defaults to a column view without any spacing, but can be preset to another container view.
-	 * - This property should not be changed on UIList instances.
+	 * - This property should not be changed on existing UIList instances.
 	 */
 	declare body: UIRow | UIColumn;
 
@@ -377,5 +376,8 @@ export namespace UIListView {
 	export type ItemEvent<
 		TItem,
 		TSource extends ManagedObject = ManagedObject,
-	> = DelegatedEvent<ItemControllerView<TItem>, TSource>;
+	> = ManagedEvent<TSource> & {
+		/** The item controller view that delegated the event; can be used to access the list item */
+		delegate: ItemControllerView<TItem>;
+	};
 }

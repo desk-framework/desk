@@ -1,10 +1,5 @@
-import {
-	ManagedChangeEvent,
-	ManagedEvent,
-	ManagedList,
-	Observer,
-} from "../../base/index.js";
-import type { View, ViewClass } from "../../app/index.js";
+import { ManagedEvent, ManagedList, Observer } from "../../base/index.js";
+import { View, ViewClass } from "../../app/index.js";
 import { UIComponent } from "../UIComponent.js";
 import type { UIColor } from "../UIColor.js";
 
@@ -24,10 +19,7 @@ export abstract class UIContainer extends UIComponent {
 				super();
 			}
 			protected override handleEvent(event: ManagedEvent) {
-				if (
-					!event.noPropagation &&
-					!(event as ManagedChangeEvent).isChangeEvent
-				) {
+				if (event.source instanceof View && !event.noPropagation) {
 					this.container.emit(event);
 				}
 			}

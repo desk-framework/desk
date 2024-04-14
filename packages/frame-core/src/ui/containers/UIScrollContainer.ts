@@ -34,9 +34,9 @@ export class UIScrollContainer extends UIContainer {
 			| "verticalScrollEnabled"
 			| "horizontalScrollEnabled"
 		> & {
-			/** Event that's emitted when the visible area is scrolled */
+			/** Event that's emitted when the visible area is scrolled, a {@link UIScrollContainer.ScrollEvent} */
 			onScroll?: string;
-			/** Event that's emitted after the visible area has been scrolled */
+			/** Event that's emitted after the visible area has been scrolled, a {@link UIScrollContainer.ScrollEvent} */
 			onScrollEnd?: string;
 		},
 	) {
@@ -84,12 +84,11 @@ export class UIScrollContainer extends UIContainer {
 }
 
 export namespace UIScrollContainer {
-	/** Type definition for an event that's emitted when the user scrolls up, down, left, or right in a {@link UIScrollContainer} */
-	export type ScrollEvent = ManagedEvent<
-		UIScrollContainer,
-		ScrollEventData,
-		"Scroll" | "ScrollEnd"
-	>;
+	/**
+	 * Type definition for an event that's emitted when the user scrolls up, down, left, or right in a {@link UIScrollContainer}
+	 * - Scroll events are emitted either as `Scroll` or `ScrollEnd` events. The latter is emitted after the user has stopped scrolling.
+	 */
+	export type ScrollEvent = ManagedEvent<UIScrollContainer, ScrollEventData>;
 
 	/**
 	 * The data structure contained by each {@link UIScrollContainer.ScrollEvent}
