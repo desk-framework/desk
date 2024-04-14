@@ -193,7 +193,7 @@ export class UIFormContext<TData = any> extends ManagedObject {
 	 * - This method is called automatically when setting or removing form fields. After emitting a change event, existing bindings for values or errors should be updated automatically.
 	 */
 	emitFormChange() {
-		this.emit("FormChange", { change: this });
+		this.emitChange("FormChange");
 	}
 
 	/**

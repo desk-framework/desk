@@ -322,7 +322,7 @@ export class ManagedList<
 		}
 
 		// emit event for moves, if needed
-		if (doEmitChange) this.emit("ManagedListChange", { change: this });
+		if (doEmitChange) this.emitChange();
 
 		return this;
 	}
@@ -376,7 +376,7 @@ export class ManagedList<
 					if (object[$_origin] === this) unlinkObject(object);
 				}
 			}
-			this.emit("ManagedListChange", { change: this });
+			this.emitChange();
 		}
 		return this;
 	}

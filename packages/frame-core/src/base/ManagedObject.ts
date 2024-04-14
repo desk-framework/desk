@@ -113,12 +113,25 @@ export class ManagedObject {
 	 * @param data Additional data to be set on {@link ManagedEvent.data}, if `event` is a string
 	 */
 	emit(event?: ManagedEvent): this;
-	emit(event: string, data?: any): this;
+	emit(event: string, data?: Record<string, any>): this;
 	emit(event?: string | ManagedEvent, data?: any) {
 		if (event === undefined) return this;
 		if (typeof event === "string") event = new ManagedEvent(event, this, data);
 
 		// trigger traps as if event is written to a property
+		invokeTrap(this, $_traps_event, event);
+		return this;
+	}
+
+	/**
+	 * Emits a change event
+	 * - A change event can be used to indicate that the state of this object has changed in some way. The event emitted is a regular instance of {@link ManagedEvent}, but includes a data object with a `change` property that references the object itself.
+	 * - Change events can be handled by observers, callback functions provided to {@link ManagedObject.attach} and {@link ManagedObject.autoAttach}, and also update bindings for properties of this object.
+	 * @param name The name of the event; defaults to "Change"
+	 * @param data Additional data to be set on {@link ManagedEvent.data}; will be combined with the `change` property
+	 */
+	emitChange(name = "Change", data?: Record<string, any>) {
+		let event = new ManagedEvent(name, this, { change: this, ...data });
 		invokeTrap(this, $_traps_event, event);
 		return this;
 	}

@@ -354,7 +354,7 @@ describe("Bindings", () => {
 			expect(p.bound).toHaveProperty("a").toBe(1);
 			p.changeable.nonObserved = 2;
 			expect(p.bound).toHaveProperty("a").toBe(1);
-			p.changeable.emit("Update", { change: p.changeable });
+			p.changeable.emitChange("Update");
 			expect(p.bound).toHaveProperty("a").toBe(2);
 		});
 

@@ -177,7 +177,7 @@ export class WebRenderer extends RenderContext {
 	 * - This method also emits a `Remount` change event on the renderer, to trigger a full re-render
 	 */
 	remount() {
-		this.emit("Remount", { change: this });
+		this.emitChange("Remount");
 		for (let mount of this._mounts.values()) {
 			mount.remount();
 		}
