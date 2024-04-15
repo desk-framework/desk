@@ -5,13 +5,7 @@ import {
 	ManagedObject,
 	StringConvertible,
 } from "../base/index.js";
-import {
-	ERROR,
-	err,
-	errorHandler,
-	safeCall,
-	setErrorHandler,
-} from "../errors.js";
+import { ERROR, err, safeCall, setErrorHandler } from "../errors.js";
 import { UITheme } from "../ui/UITheme.js";
 import { ActivityContext } from "./ActivityContext.js";
 import type { NavigationController } from "./NavigationController.js";
@@ -168,7 +162,7 @@ export class GlobalContext extends ManagedObject {
 	 */
 	addActivity(activity: Activity, activate?: boolean) {
 		this.activities.add(activity);
-		if (activate) activity.activateAsync().catch(errorHandler);
+		if (activate) safeCall(() => activity.activateAsync());
 		return this;
 	}
 
@@ -204,14 +198,12 @@ export class GlobalContext extends ManagedObject {
 			| { getNavigationTarget(): NavigationTarget },
 		mode?: NavigationController.NavigationMode,
 	) {
-		if (this.activities.navigationController) {
-			safeCall(() =>
-				this.activities.navigationController.navigateAsync(
-					new NavigationTarget(target),
-					mode,
-				),
-			);
-		}
+		safeCall(() =>
+			this.activities.navigationController.navigateAsync(
+				new NavigationTarget(target),
+				mode,
+			),
+		);
 		return this;
 	}
 
@@ -220,13 +212,11 @@ export class GlobalContext extends ManagedObject {
 	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate back within navigation history, if possible.
 	 */
 	goBack() {
-		if (this.activities.navigationController) {
-			safeCall(() =>
-				this.activities.navigationController.navigateAsync(undefined, {
-					back: true,
-				}),
-			);
-		}
+		safeCall(() =>
+			this.activities.navigationController.navigateAsync(undefined, {
+				back: true,
+			}),
+		);
 		return this;
 	}
 
