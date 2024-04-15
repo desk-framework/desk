@@ -21,9 +21,6 @@ import { ServiceContext } from "./ServiceContext.js";
 import type { View } from "./View.js";
 import type { ViewportContext } from "./ViewportContext.js";
 
-/** A map to keep track of views that have already been displayed with showPage and showDialog, and shouldn't be re-rendered */
-const shownViews = new WeakMap<View, boolean>();
-
 /**
  * A singleton class that represents the global application state
  *
@@ -35,6 +32,17 @@ const shownViews = new WeakMap<View, boolean>();
 export class GlobalContext extends ManagedObject {
 	/** @internal The current singleton instance, available as {@link app} */
 	static readonly instance = new GlobalContext();
+
+	/**
+	 * Sets a global unhandled error handler
+	 * - This method _replaces_ the current handler, if any, and is not cleared by {@link GlobalContext.clear()}.
+	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link GlobalContext.addLogHandler app.addLogHandler()}.
+	 * - In a test context, the global error handler is overridden to catch all unhandled errors during tests.
+	 * @param f A handler function, which should accept a single error argument (with `unknown` type)
+	 */
+	setErrorHandler(f: (err: unknown) => void) {
+		setErrorHandler(f);
+	}
 
 	/** Private constructor, cannot be used */
 	private constructor() {
@@ -390,16 +398,6 @@ export class GlobalContext extends ManagedObject {
 	}
 
 	/**
-	 * Sets a global unhandled error handler
-	 * - This method _replaces_ the current handler, if any. it's not cleared by {@link GlobalContext.clear()} either; and must not be set in a test context to allow the test runner to catch unhandled errors.
-	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link GlobalContext.addLogHandler app.addLogHandler()}.
-	 * @param f A handler function, which should accept a single error argument (with `unknown` type)
-	 */
-	setErrorHandler(f: (err: unknown) => void) {
-		setErrorHandler(f);
-	}
-
-	/**
 	 * Adds a hot-reload handler for the provided module handle, to update instances of a particular activity
 	 * - Where supported, hot-reloading the provided module will update instances of the specified activity: updating methods (but not properties), and calling {@link Activity.ready()}.
 	 * - If hot-reloading isn't supported, e.g. if the application is compiled in production mode, this method does nothing.
@@ -422,6 +420,9 @@ export class GlobalContext extends ManagedObject {
  * Use `app` to access properties and methods of {@link GlobalContext}, e.g. `app.theme` and `app.addActivity(...)`. This instance is available immediately when the application starts, and remains the same throughout its lifetime.
  */
 export const app = GlobalContext.instance;
+
+/** A map to keep track of views that have already been displayed with showPage and showDialog, and shouldn't be re-rendered */
+const shownViews = new WeakMap<View, boolean>();
 
 // use default error handler
 setErrorHandler((err) => {
