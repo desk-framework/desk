@@ -36,11 +36,11 @@ export class GlobalContext extends ManagedObject {
 	/**
 	 * Sets a global unhandled error handler
 	 * - This method _replaces_ the current handler, if any, and is not cleared by {@link GlobalContext.clear()}.
-	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link GlobalContext.addLogHandler app.addLogHandler()}.
+	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link LogWriter.addHandler}.
 	 * - In a test context, the global error handler is overridden to catch all unhandled errors during tests.
 	 * @param f A handler function, which should accept a single error argument (with `unknown` type)
 	 */
-	setErrorHandler(f: (err: unknown) => void) {
+	static setErrorHandler(f: (err: unknown) => void) {
 		setErrorHandler(f);
 	}
 
@@ -130,8 +130,7 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * The global message log writer instance, an instance of {@link LogWriter}
-	 * - You can use `app.log` methods to write messages to the current application log.
-	 * - To add a log output handler, use {@link GlobalContext.addLogHandler app.addLogHandler()}. If none are added, log messages are written to the console.
+	 * - You can use `app.log` methods to write messages to the current application log, and add a log sink handler. If no handler is added, log messages are written to the console.
 	 * - Refer to {@link LogWriter} for available methods of `app.log`.
 	 */
 	log = new LogWriter();
@@ -381,20 +380,6 @@ export class GlobalContext extends ManagedObject {
 		if (out && animation) {
 			await this.renderer.animateAsync(out, animation);
 		}
-	}
-
-	/**
-	 * Adds a log sink for the current {@link LogWriter} instance
-	 * @param minLevel The minimum log level for which messages are passed to the handler function
-	 * @param f A handler function, which should accept a single {@link LogWriter.LogMessageData} argument
-	 */
-	addLogHandler(
-		minLevel: number,
-		f: (message: LogWriter.LogMessageData) => void,
-	) {
-		this.log.emitter.listen((e) => {
-			if (e.data.level >= minLevel) f(e.data);
-		});
 	}
 
 	/**
