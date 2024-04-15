@@ -462,7 +462,7 @@ export class Binding<T = any> {
 
 	/**
 	 * Adds a filter, to emit an event whenever the bound value changes.
-	 * - For every change, an event will be emitted on {@link Binding.debugEmitter}. Events include both a reference to the binding and its new value, see {@link Binding.DebugUpdate}.
+	 * - For every change, the {@link Binding.debugHandler} handler function is called with the new value and a boolean flag indicating whether the value is bound.
 	 * @returns The binding itself, with debug events enabled
 	 */
 	debug() {
