@@ -1,17 +1,14 @@
 import {
 	app,
-	ManagedChangeEvent,
+	ManagedEvent,
 	RenderContext,
 	ui,
-	UICell,
 	UIColumn,
-	UIComponent,
 	UIContainer,
 	UIRow,
 	UIScrollContainer,
 	UIStyle,
 	View,
-	ViewEvent,
 } from "@desk-framework/frame-core";
 import {
 	CLASS_CELL,
@@ -32,15 +29,20 @@ export class UIContainerRenderer<
 	override observe(observed: UIContainer) {
 		let result = super
 			.observe(observed as any)
-			.observePropertyAsync("content", "layout", "padding", "spacing");
+			.observePropertyAsync("content", "layout", "padding");
 		if (observed instanceof UIRow) {
-			result.observePropertyAsync("height" as any, "align" as any);
+			result.observePropertyAsync(
+				"height" as any,
+				"align" as any,
+				"spacing" as any,
+			);
 		}
 		if (observed instanceof UIColumn) {
 			result.observePropertyAsync(
 				"width" as any,
 				"align" as any,
 				"distribute" as any,
+				"spacing" as any,
 			);
 		}
 		return result;
@@ -55,7 +57,7 @@ export class UIContainerRenderer<
 	protected override async handlePropertyChange(
 		property: string,
 		value: any,
-		event?: ManagedChangeEvent,
+		event?: ManagedEvent,
 	) {
 		if (this.observed && this.element) {
 			switch (property) {
@@ -67,7 +69,7 @@ export class UIContainerRenderer<
 					return;
 				case "layout":
 				case "padding":
-				case "align": // for rows and columns
+				case "align":
 					this.scheduleUpdate(undefined, this.element);
 					return;
 			}
@@ -88,45 +90,7 @@ export class UIContainerRenderer<
 				if (this.observed) this.observed.emit("Submit", { event: e });
 			});
 		}
-
-		// add cell mouse handlers, if needed
-		if (this.observed instanceof UICell) {
-			elt.addEventListener("mouseenter", (e) => {
-				if (this.observed) this.observed.emit("MouseEnter", { event: e });
-			});
-			elt.addEventListener("mouseleave", (e) => {
-				if (this.observed) this.observed.emit("MouseLeave", { event: e });
-			});
-		}
-
-		// make (keyboard) focusable, if needed
-		if (this.observed.allowKeyboardFocus) elt.tabIndex = 0;
-		else if (this.observed.allowFocus) elt.tabIndex = -1;
 		return output;
-	}
-
-	/** Last focused component, if this container is keyboard-focusable */
-	lastFocused?: UIComponent;
-
-	/** Switch tabindex on focus */
-	onFocusIn(e: ViewEvent<UIComponent>) {
-		if (!this.observed || !this.element) return;
-		if (e.source !== this.observed && this.observed.allowKeyboardFocus) {
-			// temporarily disable keyboard focus on this parent
-			// to prevent shift-tab from selecting this element
-			this.element.tabIndex = -1;
-			this.lastFocused = e.source;
-		}
-	}
-
-	/** Switch tabindex back on blur */
-	onFocusOut(e: ViewEvent) {
-		if (!this.observed || !this.element) return;
-		if (e.source !== this.observed && this.observed.allowKeyboardFocus) {
-			// make this parent focusable again
-			this.element.tabIndex = 0;
-			this.lastFocused = undefined;
-		}
 	}
 
 	override update(element: HTMLElement) {
@@ -143,6 +107,7 @@ export class UIContainerRenderer<
 	updateContent(element: HTMLElement) {
 		let container = this.observed;
 		if (!container) return;
+
 		if (!this.contentUpdater) {
 			this.contentUpdater = new ContentUpdater(
 				container,
@@ -150,18 +115,7 @@ export class UIContainerRenderer<
 			).setAsyncRendering(container.asyncContentRendering);
 			this.updateSeparator();
 		}
-		let content = container.content;
-		this.contentUpdater.update(content);
-
-		// reset tabindex if needed
-		if (
-			container.allowKeyboardFocus &&
-			this.lastFocused &&
-			!content.includes(this.lastFocused)
-		) {
-			if (this.element) this.element.tabIndex = 0;
-			this.lastFocused = undefined;
-		}
+		this.contentUpdater.update(container.content);
 	}
 
 	contentUpdater?: ContentUpdater;
@@ -237,8 +191,8 @@ export class UIContainerRenderer<
 					? false
 					: this.observed instanceof UIRow;
 			let options = layout?.separator;
-			if (!options && this.observed.spacing) {
-				let space = this.observed.spacing;
+			if (!options && (this.observed as UIRow).spacing) {
+				let space = (this.observed as UIRow).spacing;
 				options =
 					this.lastSeparator &&
 					this.lastSeparator.space === space &&
@@ -351,9 +305,6 @@ export class ContentUpdater {
 				output.push(this.getItemOutput(it));
 			}
 
-			// emit renderer event to allow e.g. animated list content
-			this._emitRendering(output);
-
 			// STEP 1: find deleted content and delete elements
 			let hasSeparators = this._sepTemplate;
 			for (let it of this.content) {
@@ -459,14 +410,12 @@ export class ContentUpdater {
 				lastOutput = output;
 				if (!output || !output.element) {
 					// no output... delete last element (and separator) now
-					this._emitRendering();
 					let sep = this._separators.get(item);
 					if (sep && sep.parentNode) this.element.removeChild(sep);
 					if (lastElt && lastElt.parentNode) this.element.removeChild(lastElt);
 					scheduleAfter && scheduleAfter();
 				} else if (lastElt && lastElt.parentNode) {
 					// can replace... (and add/move separator if needed)
-					this._emitRendering();
 					if (lastElt.previousSibling) {
 						let sep = this._getSeparatorFor(item);
 						if (sep) this.element.insertBefore(sep, lastElt);
@@ -519,20 +468,6 @@ export class ContentUpdater {
 			else this.update();
 		}
 		return this._updateP;
-	}
-
-	/** Emits a ContentRendering event on container, when deleting or replacing an element */
-	private _emitRendering(
-		output?: Array<RenderContext.Output<Node> | undefined>,
-	) {
-		let event = new RenderContext.RendererEvent(
-			"ContentRendering",
-			this.container,
-			{
-				output: output || this.content.map((c) => this._output.get(c)),
-			},
-		);
-		this.container.emit(event);
 	}
 
 	/** Returns a separator HTML element (if needed) for given content view; if an element already exists it's used, otherwise a new element is created */

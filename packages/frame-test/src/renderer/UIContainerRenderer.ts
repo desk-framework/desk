@@ -1,6 +1,7 @@
 import {
-	ManagedChangeEvent,
+	ManagedEvent,
 	RenderContext,
+	UICell,
 	UIColumn,
 	UIContainer,
 	UIRow,
@@ -38,7 +39,7 @@ export class UIContainerRenderer<
 	protected override async handlePropertyChange(
 		property: string,
 		value: any,
-		event?: ManagedChangeEvent,
+		event?: ManagedEvent,
 	) {
 		if (this.observed && this.element) {
 			switch (property) {
@@ -57,16 +58,15 @@ export class UIContainerRenderer<
 
 	getOutput() {
 		if (!this.observed) throw ReferenceError();
-		let isRow = this.observed instanceof UIRow;
-		let isColumn = this.observed instanceof UIColumn;
-		let isForm = this.observed.accessibleRole === "form";
-		let elt = new TestOutputElement(
-			isRow ? "row" : isColumn ? "column" : isForm ? "form" : "container",
-		);
+		let type: TestOutputElement.TypeString;
+		if (this.observed.accessibleRole === "form") type = "form";
+		else if (this.observed instanceof UICell) type = "cell";
+		else if (this.observed instanceof UIRow) type = "row";
+		else if (this.observed instanceof UIColumn) type = "column";
+		else type = "container";
+		let elt = new TestOutputElement(type);
 		let output = new RenderContext.Output(this.observed, elt);
 		elt.output = output;
-		if (this.observed.allowFocus || this.observed.allowKeyboardFocus)
-			elt.focusable = true;
 		return output;
 	}
 
@@ -83,6 +83,7 @@ export class UIContainerRenderer<
 	updateContent(element: TestOutputElement) {
 		let container = this.observed;
 		if (!container) return;
+
 		if (!this.contentUpdater) {
 			this.contentUpdater = new ContentUpdater(
 				container,
@@ -93,9 +94,6 @@ export class UIContainerRenderer<
 
 		// NOTE: spacing/separators are ignored here because they can't be tested;
 		this.contentUpdater.update(container.content);
-
-		if (container.allowFocus || container.allowKeyboardFocus)
-			element.focusable = true;
 	}
 
 	contentUpdater?: ContentUpdater;
@@ -182,9 +180,6 @@ export class ContentUpdater {
 				}
 			}
 
-			// emit renderer event
-			this._emitRendering(outputs);
-
 			// unset parent reference for removed elements
 			for (let old of this.element.content) {
 				if (old.parent === this.element && !elements.includes(old)) {
@@ -246,7 +241,6 @@ export class ContentUpdater {
 				lastOutput = output;
 				if (!output || !output.element) {
 					// no output... delete last element now
-					this._emitRendering();
 					let content = this.element.content;
 					if (lastElt) {
 						for (let i = content.length - 1; i >= 0; i--) {
@@ -260,7 +254,6 @@ export class ContentUpdater {
 					scheduleAfter && scheduleAfter();
 				} else if (lastElt && lastElt.parent) {
 					// can replace...
-					this._emitRendering();
 					if (lastElt !== output.element) {
 						let content = this.element.content;
 						let i;
@@ -323,18 +316,6 @@ export class ContentUpdater {
 			else this.update();
 		}
 		return this._updateP;
-	}
-
-	/** Emit ContentRendering event on container, when deleting or replacing an element */
-	private _emitRendering(output?: Array<RenderContext.Output | undefined>) {
-		let event = new RenderContext.RendererEvent(
-			"ContentRendering",
-			this.container,
-			{
-				output: output || this.content.map((c) => this._output.get(c)),
-			},
-		);
-		this.container.emit(event);
 	}
 
 	private _stopped?: boolean;

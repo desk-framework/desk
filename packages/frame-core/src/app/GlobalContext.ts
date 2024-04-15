@@ -5,13 +5,7 @@ import {
 	ManagedObject,
 	StringConvertible,
 } from "../base/index.js";
-import {
-	ERROR,
-	err,
-	errorHandler,
-	safeCall,
-	setErrorHandler,
-} from "../errors.js";
+import { ERROR, err, safeCall, setErrorHandler } from "../errors.js";
 import { UITheme } from "../ui/UITheme.js";
 import { ActivityContext } from "./ActivityContext.js";
 import type { NavigationController } from "./NavigationController.js";
@@ -27,9 +21,6 @@ import { ServiceContext } from "./ServiceContext.js";
 import type { View } from "./View.js";
 import type { ViewportContext } from "./ViewportContext.js";
 
-/** A map to keep track of views that have already been displayed with showPage and showDialog, and shouldn't be re-rendered */
-const shownViews = new WeakMap<View, boolean>();
-
 /**
  * A singleton class that represents the global application state
  *
@@ -41,6 +32,17 @@ const shownViews = new WeakMap<View, boolean>();
 export class GlobalContext extends ManagedObject {
 	/** @internal The current singleton instance, available as {@link app} */
 	static readonly instance = new GlobalContext();
+
+	/**
+	 * Sets a global unhandled error handler
+	 * - This method _replaces_ the current handler, if any, and is not cleared by {@link GlobalContext.clear()}.
+	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link LogWriter.addHandler}.
+	 * - In a test context, the global error handler is overridden to catch all unhandled errors during tests.
+	 * @param f A handler function, which should accept a single error argument (with `unknown` type)
+	 */
+	static setErrorHandler(f: (err: unknown) => void) {
+		setErrorHandler(f);
+	}
 
 	/** Private constructor, cannot be used */
 	private constructor() {
@@ -128,8 +130,7 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * The global message log writer instance, an instance of {@link LogWriter}
-	 * - You can use `app.log` methods to write messages to the current application log.
-	 * - To add a log output handler, use {@link GlobalContext.addLogHandler app.addLogHandler()}. If none are added, log messages are written to the console.
+	 * - You can use `app.log` methods to write messages to the current application log, and add a log sink handler. If no handler is added, log messages are written to the console.
 	 * - Refer to {@link LogWriter} for available methods of `app.log`.
 	 */
 	log = new LogWriter();
@@ -168,7 +169,7 @@ export class GlobalContext extends ManagedObject {
 	 */
 	addActivity(activity: Activity, activate?: boolean) {
 		this.activities.add(activity);
-		if (activate) activity.activateAsync().catch(errorHandler);
+		if (activate) safeCall(() => activity.activateAsync());
 		return this;
 	}
 
@@ -187,7 +188,7 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * Navigates to the specified path asynchronously
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which in turn updates the path returned by {@link GlobalContext.getPath app.getPath()} — and may activate or deactivate activities.
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which may in turn activate or deactivate activities using the {@link Activity.navigationPageId} property.
 	 * - The target location can be a {@link NavigationTarget} instance, an object that provides a navigation target (i.e. an {@link Activity}), or a URL-like path (i.e. `pageId/detail...`).
 	 * @param target The target location
 	 * @param mode The navigation mode, refer to {@link NavigationController.navigateAsync()}
@@ -204,14 +205,12 @@ export class GlobalContext extends ManagedObject {
 			| { getNavigationTarget(): NavigationTarget },
 		mode?: NavigationController.NavigationMode,
 	) {
-		if (this.activities.navigationController) {
-			safeCall(() =>
-				this.activities.navigationController.navigateAsync(
-					new NavigationTarget(target),
-					mode,
-				),
-			);
-		}
+		safeCall(() =>
+			this.activities.navigationController.navigateAsync(
+				new NavigationTarget(target),
+				mode,
+			),
+		);
 		return this;
 	}
 
@@ -220,13 +219,11 @@ export class GlobalContext extends ManagedObject {
 	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate back within navigation history, if possible.
 	 */
 	goBack() {
-		if (this.activities.navigationController) {
-			safeCall(() =>
-				this.activities.navigationController.navigateAsync(undefined, {
-					back: true,
-				}),
-			);
-		}
+		safeCall(() =>
+			this.activities.navigationController.navigateAsync(undefined, {
+				back: true,
+			}),
+		);
 		return this;
 	}
 
@@ -386,30 +383,6 @@ export class GlobalContext extends ManagedObject {
 	}
 
 	/**
-	 * Adds a log sink for the current {@link LogWriter} instance
-	 * @param minLevel The minimum log level for which messages are passed to the handler function
-	 * @param f A handler function, which should accept a single {@link LogWriter.LogMessageData} argument
-	 */
-	addLogHandler(
-		minLevel: number,
-		f: (message: LogWriter.LogMessageData) => void,
-	) {
-		this.log.emitter.listen((e) => {
-			if (e.data.level >= minLevel) f(e.data);
-		});
-	}
-
-	/**
-	 * Sets a global unhandled error handler
-	 * - This method _replaces_ the current handler, if any. it's not cleared by {@link GlobalContext.clear()} either; and must not be set in a test context to allow the test runner to catch unhandled errors.
-	 * - The default error handler logs all errors using {@link LogWriter.error()} (i.e. `app.log.error(...)`). Consider using a log sink instead of changing this behavior — refer to {@link GlobalContext.addLogHandler app.addLogHandler()}.
-	 * @param f A handler function, which should accept a single error argument (with `unknown` type)
-	 */
-	setErrorHandler(f: (err: unknown) => void) {
-		setErrorHandler(f);
-	}
-
-	/**
 	 * Adds a hot-reload handler for the provided module handle, to update instances of a particular activity
 	 * - Where supported, hot-reloading the provided module will update instances of the specified activity: updating methods (but not properties), and calling {@link Activity.ready()}.
 	 * - If hot-reloading isn't supported, e.g. if the application is compiled in production mode, this method does nothing.
@@ -430,43 +403,11 @@ export class GlobalContext extends ManagedObject {
  *
  * @description
  * Use `app` to access properties and methods of {@link GlobalContext}, e.g. `app.theme` and `app.addActivity(...)`. This instance is available immediately when the application starts, and remains the same throughout its lifetime.
- *
- * ---
- * **Initializing the app** — Use the following methods to initialize the application.
- *
- * - {@ref GlobalContext.addActivity()}
- * - {@ref GlobalContext.addService()}
- *
- * ---
- * **Logging** — Use the `app.log` methods to write messages and data to the application log.
- *
- * - {@ref GlobalContext.log}
- *
- * ---
- * **Navigation** — Use the following methods to move around the application.
- *
- * - {@ref GlobalContext.navigate()}
- * - {@ref GlobalContext.goBack()}
- * - {@ref GlobalContext.getPath()}
- *
- * ---
- * **Rendering** — Use the following methods to render views.
- *
- * - {@ref GlobalContext.showAlertDialogAsync()}
- * - {@ref GlobalContext.showConfirmDialogAsync()}
- * - {@ref GlobalContext.showModalMenuAsync()}
- * - {@ref GlobalContext.render()}
- * - {@ref GlobalContext.animateAsync()}
- *
- * ---
- * **Customization** — Use the following properties and methods to add custom behavior and styles to the application.
- *
- * - {@ref GlobalContext.theme}
- * - {@ref GlobalContext.i18n}
- * - {@ref GlobalContext.addLogHandler()}
- * - {@ref GlobalContext.setErrorHandler()}
  */
 export const app = GlobalContext.instance;
+
+/** A map to keep track of views that have already been displayed with showPage and showDialog, and shouldn't be re-rendered */
+const shownViews = new WeakMap<View, boolean>();
 
 // use default error handler
 setErrorHandler((err) => {

@@ -19,13 +19,23 @@ export abstract class ConfigOptions {
 		let result: TInstance;
 		if (typeof configArg === "function") {
 			configArg((result = new this()));
+		} else if (configArg instanceof this) {
+			result = configArg;
 		} else {
-			result = configArg ?? new this();
+			result = new this();
+			if (configArg) Object.assign(result, configArg);
 		}
 		return result;
 	}
 }
 
 export namespace ConfigOptions {
-	export type Arg<TInstance> = TInstance | ((instance: TInstance) => void);
+	/**
+	 * Type definition for a configuration argument, either a function or an object
+	 * - A configuration function is passed to a constructor or factory function, and is used to initialize the options object; alternatively, the argument can be an instance of the options object or an object with partial properties.
+	 */
+	export type Arg<TInstance> =
+		| TInstance
+		| { [K in keyof TInstance]?: TInstance[K] }
+		| ((instance: TInstance) => void);
 }

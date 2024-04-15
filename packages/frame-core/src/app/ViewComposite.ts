@@ -23,7 +23,7 @@ import { View, ViewClass } from "./View.js";
  * View composites are primarily used in two different ways:
  *
  * - As a way to _control_ an encapsulated view. Refer to e.g. {@link UIConditionalView} and {@link UIListView}, which are built-in ViewComposite classes.
- * - As a way to create reusable view structures. Refer to the static {@link define()} method which can be used to create a ViewComposite class using a function and/or a class.
+ * - As a way to create reusable view structures. Refer to the static {@link withPreset()} method which can be used to create a ViewComposite class using a function and/or a class.
  *
  * Note the similarities with the {@link Activity} class, which also encapsulates a single view object. As a rule, use _activities_ if event handlers or other class methods include business logic. Use view _composites_ if the class is only concerned with the look and feel of a set of UI components, and all content can be preset, bound, or provided by a view model.
  */
@@ -106,10 +106,7 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 				this.vc.render();
 			}
 			protected override handleEvent(event: ManagedEvent) {
-				if (
-					this.vc.body &&
-					!(event as RenderContext.RendererEvent).isRendererEvent
-				) {
+				if (this.vc.body && !event.noPropagation) {
 					this.vc.delegateViewEvent(event);
 				}
 			}
@@ -163,11 +160,11 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 
 	/**
 	 * Delegates events from the current view
-	 * - This method is called automatically when an event is emitted by the current view object.
-	 * - The base implementation calls activity methods starting with `on`, e.g. `onClick` for a `Click` event. The event is passed as a single argument, and the return value should either be `true`, undefined, or a promise (which is awaited just to be able to handle any errors). If the return value is `true` or a promise, the event is considered handled and no further action is taken. Otherwise, the event is emitted again on the ViewComposite instance itself.
-	 * - This method may be overridden to handle events in any other way, e.g. to propagate them by emitting the same event on the ViewComposite instance itself.
+	 * - This method is called automatically when an event is emitted by the current view object (except if {@link ManagedEvent.noPropagation} was set).
+	 * - The base implementation calls activity methods starting with `on`, e.g. `onClick` for a `Click` event. The event is passed as a single argument, and the return value should either be `true` (event handled), false/undefined, or a promise (which is awaited just to be able to handle any errors).
+	 * - If a handler is not found, or it returned false or undefined, a delegate event is re-emitted on the view composite itself (i.e. a new event with `delegate` set to the view composite), and this method returns false.
 	 * @param event The event to be delegated (from the view)
-	 * @returns This method always returns `true` since the event is either handled or emitted again.
+	 * @returns True if an event handler was found, and it returned true; a promise if the handler returned a promise; false otherwise.
 	 */
 	protected delegateViewEvent(event: ManagedEvent): boolean | Promise<unknown> {
 		// find own handler method
@@ -181,8 +178,9 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 				return (result as Promise<unknown>).catch(errorHandler);
 			}
 		}
+		event = ManagedEvent.withDelegate(event, this);
 		this.emit(event);
-		return true;
+		return false;
 	}
 
 	/**
@@ -251,15 +249,16 @@ export class ViewCompositeVariant<TPreset, TObject> {
 	 * @param preset The properties, bindings, and event handlers that will be preset on each object created with this variant
 	 */
 	constructor(
-		public readonly type: ViewComposite.WithPreset<
-			TPreset,
-			any[],
-			View,
-			TObject
-		>,
-		public readonly preset: Readonly<TPreset>,
+		type: ViewComposite.WithPreset<TPreset, any[], View, TObject>,
+		preset: Readonly<TPreset>,
 	) {
 		this.type = type;
 		this.preset = Object.freeze({ ...preset });
 	}
+
+	/** The view composite class that the variant will be used with */
+	public readonly type: ViewComposite.WithPreset<TPreset, any[], View, TObject>;
+
+	/** The properties, bindings, and event handlers that will be preset on each object created with this variant */
+	public readonly preset: Readonly<TPreset>;
 }
