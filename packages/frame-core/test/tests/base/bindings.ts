@@ -3,8 +3,6 @@ import {
 	Binding,
 	ManagedList,
 	ManagedObject,
-	Observer,
-	GlobalEmitter,
 } from "../../../dist/index.js";
 import { describe, expect, test } from "@desk-framework/frame-test";
 
@@ -353,7 +351,7 @@ describe("Bindings", () => {
 			expect(p.bound).toHaveProperty("a").toBe(1);
 			p.changeable.nonObserved = 2;
 			expect(p.bound).toHaveProperty("a").toBe(1);
-			p.changeable.emitChange();
+			p.changeable.emitChange("Update");
 			expect(p.bound).toHaveProperty("a").toBe(2);
 		});
 
@@ -447,31 +445,20 @@ describe("Bindings", () => {
 
 		test("Debug handler", (t) => {
 			let { TestObject } = setup();
-			class DebugObserver extends Observer<GlobalEmitter<Binding.DebugEvent>> {
-				override observe(observed: any) {
-					t.count("start");
-					return super.observe(observed);
-				}
-				onDebug(e: Binding.DebugEvent) {
-					if (e.data.binding.toString() !== "bound(a)")
-						t.fail("Binding mismatch");
-					if (e.data.value !== 1) t.fail("Value mismatch");
-					t.count("debug");
-				}
-			}
-			let observer = new DebugObserver().observe(Binding.debugEmitter);
 			try {
-				t.expectCount("start").toBe(1);
+				Binding.debugHandler = (b) => {
+					if (b.binding.toString() !== "bound(a)") t.fail("Binding mismatch");
+					if (b.value !== 1) t.fail("Value mismatch");
+					t.count("debug");
+				};
 				let c = new TestObject();
 				c.child.addAABinding(bound("a").debug());
 				t.expectCount("debug").toBe(1);
-				expect(Binding.debugEmitter.isObserved()).toBeTruthy();
-				observer.stop();
-				expect(Binding.debugEmitter.isObserved()).toBeFalsy();
+				Binding.debugHandler = undefined;
 				c.a = 2;
 				t.expectCount("debug").toBe(1);
 			} finally {
-				observer.stop();
+				Binding.debugHandler = undefined;
 			}
 		});
 
