@@ -29,12 +29,12 @@ In a Desk application, your code is often called by the framework itself. Where 
 - Errors that are thrown within tasks, run by a {@link task-scheduling task queue}
 - Miscellaneous errors, from the framework itself or e.g. an {@link I18nProvider} method
 
-By default, the global error handler logs the error using the global logging functions (see below), but you can override this behavior using the {@link GlobalContext.setErrorHandler setErrorHandler()} method.
+By default, the global error handler logs the error using the global logging functions (see below), but you can override this behavior using the static {@link GlobalContext.setErrorHandler setErrorHandler()} method.
 
 - {@link GlobalContext.setErrorHandler}
 
 ```ts
-app.setErrorHandler((err) => {
+GlobalContext.setErrorHandler((err) => {
 	// keep track of all errors in a list, maybe?
 	myErrors.unshift(err);
 	myErrors.splice(MAX_ERRORS);
@@ -117,21 +117,21 @@ app.log.error(myError);
 
 ### Adding a log sink
 
-To handle log messages in any other way than sending them to the console, you can add a log 'sink' using the {@link GlobalContext.addLogHandler app.addLogHandler()} method. This method accepts a function that will be called with each log message, as an object of type {@link LogWriter.LogMessageData}.
+To handle log messages in any other way than sending them to the console, you can add a log 'sink' using the {@link LogWriter.addHandler()} method. This method accepts a function that will be called with each log message, as an object of type {@link LogWriter.LogMessageData}.
 
-- {@link GlobalContext.addLogHandler}
+- {@link LogWriter.addHandler}
 - {@link LogWriter.LogMessageData}
 
 > **Note:** After you add _any_ log handler, the default behavior of writing to the console is disabled. If you want to keep the default behavior, you'll need to add a log sink that (also) writes to the console. All subsequent handlers are called in the order they were added.
 
 ```ts
 // add a log sink that writes all messages to the console
-app.addLogHandler(0, (data) => {
+app.log.addHandler(0, (data) => {
 	console.log(data.message);
 });
 
 // add a log sink for 'information' and above
-app.addLogHandler(2, (data) => {
+app.log.addHandler(2, (data) => {
 	// ...if prod, send to a remote server
 });
 ```

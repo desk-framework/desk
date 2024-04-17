@@ -158,6 +158,15 @@ class CustomerOrders extends ManagedObject {
 }
 ```
 
+## Application architecture
+
+The {@link ManagedObject} class provides a common foundation for all parts of a Desk application, including activities, views, services, and other objects. Using the features of this class, the application is built up as a tree of objects, with each object managing its own state and relationships.
+
+At the root level of this tree structure is the {@link app} object, which is created immediately when the application starts. This object manages all activities and services, and also references several objects that provide global functionality.
+
+- {@link app +}
+- {@link GlobalContext +}
+
 ## Further reading {#further-reading}
 
 Learn more about event handling, property bindings, and data structures in the following articles:
@@ -165,9 +174,3 @@ Learn more about event handling, property bindings, and data structures in the f
 - {@link event-handling}
 - {@link bindings}
 - {@link data-structures}
-
-To see how managed objects are used in practice, refer to the following articles:
-
-- {@link app-context}
-- {@link activities}
-- {@link views}

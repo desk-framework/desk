@@ -3,6 +3,7 @@ import * as yaml from "js-yaml";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { DocItem, DocItemTemplateFunction } from "./DocItem.js";
+import CleanCss from "clean-css";
 
 export class DocBuilder {
 	/** Returns the document item with the specified ID */
@@ -203,7 +204,13 @@ export class DocBuilder {
 		for (let assetFile of assetFiles) {
 			let fileName = path.basename(assetFile);
 			let outFile = path.join(outPath, fileName);
-			this._writeFile(outFile, readFileSync(assetFile));
+			let content: string | Buffer = readFileSync(assetFile);
+			if (fileName.endsWith(".css")) {
+				let cssOutput = new CleanCss().minify(content.toString());
+				if (cssOutput.errors) this._warnings.push(...cssOutput.errors);
+				content = cssOutput.styles;
+			}
+			this._writeFile(outFile, content);
 		}
 		return this;
 	}

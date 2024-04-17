@@ -18,7 +18,6 @@ body {
 	--pre-bg-color: rgba(0, 0, 0, 0.035);
 	--border-color: #ddd;
 	--block-bg-color: linear-gradient(45deg, #edf, #def);
-	--primary-highlight: #29b;
 	--primary-boldest: #04a;
 	--secondary-boldest: #828;
 	--hljs-color1: #888;
@@ -59,7 +58,6 @@ body {
 		--pre-bg-color: #222;
 		--border-color: #333;
 		--block-bg-color: linear-gradient(45deg, #414, #124);
-		--primary-highlight: #4cf;
 		--primary-boldest: #8ae;
 		--secondary-boldest: #d6d;
 		--hljs-color1: #ccc;
@@ -90,11 +88,12 @@ body {
 	background: var(--background-color);
 	color: var(--text-color);
 	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
+	font-weight: 400;
 	line-height: 1em;
 }
 h1 {
-	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
-	font-weight: 500;
+	font-family: inherit;
+	font-weight: 600;
 	letter-spacing: -0.01em;
 	font-size: 3rem;
 	line-height: 1.2em;
@@ -104,18 +103,17 @@ h1:first-child {
 	margin-top: 1rem;
 }
 h2 {
-	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
-	font-weight: 500;
-	font-size: 1.5rem;
+	font-family: inherit;
+	font-weight: 600;
+	font-size: 1.4rem;
 	line-height: 1.2em;
 	padding-top: 1.25rem;
 	margin: 0.5rem 0 1rem;
 	counter-reset: tutorial-heading;
-	color: var(--primary-highlight);
 }
 h3 {
-	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
-	font-weight: 500;
+	font-family: inherit;
+	font-weight: 600;
 	font-size: 1.2rem;
 	line-height: 1.2em;
 	margin: 0 0 0.5rem;
@@ -124,8 +122,8 @@ h3 {
 	padding-top: 1rem;
 }
 h4 {
-	font-family: "IBM Plex Sans", Roboto, Arial, Helvetica, sans-serif;
-	font-weight: 800;
+	font-family: inherit;
+	font-weight: 600;
 	font-size: 0.825rem;
 	line-height: 1em;
 	margin: 0 0 0.5rem;
@@ -141,7 +139,7 @@ li,
 td,
 th {
 	font-size: 1rem;
-	font-weight: 300;
+	font-weight: 400;
 	line-height: 1.4em;
 	margin: 0 0 1rem;
 }
@@ -162,7 +160,7 @@ th {
 	text-align: left;
 }
 th {
-	font-weight: 500;
+	font-weight: 600;
 }
 li {
 	margin: 0 0 0.25rem 2rem;
@@ -179,7 +177,7 @@ td > p {
 }
 strong,
 b {
-	font-weight: 500;
+	font-weight: 600;
 }
 blockquote {
 	position: relative;
@@ -209,11 +207,6 @@ a:hover {
 .style--dim {
 	opacity: 0.5;
 }
-.displaytitle {
-	font-size: 3.5rem;
-	line-height: 1.1em;
-	margin: 1rem 0 1rem;
-}
 section,
 article {
 	text-align: start;
@@ -232,7 +225,7 @@ p.fullWidthImage > img {
 }
 code {
 	font-family: "IBM Plex Mono", monospace;
-	font-weight: 300;
+	font-weight: 400;
 }
 p code,
 li code {
@@ -355,7 +348,6 @@ article iframe + pre {
 	background: var(--header-background);
 	color: #fff;
 	font-size: 1.3rem;
-	font-weight: 200;
 }
 
 .homepage_top img {
@@ -380,7 +372,6 @@ article iframe + pre {
 	align-items: center;
 	padding: 1rem 1.5rem;
 	text-align: start;
-	font-weight: 300;
 }
 
 .docpage_header {
@@ -410,7 +401,8 @@ img.docpage_header_logo {
 	height: 2.5rem;
 }
 
-.docpage_wrapper {
+.docpage_wrapper,
+.blogpage_wrapper {
 	display: flex;
 	position: relative;
 	flex-direction: row;
@@ -423,11 +415,16 @@ img.docpage_header_logo {
 	width: 100%;
 }
 
-article.docpage {
+article.docpage,
+article.blogpage {
 	margin: 0 auto 5rem;
 	padding: 0 1.5rem;
 	width: 100%;
 	max-width: 50rem;
+}
+
+article.blogpage {
+	margin-top: 2rem;
 }
 
 .docpage .docpage_searchbar {
@@ -543,7 +540,7 @@ li.menu-item > a {
 }
 
 li.menu-item--heading > a {
-	font-weight: 500;
+	font-weight: 600;
 	margin-top: 0.25rem;
 }
 
@@ -564,7 +561,7 @@ li.menu-item > a:hover {
 
 li.menu-item--current > a,
 li.menu-item--current > a:hover {
-	font-weight: 500;
+	font-weight: 600;
 	background: var(--nav-current-background);
 	color: var(--nav-current-text);
 }
@@ -610,7 +607,7 @@ li.menu-item--var > a::before {
 .docpage_breadcrumb {
 	display: flex;
 	flex-direction: row;
-	align-items: center;
+	align-items: flex-end;
 	justify-content: space-between;
 	height: var(--header-height);
 }
@@ -657,13 +654,14 @@ article h1 + blockquote {
 article h1 + blockquote > p {
 	margin: 0;
 	font-weight: 300;
-	font-size: 1.3rem;
+	font-size: 1.35rem;
 	line-height: 1.5;
 }
 
 .apisignature {
+	margin-top: 0;
 	font-family: "IBM Plex Mono", monospace;
-	font-weight: 300;
+	font-weight: 400;
 	font-size: 0.875rem;
 	white-space: pre-wrap;
 }
@@ -679,7 +677,7 @@ article h1 + blockquote > p {
 
 .refblock > a {
 	display: inline-block;
-	font-weight: 500;
+	font-weight: 600;
 	color: inherit;
 	text-decoration: none;
 }

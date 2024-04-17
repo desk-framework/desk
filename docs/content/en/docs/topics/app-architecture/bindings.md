@@ -74,7 +74,7 @@ bound("p.foo.bar");
 
 - Each property is observed individually, where possible, but only the first property is used to find the source object (i.e. the first parent object that includes a `customer` property in the first example).
 - If any of the properties along the path is undefined, null, or an object that doesn't include the next specified property, then the bound value itself becomes `undefined` — i.e. any binding for a source that can't be found resolves to undefined until _all_ properties along the source path are defined.
-- If a property references a managed object, the next property in the path is observed for changes. The managed object itself is also observed to handle change events (see {@link ManagedChangeEvent}).
+- If a property references a managed object, the next property in the path is observed for changes. The managed object itself is also observed to handle change events (see {@link event-handling event handling}).
 - On other objects, the bound value only updates when the previous property changes or when a change event is emitted. E.g. if `p` is a managed object, but `foo` refers to a plain JavaScript object, then the value of the `p.foo.bar` binding is only updated when `p` is set, `p.foo` is set, or a change event is emitted on the `p` object — since `bar` itself can't be observed on a non-managed object.
 
 Note that nested property bindings also work with any of the methods described in the next sections, e.g. `bound.not("customer.isQualified)` and `bound.string("p.foo.bar").matches("X")` work as expected.
@@ -276,6 +276,6 @@ To debug a particular binding, you can use the {@link Binding.debug()} method, w
 
 - {@link Binding.debug}
 
-Before you can see any debug output or set a breakpoint, you'll need to add a listener to the {@link Binding.debugEmitter} global event emitter. Refer to the following code for an example implementation.
+Before you can see any debug output or set a breakpoint, you'll need to write a handler for {@link Binding.debugHandler}. Refer to the following code for an example implementation.
 
 {@import bindings:debug}

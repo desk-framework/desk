@@ -1,10 +1,10 @@
 ---
-title: Themes and colors
+title: Colors and themes
 folder: topics
 abstract: This article is not yet available.
 ---
 
-# Themes and colors
+# Colors and themes
 
 ## Variants, styles, and themes
 
