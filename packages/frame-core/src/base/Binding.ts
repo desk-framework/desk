@@ -139,9 +139,7 @@ export class Binding<T = any> {
 	 */
 	bindTo<TObject extends ManagedObject>(
 		target: TObject,
-		propertyOrFunction:
-			| keyof TObject
-			| ((value?: T, bound?: boolean, forced?: boolean) => void),
+		propertyOrFunction: keyof TObject | ((value?: T, bound?: boolean) => void),
 	) {
 		if (target[$_unlinked]) return;
 
@@ -599,20 +597,22 @@ export class StringFormatBinding<
 		this._format = format;
 		if (!format) return;
 
-		// create bindings for string arguments
-		let bindings = args.map((a) =>
-			typeof a === "string" ? new Binding(a) : a,
-		);
-
-		// handle object as first argument, create bindings
-		let obj: any = !isBinding(bindings[0]) ? bindings[0] : undefined;
-		if (obj) {
-			for (let p in obj) {
-				if (typeof obj[p] === "string") {
-					obj[p] = new Binding(obj[p]);
+		// create bindings for string arguments, obj for first object argument
+		let obj: any;
+		let bindings = args.map((a, i) => {
+			if (!a) return undefined;
+			if (typeof a === "string") return new Binding(a);
+			if (isBinding(a)) return a;
+			if (!i) {
+				obj = a;
+				for (let p in obj) {
+					if (typeof obj[p] === "string") {
+						obj[p] = new Binding(obj[p]);
+					}
 				}
+				return undefined;
 			}
-		}
+		});
 
 		// override apply method to update with string value
 		this._makeApply(format, bindings, obj);
@@ -631,7 +631,11 @@ export class StringFormatBinding<
 	}
 
 	/** Set the _apply method to update the bound string value */
-	private _makeApply(format: string, bindings: Binding[], obj?: any) {
+	private _makeApply(
+		format: string,
+		bindings: (Binding | undefined)[],
+		obj?: any,
+	) {
 		let base = new LazyString(() => format).translate();
 
 		// use shortcut if no interpolation arguments at all

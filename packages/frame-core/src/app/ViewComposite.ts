@@ -1,9 +1,4 @@
-import {
-	BindingOrValue,
-	ManagedEvent,
-	ManagedObject,
-	Observer,
-} from "../base/index.js";
+import { BindingOrValue, ManagedEvent, ManagedObject } from "../base/index.js";
 import { ERROR, err, errorHandler, invalidArgErr } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";
@@ -91,27 +86,6 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	 */
 	constructor() {
 		super();
-
-		// auto-attach view, render when changed, delegate events
-		class ViewObserver extends Observer<TView> {
-			constructor(public vc: ViewComposite) {
-				super();
-			}
-			override observe(observed: TView) {
-				super.observe(observed);
-				this.vc.render();
-				return this;
-			}
-			override stop() {
-				this.vc.render();
-			}
-			protected override handleEvent(event: ManagedEvent) {
-				if (this.vc.body && !event.noPropagation) {
-					this.vc.delegateViewEvent(event);
-				}
-			}
-		}
-		this.autoAttach("body", new ViewObserver(this));
 	}
 
 	/**
@@ -119,7 +93,30 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	 * - Initially, this property is undefined. The view object is only created (using {@link ViewComposite.createView createView()}) when the ViewComposite instance is first rendered. Override {@link ViewComposite.beforeRender beforeRender()} to manipulate the view before rendering, if needed.
 	 * - View objects assigned to this property are automatically attached to the ViewComposite object.
 	 */
-	declare body?: TView;
+	set body(body: TView | undefined) {
+		if (body && !(body instanceof View)) throw invalidArgErr("body");
+		if (this._body === body) return;
+
+		// unlink old view, if any
+		if (this._body) this._body.unlink();
+
+		// attach new view: delegate events and clear when unlinked
+		this._body = body;
+		if (body) {
+			this.attach(body, {
+				handler: (_, event) => {
+					if (!event.noPropagation) this.delegateViewEvent(event);
+				},
+				detached: () => {
+					if (this._body === body) this._body = undefined;
+				},
+			});
+			this.render();
+		}
+	}
+	get body(): TView | undefined {
+		return this._body;
+	}
 
 	/**
 	 * Creates the encapsulated view object, to be overridden if needed
@@ -203,6 +200,9 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 
 	/** Stateful renderer wrapper, handles content component */
 	private _renderer = new RenderContext.DynamicRendererWrapper();
+
+	/** The current view body, accessed through setter/getter */
+	private _body: TView | undefined;
 }
 
 export namespace ViewComposite {

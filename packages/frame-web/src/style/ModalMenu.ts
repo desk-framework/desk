@@ -1,5 +1,4 @@
 import {
-	Observer,
 	RenderContext,
 	UICell,
 	UIColumn,
@@ -170,22 +169,12 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 			}
 
 			// add an observer to register clicks and keyboard input
-			let self = this;
-			class ItemObserver extends Observer<UICell> {
-				onClick() {
-					self._resolve?.(item.key);
-				}
-				onEnterKeyPress() {
-					self._resolve?.(item.key);
-				}
-				onArrowDownKeyPress() {
-					itemCell.requestFocusNext();
-				}
-				onArrowUpKeyPress() {
-					itemCell.requestFocusPrevious();
-				}
-			}
-			new ItemObserver().observe(itemCell);
+			itemCell.listen((e) => {
+				if (e.name === "Click") this._resolve?.(item.key);
+				else if (e.name === "EnterKeyPress") this._resolve?.(item.key);
+				else if (e.name === "ArrowDownKeyPress") itemCell.requestFocusNext();
+				else if (e.name === "ArrowUpKeyPress") itemCell.requestFocusPrevious();
+			});
 		}
 		return container;
 	}

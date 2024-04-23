@@ -1,5 +1,4 @@
-import { isManagedObject, type ManagedObject } from "./ManagedObject.js";
-import { $_unlinked } from "./object_util.js";
+import type { ManagedObject } from "./ManagedObject.js";
 
 // Reuse the same frozen object for events without data
 const NO_DATA = Object.freeze({});
@@ -66,19 +65,6 @@ export class ManagedEvent<
 	TSource extends ManagedObject = ManagedObject,
 	TData extends Record<string, unknown> = Record<string, unknown>,
 > {
-	/**
-	 * Returns true if the provided event is a change event
-	 * - Change events are special events that indicate that the source object has been modified in some way.
-	 * - This method returns false if the event doesn't have a `change` property in its data, or if the referenced object has been unlinked.
-	 */
-	static isChange(event?: ManagedEvent) {
-		return (
-			!!event &&
-			isManagedObject(event.data.change) &&
-			!event.data.change[$_unlinked]
-		);
-	}
-
 	/**
 	 * Creates a new event with the same properties as the original event, and the specified delegate
 	 * @param event The original event
