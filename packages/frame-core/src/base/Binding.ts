@@ -132,7 +132,7 @@ export class Binding<T = any> {
 
 	/**
 	 * Applies this binding to the specified target object
-	 * - This method should only be used once for each target, preferably from a constructor, since each call adds a new property observer.
+	 * - This method should only be used once for each target, preferably from a constructor, since each call sets up a listener to watch the target again.
 	 * - The same binding can be applied multiple times (e.g. to different instances of an activity), removing the need to create a new {@link Binding} instance each time.
 	 * @param target The target (attached) object
 	 * @param propertyOrFunction The property to update, or a custom function to handle value updates

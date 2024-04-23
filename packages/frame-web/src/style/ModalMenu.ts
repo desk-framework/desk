@@ -168,7 +168,7 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 				itemRow.content.add(spacer, hintLabel);
 			}
 
-			// add an observer to register clicks and keyboard input
+			// add a listener to register clicks and keyboard input
 			itemCell.listen((e) => {
 				if (e.name === "Click") this._resolve?.(item.key);
 				else if (e.name === "EnterKeyPress") this._resolve?.(item.key);

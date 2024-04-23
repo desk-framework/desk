@@ -286,7 +286,7 @@ export function attachObject(
 		detachObject(target[$_origin]!, target);
 	}
 
-	// set new origin property (note: this may trigger existing observer)
+	// set new origin property (note: this may trigger detach listener)
 	target[$_origin] = origin;
 	if (!_attached.has(origin)) _attached.set(origin, [target]);
 	else _attached.get(origin)!.push(target);

@@ -7,7 +7,7 @@ const NO_DATA = Object.freeze({});
  * An object that represents an event, to be emitted on a {@link ManagedObject}
  *
  * @description
- * Events can be emitted on instances of {@link ManagedObject}, and handled using {@link ManagedObject.listen()}, {@link Observer}, or a change callback to {@link ManagedObject.attach()} or {@link ManagedObject.autoAttach()}.
+ * Events can be emitted on instances of {@link ManagedObject}, and handled using a callback passed to {@link ManagedObject.listen()} or {@link ManagedObject.attach()}.
  *
  * In most cases, instances of ManagedEvent are created by {@link ManagedObject.emit()} itself, when provided with just the event name and data (if any). When handling events, the implicitly created ManagedEvent will be passed to the handler.
  *
@@ -26,13 +26,12 @@ const NO_DATA = Object.freeze({});
  * obj.emit("Foo", { baz: 123 })
  *
  * @example
- * // Handling change events from an attached object
+ * // Handling events from an attached object
  * class MyObject extends ManagedObject {
  *   constructor() {
  *     super();
- *     this.autoAttach("foo", (foo, e) => {
- *       // ...either foo property is set directly, OR
- *       // a change event `e` was emitted
+ *     this.foo = this.attach(new Foo(), (e) => {
+ *       // ... handle event on attached foo object
  *     })
  *   }
  *   foo: MyFooObject;

@@ -31,12 +31,12 @@ export function isManagedObject(object: any): object is ManagedObject {
  *
  * **Attaching objects** — Managed objects are meant to be linked together to form a _directed graph_, i.e. a tree structure where one object can be 'attached' to only one other managed object: its parent, origin, or containing object. In turn, several objects can be attached to every object, which makes up a hierarchical structure.
  *
- * - Objects can be attached using the {@link ManagedObject.attach attach()} method. A callback function can be used to listen for changes.
- * - When an object is unlinked, its attached objects are unlinked as well.
+ * - Objects can be attached using the {@link ManagedObject.attach attach()} method. A callback function can be used to listen for events and unlinking.
+ * - When the origin object is unlinked, its attached objects are unlinked as well.
  *
- * **Events** — The {@link ManagedObject.emit emit()} method 'emits' an event from a managed object. Events are instances of {@link ManagedEvent}, which can be handled using a callback provided to the {@link ManagedObject.listen listen()} method, or an {@link Observer} that's currently observing the object. Typically, objects are observed by their parent object (the object they're attached to). This enables event _propagation_, where events emitted by an object such as a {@link UIButton} are handled by a managed object further up the tree — such as an {@link Activity}. Refer to {@link ManagedEvent} for details.
+ * **Events** — The {@link ManagedObject.emit emit()} method 'emits' an event from a managed object. Events are instances of {@link ManagedEvent}, which can be handled using a callback provided to the {@link ManagedObject.listen listen()} or {@link ManagedObject.attach()} methods. Typically, events are handled by their parent object (the object they're attached to). This enables event _propagation_, where events emitted by an object such as a {@link UIButton} are handled by a managed object further up the tree — such as an {@link Activity}.
  *
- * **Property bindings** — Whereas events typically flow 'up' a tree towards containing objects, data from these objects can be _bound_ so that it makes its way 'down'. In practice, this can be used to update properties such as the text of a {@link UILabel} object automatically when a particular property value is set on a containing object such as the {@link Activity}. Refer to {@link Binding} for details.
+ * **Property bindings** — Whereas events typically flow 'up' a tree towards containing objects, data from these objects can be _bound_ so that it makes its way 'down'. In practice, this can be used to update properties automatically, such as the text of a {@link UILabel} object when a corresponding property is set on an {@link Activity}. Refer to {@link Binding} for details.
  */
 export class ManagedObject {
 	/**
@@ -109,8 +109,8 @@ export class ManagedObject {
 
 	/**
 	 * Emits an event, immediately calling all event handlers
-	 * - Events can be handled using {@link ManagedObject.listen()} or an {@link Observer}. Refer to {@link ManagedEvent} for details.
-	 * - If the first argument is undefined, no event is emitted at all and this method returns quietly
+	 * - Events can be handled using {@link ManagedObject.listen()} or {@link ManagedObject.attach()}.
+	 * - If the first argument is undefined, no event is emitted at all and this method returns quietly.
 	 * @param event An instance of ManagedEvent, or an event name; if a name is provided, an instance of ManagedEvent will be created by this method
 	 * @param data Additional data to be set on {@link ManagedEvent.data}, if `event` is a string
 	 */
@@ -152,8 +152,6 @@ export class ManagedObject {
 	 * **Callbacks object** — If an object is provided, its functions (or methods) will be used to handle events. The `handler` function is called for all events, and the `unlinked` function is called when the object is unlinked. The `init` function is called immediately, with the object and a callback to remove the listener.
 	 *
 	 * **Async iterable** — If no callback function is provided, this method returns an async iterable that can be used to iterate over all events using a `for await...of` loop. The loop body is run for each event, in the order they're emitted, either awaiting new events or continuing execution immediately. The loop stops when the object is unlinked.
-	 *
-	 * @note This method adds a permanent listener. To prevent memory leaks, it may be better to use an {@link Observer} that can be stopped when needed, if the object is expected to outlive the listener.
 	 *
 	 * @example
 	 * // Handle all events using a callback function

@@ -57,7 +57,7 @@ export class ServiceContext extends ManagedObject {
 	}
 
 	/**
-	 * @internal Attaches an observer to a particular service by ID, until the specified parent object is unlinked
+	 * @internal Attaches a handler to a particular service by ID, until the specified parent object is unlinked
 	 * @param parent The parent object to watch (for unlinking)
 	 * @param id The ID of the service to be observed
 	 * @param handler A function that's called when the service changes (registered or unlinked), or when the current service emits an event

@@ -101,7 +101,7 @@ export class UIListView<
 	 * The list of objects, from which each object is used to construct one view object
 	 * - This property should be set or bound to a {@link ManagedList} object or an array.
 	 * - When set to an array, the property setter _converts_ the array to a {@link ManagedList} automatically, and uses that instead.
-	 * - When updated, a {@link UIListView.ItemControllerView} view instance is created for each list item and added to the {@link body} container.
+	 * - When updated, a {@link UIListView.ItemControllerView} view instance is created for each list item and added to the {@link ViewComposite.body} container.
 	 */
 	declare items?: ManagedList<TItem>;
 
