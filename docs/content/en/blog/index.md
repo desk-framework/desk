@@ -9,4 +9,6 @@ menu_root: true
 
 # Blog
 
+---
+
 - {@link blog.first +}

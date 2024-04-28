@@ -8,6 +8,13 @@ abstract: Learn how to use bindings, to communicate property changes between att
 
 > {@include abstract}
 
+#### Summary
+
+- Bindings are used to _handle changes to property data_ and reflect these changes elsewhere.
+- Bindings are applied to managed objects, and watch for changes to attached parent objects and their properties.
+- Most commonly, bindings are used to set view properties dynamically, keeping business logic out of the view itself.
+- Bindings can be created using the {@link bound} function, and further configured using methods of the {@link Binding} class.
+
 ## Overview {#overview}
 
 In a Desk app, bindings are used to handle changes to property data — for example to update the UI when the state of an activity changes, or when a property of a view model is updated.
@@ -22,9 +29,9 @@ Hence, the source object is always the _first parent in the managed object hiera
 
 In addition, bindings provide the following features:
 
-- **Source paths** instead of single property names can be used to watch _nested_ properties instead of a single property.
+- **Source paths** — instead of single property names can be used to watch _nested_ properties instead of a single property.
 - **Filters** can be added to manipulate or combine bound values.
-- **Callback** functions can be used to handle source updates, rather than setting a target property directly.
+- **Callback** functions can be used to handle source updates, rather than setting a target property directly (see Binding properties outside of views below).
 
 ## Creating a binding {#create}
 
@@ -33,7 +40,7 @@ To create a binding, you can use the {@link bound()} function (or one of the spe
 - {@link bound +}
 - {@link Binding +}
 
-Bindings are commonly used to set view properties dynamically — keeping business logic and calculations out of the view. View properties can be bound simply by passing the result of the {@link bound} function directly to the `ui` method. In JSX code, you can use the `bound` function directly in the JSX expression, or use the text binding syntax (see below).
+Bindings are commonly used to set view properties dynamically. Using `ui` functions and/or JSX, you can simply pass the result of the {@link bound} function to bind a particular view property. In JSX code, you can also use text binding syntax (see below).
 
 ```tsx
 // bind to the text property of a label
@@ -56,11 +63,11 @@ ui.label(bound("name"));
 
 ## Setting the binding source {#source}
 
-The first argument to the {@link bound} function(s) is the binding **source**.
+The first argument to the {@link bound} function(s) is the binding **source**. This can take a number of forms.
 
-**Single property** — In most cases, the binding source is the name of a single property that will be observed on the source object.
+**Single property** — In many cases, the binding source is the name of a single property that will be observed on the source object.
 
-For example, `bound("name")` represents a binding that looks for a `name` property on one of the target's parent object(s), takes its value, and watches for changes.
+For example, `bound("name")` represents a binding that looks for a `name` property on one of the target's parent object(s), then takes its value and watches for changes.
 
 Under the hood, this upgrades the source property with a JavaScript _getter and setter_ that allow the binding (as well as any other bindings and/or observers) to handle changes transparently to the rest of the application.
 
@@ -91,7 +98,7 @@ In the same vein, you can use the {@link bound.not()} function to create binding
 
 - {@link bound.not}
 
-In practice, boolean bindings are useful for hiding and showing views based on a particular condition. Apply a (negated) binding to the `hidden` property of a UI container, or the `state` property of a {@link UIConditionalView} view composite, and that part of your view will be shown or hidden depending on the value of an Activity property.
+In practice, boolean bindings are often used for hiding and showing views based on a particular condition. Apply a (negated) binding to the `hidden` property of a UI container, or the `state` property of a {@link UIConditionalView} view composite, and that part of your view will be shown or hidden depending on the value of an Activity property.
 
 {@import :hidden}
 
@@ -127,7 +134,7 @@ The following example view uses a binding to populate a list, as well as a bindi
 
 ## Setting default values {#default}
 
-You may have noticed that the `bound` function, as well as e.g. `bound.number` accepts a second argument that's called `defaultValue`. Use this argument to specify a value that's used instead of `undefined` — whenever the bound value would be undefined **or** null (under the hood, the `??` operator is used to determine the final value).
+You may have noticed that the `bound` function, as well as e.g. `bound.number` accepts a second argument called `defaultValue`. Use this argument to specify a value that's used instead of `undefined` — whenever the bound value would be undefined **or** null (under the hood, the `??` operator is used to determine the final value).
 
 - {@link bound}
 
@@ -192,7 +199,7 @@ There are several ways to produce bindings that observe or produce text values. 
 
 **String value conversion, with optional format** — You can also convert a value to a string, changing undefined or null to an empty string, using the {@link Binding.asString()} method. This method can be used as a 'filter' on top of an existing binding, e.g. the result of {@link Binding.and()}.
 
-This method takes an optional second parameter, which is used as a formatter. The format string (placeholder) can be one of the common C-style `sprintf` placeholders or a custom one — refer to {@LazyString.format} for details. Note that the `%` sign should _not_ be included in the format string.
+This method takes an optional second parameter, which is used as a formatter. The format string (placeholder) can be one of the common C-style `sprintf` placeholders or a custom one — refer to {@link LazyString.format} for details. Note that the `%` sign should _not_ be included in the format string.
 
 - {@link Binding.asString}
 
@@ -244,9 +251,9 @@ For more information, refer to the documentation for JSX views.
 
 ## Binding properties outside of views {#bindTo}
 
-Many of the above examples have been focused on bindings that are applied to view properties. However, bindings also work outside of views, and have many use cases in e.g. activities and services.
+Many of the above examples have been focused on bindings that are applied to view properties. However, bindings also work outside of views, and can be used in activities, services, and view models as well.
 
-To apply a binding to any managed object, use the {@link Binding.bindTo()} method. Using this method, you can either update a specific property or invoke a callback function with each update.
+To apply a binding to _any_ managed object, use the {@link Binding.bindTo()} method. Using this method, you can either update a specific property or invoke a callback function with each update.
 
 - {@link Binding.bindTo}
 

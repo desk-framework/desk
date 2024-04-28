@@ -1,8 +1,7 @@
-// Compile/run: npx tsc -p . && node dist
+// Compile/run: npx tsc -p . && node dist/event-handling.js
 
 import {
 	Activity,
-	ManagedChangeEvent,
 	ManagedEvent,
 	ManagedObject,
 	Observer,
@@ -33,7 +32,7 @@ class MyObject extends ManagedObject {}
 	myObject.emitChange();
 
 	// same as this:
-	const myEvent = new ManagedChangeEvent("Change", myObject);
+	const myEvent = new ManagedEvent("Change", myObject, { change: myObject });
 	myObject.emit(myEvent);
 	// @doc-end
 }
@@ -94,6 +93,16 @@ class MyObject extends ManagedObject {}
 	p.object.emitChange();
 	p.object.emitChange("Named");
 	p.object.emit("NotAChange"); // not logged
+}
+{
+	// @doc-start event-handling:observer
+	class MyObserver extends Observer<MyObject> {
+		// ... add methods here, see below
+	}
+
+	let myObject = new MyObject();
+	new MyObserver().observe(myObject);
+	// @doc-end
 }
 {
 	// @doc-start event-handling:observer-events

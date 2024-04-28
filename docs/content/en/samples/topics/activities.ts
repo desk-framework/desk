@@ -1,10 +1,9 @@
-// Compile/run: npx tsc -p . && node dist
+// Compile/run: npx tsc -p . && node dist/activities.js
 
 import {
 	Activity,
 	ManagedObject,
 	NavigationTarget,
-	UICell,
 	app,
 	ui,
 } from "@desk-framework/frame-core";

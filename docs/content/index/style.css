@@ -124,12 +124,11 @@ h3 {
 h4 {
 	font-family: inherit;
 	font-weight: 600;
-	font-size: 0.825rem;
+	font-size: 0.875rem;
 	line-height: 1em;
 	margin: 0 0 0.5rem;
 	padding-bottom: 0.125rem;
 	text-transform: uppercase;
-	opacity: 0.85;
 }
 * + h4 {
 	padding-top: 0.75rem;

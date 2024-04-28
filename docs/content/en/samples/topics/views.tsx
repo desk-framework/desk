@@ -1,3 +1,5 @@
+// Compile/run: npx tsc -p . && node dist/views.js
+
 import { bound } from "@desk-framework/frame-core";
 
 {

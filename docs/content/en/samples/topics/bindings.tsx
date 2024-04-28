@@ -1,3 +1,5 @@
+// Compile/run: npx tsc -p . && node dist/bindings.js
+
 import { bound, Activity, app, Binding, ui } from "@desk-framework/frame-core";
 /** @jsx ui.jsx */
 
