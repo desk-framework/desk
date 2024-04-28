@@ -1,5 +1,4 @@
-import { ManagedObject, Observer } from "../base/index.js";
-import { app } from "./GlobalContext.js";
+import { ManagedObject } from "../base/index.js";
 import { ServiceContext } from "./ServiceContext.js";
 
 /**
@@ -17,29 +16,9 @@ export abstract class Service extends ManagedObject {
 	isServiceRegistered() {
 		// use duck typing to find out if parent map is a ServiceContext
 		let parent = ServiceContext.whence(this);
-		return !!(
-			!this.isUnlinked() &&
-			parent &&
-			!parent.isUnlinked() &&
-			typeof (parent as ServiceContext).isServiceContext === "function"
-		);
+		return !!parent && !this.isUnlinked();
 	}
 
 	/** The unique ID for this service (instance) */
 	abstract readonly id: string;
-
-	/**
-	 * Observes another service by ID, until the current service is unlinked
-	 * @param id The ID of the service to be observed
-	 * @param observer An {@link Observer} class or instance, or a function that's called whenever a change event is emitted by the target service (with service and event arguments, respectively), and when the target service is unlinked (without any arguments)
-	 * @returns The observer instance, which references the observed service using the {@link Observer.observed observed} property
-	 */
-	protected observeService<TService extends Service>(
-		id: string,
-		observer:
-			| Observer<TService>
-			| ManagedObject.AttachObserverFunction<TService> = new Observer(),
-	) {
-		return app.services._$observe(id, observer, this);
-	}
 }

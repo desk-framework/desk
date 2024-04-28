@@ -1,5 +1,5 @@
-import { ManagedObject, Observer } from "../base/index.js";
-import { invalidArgErr } from "../errors.js";
+import { ManagedObject } from "../base/index.js";
+import { invalidArgErr, safeCall } from "../errors.js";
 import { app } from "./GlobalContext.js";
 import { View } from "./View.js";
 
@@ -13,7 +13,7 @@ export abstract class RenderContext extends ManagedObject {
 	/** Returns a render callback for root view output; do not use directly */
 	abstract getRenderCallback(): RenderContext.RenderCallback;
 	/** Creates a new renderer observer for the provided view object; do not use directly */
-	abstract createObserver<T extends View>(target: T): Observer<T> | undefined;
+	abstract createObserver<T extends View>(target: T): unknown;
 	/** Creates a new transformation object for the provided output, if supported */
 	abstract transform(
 		out: RenderContext.Output,
@@ -59,7 +59,7 @@ export namespace RenderContext {
 	 * Type definition for global rendering placement options
 	 *
 	 * @description
-	 * An object of this type can be provided when rendering a view object using {@link GlobalContext.render app.render()}, or {@link RenderContext.DynamicRendererWrapper}.
+	 * An object of this type can be provided when rendering a view object using {@link GlobalContext.render app.render()}, or {@link RenderContext.ViewController}.
 	 *
 	 * The following properties determine how root view elements are placed on the screen:
 	 * - `mode` — One of the {@link RenderContext.PlacementMode} options.
@@ -201,7 +201,7 @@ export namespace RenderContext {
 	 *
 	 * @hideconstructor
 	 */
-	export class DynamicRendererWrapper {
+	export class ViewController {
 		/** The current render callback, if any */
 		callback?: RenderCallback;
 
@@ -217,94 +217,97 @@ export namespace RenderContext {
 		}
 
 		/** Renders the provided view using a new callback, or previously stored callback */
-		render(
-			content?: View,
-			callback?: RenderCallback,
-			place?: PlacementOptions,
-		) {
+		render(view?: View, callback?: RenderCallback, place?: PlacementOptions) {
 			let isNewCallback = callback && callback !== this.callback;
-
-			if (
-				(!content || isNewCallback) &&
-				this.callback &&
-				this.lastRenderOutput
-			) {
-				// use old callback to remove output
-				this.callback = this.callback(undefined);
-				this.lastView = undefined;
-				this.lastRenderOutput = undefined;
-				this._ownCallback = undefined;
-				this._seq++;
-				this._viewObserver?.stop();
+			if (view && typeof view.render !== "function") {
+				throw invalidArgErr("content");
 			}
+
+			// use old callback to remove output
+			(!view || isNewCallback) &&
+				this.callback &&
+				this.lastRenderOutput &&
+				this._clear();
 
 			if (isNewCallback) this.callback = callback;
 			else if (!callback) callback = this.callback;
 
-			// render content, if possible
-			if (content && callback) {
-				if (typeof content.render !== "function") {
-					throw invalidArgErr("content");
-				}
+			// render content if possible, and clear when unlinked
+			if (view && callback) {
 				if (!this._ownCallback || isNewCallback) {
-					let seq = this._seq;
-					let cb: RenderCallback = (output, afterRender) => {
-						if (seq === this._seq) {
-							if (output && place) output.place = place;
-							this.callback = callback!(output, afterRender);
-							this.lastRenderOutput = output;
-							let animation = output?.place?.transform?.show;
-							if (animation) app.animateAsync(this, animation);
-							seq = ++this._seq;
-						}
-						return cb;
-					};
-					this._ownCallback = cb;
+					this._ownCallback = this._wrap(
+						callback,
+						place || view.renderPlacement,
+					);
 				}
-				this.lastView = content;
-				this._viewObserver.observe(content);
-				content.render(this._ownCallback);
+				this.lastView = view;
+				this._listener = new ViewListener(this, view);
+				view.render(this._ownCallback);
 			}
 			return this;
 		}
 
-		/** Removes previously rendered output */
+		/** Removes previously rendered output, asynchronously */
 		removeAsync() {
 			let out = this.lastRenderOutput;
 			let seq = this._seq;
-			return (async () => {
+			return safeCall(async () => {
 				if (!this.callback) return;
 				let animation = out?.place?.transform?.hide;
 				if (animation) await app.animateAsync(this, animation);
-				if (seq === this._seq) {
-					let resolve: () => void;
-					let p = new Promise<void>((r) => {
-						resolve = r;
-					});
-					this.callback = this.callback!(undefined, () => resolve());
-					this.lastRenderOutput = undefined;
-					this.lastView = undefined;
-					this._ownCallback = undefined;
-					this._seq++;
-					this._viewObserver?.stop();
-					return p;
-				}
-			})();
+				if (seq === this._seq) await this._clear();
+			});
 		}
 
-		private _viewObserver = new (class extends Observer<View> {
-			constructor(public wrapper: DynamicRendererWrapper) {
-				super();
-			}
-			override handleUnlink() {
-				if (this.wrapper.lastView === this.observed) {
-					this.wrapper.removeAsync();
+		private _wrap(callback: RenderCallback, place?: PlacementOptions) {
+			let seq = this._seq;
+			let cb: RenderCallback = (output, afterRender) => {
+				if (seq === this._seq) {
+					if (output && place) output.place = place;
+					this.callback = callback(output, afterRender);
+					this.lastRenderOutput = output;
+					let animation = output?.place?.transform?.show;
+					if (animation) app.animateAsync(this, animation);
+					seq = ++this._seq;
 				}
-				return super.handleUnlink();
-			}
-		})(this);
+				return cb;
+			};
+			return cb;
+		}
 
+		private _clear() {
+			return new Promise<unknown>((resolve) => {
+				this.callback = this.callback!(undefined, resolve);
+				this._listener?.stop();
+				this._listener = undefined;
+				this._ownCallback = undefined;
+				this._seq++;
+				this.lastRenderOutput = undefined;
+				this.lastView = undefined;
+			});
+		}
+
+		private _listener?: ViewListener;
 		private _ownCallback: any;
 		private _seq = 0;
+	}
+
+	/** @internal A listener that's used to observe dynamically rendered content views */
+	class ViewListener {
+		constructor(
+			public wrapper: ViewController,
+			view: View,
+		) {
+			view.listen(this);
+		}
+		init(_view: View, stop: () => void) {
+			this.stop = stop;
+		}
+		unlinked(view: View) {
+			if (view === this.wrapper.lastView) {
+				this.wrapper.removeAsync();
+			}
+		}
+		declare stop: () => void;
 	}
 }

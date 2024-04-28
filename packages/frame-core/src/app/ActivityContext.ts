@@ -11,14 +11,25 @@ export class ActivityContext extends ManagedObject {
 	/** Creates a new instance of this class; do not use directly */
 	constructor() {
 		super();
-		this.autoAttach("navigationController", () => this._update());
+		let controller = new NavigationController();
+		Object.defineProperty(this, "navigationController", {
+			configurable: true,
+			enumerable: true,
+			get: () => controller,
+			set: (value) => {
+				if (controller === value) return;
+				if (controller) controller.unlink();
+				controller = this.attach(value, () => this._update());
+				this._update();
+			},
+		});
 	}
 
 	/**
 	 * The current navigation controller
 	 * - This property defaults to a plain {@link NavigationController} instance but will be overridden by a platform-specific context package.
 	 */
-	navigationController = new NavigationController();
+	declare navigationController: NavigationController;
 
 	/** Returns an array of all activities that are currently active */
 	getActive() {

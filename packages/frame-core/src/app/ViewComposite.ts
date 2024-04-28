@@ -1,9 +1,4 @@
-import {
-	BindingOrValue,
-	ManagedEvent,
-	ManagedObject,
-	Observer,
-} from "../base/index.js";
+import { BindingOrValue, ManagedEvent, ManagedObject } from "../base/index.js";
 import { ERROR, err, errorHandler, invalidArgErr } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";
@@ -16,7 +11,7 @@ import { View, ViewClass } from "./View.js";
  *
  * The encapsulated view is referenced by the {@link ViewComposite.body body} property, which is usually set automatically, either when the ViewComposite is instantiated or right before rendering. It may be changed or unlinked at any time; the rendered view will be updated accordingly by the ViewComposite itself.
  *
- * The {@link ViewComposite.body body} property is watched using {@link ManagedObject.autoAttach}, which means that setting it to a view instance automatically attaches the object to the ViewComposite. Setting the property to undefined will unlink the existing view, and setting it to a new view will unlink an existing one. Therefore, the ViewComposite instance can only contain a single view object at a time.
+ * The {@link ViewComposite.body body} property is managed using a setter and getter. Setting it to a view instance automatically attaches the view to the ViewComposite. Setting the property to undefined will unlink the existing view, and setting it to a new view will unlink an existing one. Therefore, the ViewComposite instance can only contain a single view object at a time.
  *
  * Since the view is attached to the ViewComposite object, bindings continue to work, and events can be handled either by the ViewComposite object or by a containing object.
  *
@@ -60,29 +55,58 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 		defaults: TDefaults,
 		ViewBody?: ViewClass<TView> | ((...content: TContent) => ViewClass<TView>),
 	): ViewComposite.WithPreset<TPreset, TContent, TView, TDefaults> {
-		return class extends ViewComposite<TView> {
-			static preset() {
-				return (this as any).bind(undefined, ...arguments);
-			}
-			constructor(preset: any, ...content: TContent) {
-				super();
-				this._Content = content;
-				if (preset?.variant && !(this instanceof preset.variant.type)) {
-					throw invalidArgErr("preset.variant");
+		function applyTo(c: ViewComposite, ...presets: any[]) {
+			let apply: any = {};
+			for (let p of presets) {
+				if (!p) continue;
+				if (p.variant) {
+					if (!(c instanceof p.variant.type)) {
+						throw invalidArgErr("preset.variant");
+					}
+					Object.assign(apply, p.variant.preset);
 				}
-				let apply = { ...defaults, ...preset?.variant?.preset, ...preset };
-				delete apply.variant;
-				this.applyViewPreset(apply);
+				Object.assign(apply, p);
 			}
-			protected override createView() {
-				return ViewBody
-					? ViewBody.prototype instanceof View
-						? new (ViewBody as ViewClass)()
-						: new ((ViewBody as Function)(...this._Content))()
-					: undefined;
-			}
-			private _Content: TContent;
-		} as any;
+			delete apply.variant;
+			c.applyViewPreset(apply);
+		}
+		function makePresetClass(ViewBody?: ViewClass, ...presets: any[]): any {
+			return class PresetViewComposite extends ViewComposite<TView> {
+				static preset() {
+					return (this as any).bind(undefined, ...arguments);
+				}
+				constructor(preset: any) {
+					super();
+					applyTo(this, ...presets, preset);
+				}
+				protected override createView() {
+					if (ViewBody) return new ViewBody() as TView;
+				}
+			};
+		}
+		if (!ViewBody || ViewBody.prototype instanceof View) {
+			return makePresetClass(ViewBody as any, defaults) as any;
+		} else if (typeof ViewBody === "function") {
+			// return a ViewComposite that can be further preset with content
+			return class PresetViewComposite extends ViewComposite<TView> {
+				static preset(preset: any, ...content: TContent) {
+					// now preset with given content, if any
+					let PresetViewBody = (ViewBody as Function)(...content);
+					return makePresetClass(PresetViewBody, defaults, preset);
+				}
+				constructor(preset: any, ...content: TContent) {
+					super();
+					applyTo(this, defaults, preset);
+					this._Content = content;
+				}
+				protected override createView() {
+					return new ((ViewBody as Function)(...this._Content))();
+				}
+				private _Content: TContent;
+			} as any;
+		} else {
+			throw invalidArgErr("ViewBody");
+		}
 	}
 
 	/**
@@ -91,40 +115,19 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	 */
 	constructor() {
 		super();
-
-		// auto-attach view, render when changed, delegate events
-		class ViewObserver extends Observer<TView> {
-			constructor(public vc: ViewComposite) {
-				super();
-			}
-			override observe(observed: TView) {
-				super.observe(observed);
-				this.vc.render();
-				return this;
-			}
-			override stop() {
-				this.vc.render();
-			}
-			protected override handleEvent(event: ManagedEvent) {
-				if (this.vc.body && !event.noPropagation) {
-					this.vc.delegateViewEvent(event);
-				}
-			}
-		}
-		this.autoAttach("body", new ViewObserver(this));
 	}
 
 	/**
-	 * The encapsulated view object
-	 * - Initially, this property is undefined. The view object is only created (using {@link ViewComposite.createView createView()}) when the ViewComposite instance is first rendered. Override {@link ViewComposite.beforeRender beforeRender()} to manipulate the view before rendering, if needed.
-	 * - View objects assigned to this property are automatically attached to the ViewComposite object.
+	 * The encapsulated view object, an attached view
+	 * - Initially, this property is undefined. The view object is only created (using {@link ViewComposite.createView createView()}) when the ViewComposite instance is first rendered.
+	 * - Alternatively, you can set it yourself, e.g. in the constructor. In this case, ensure that the object is a {@link View} instance that's attached directly to this view composite, and events are delegated using {@link ViewComposite.delegateViewEvent}.
 	 */
-	declare body?: TView;
+	body?: TView;
 
 	/**
 	 * Creates the encapsulated view object, to be overridden if needed
-	 * - This method is called automatically when rendering a view composite, and the result is assigned to {@link ViewComposite.body}. It should not be necessary to call this method directly.
-	 * - The base implementation in the ViewComposite class does nothing. Subclasses should implement their own method, or set the {@link ViewComposite.body body} property in their constructor.
+	 * - The base implementation of this method in the ViewComposite class does nothing. Subclasses should implement their own method, or set the {@link ViewComposite.body body} property in their constructor.
+	 * - This method is called automatically when rendering a view composite. The result is attached to the view composite object, and assigned to {@link ViewComposite.body}. If the view is unlinked, the {@link ViewComposite.body} property is set to undefined again.
 	 */
 	protected createView(): TView | undefined | void {
 		// nothing here
@@ -151,7 +154,7 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 
 	/**
 	 * Requests input focus on the contained view object
-	 * - This method should be overridden if input focus should be requested on another element within the view.
+	 * - This method should be overridden if input focus should be requested on another element than the view body itself.
 	 */
 	requestFocus() {
 		if (this.body) this.body.requestFocus();
@@ -167,6 +170,8 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	 * @returns True if an event handler was found, and it returned true; a promise if the handler returned a promise; false otherwise.
 	 */
 	protected delegateViewEvent(event: ManagedEvent): boolean | Promise<unknown> {
+		if (this.isUnlinked() || event.noPropagation) return false;
+
 		// find own handler method
 		let method = (this as any)["on" + event.name];
 		if (typeof method === "function") {
@@ -185,16 +190,25 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 
 	/**
 	 * Renders the current view, if any
-	 * - This method is called automatically whenever required. It should not be necessary to invoke this method from an application, or to override it.
+	 * - This method is called automatically whenever required. It's not necessary to invoke this method from an application, or to override it.
 	 */
 	render(callback?: RenderContext.RenderCallback) {
-		// create a new view and call beforeRender if needed
 		if (!this.body) {
 			let body = this.createView();
 			if (body) {
 				if (!(body instanceof View)) throw err(ERROR.View_Invalid);
-				this.body = body;
+				this.body = this.attach(body, {
+					handler: (_, event) => {
+						this.delegateViewEvent(event);
+					},
+					detached: (body) => {
+						if (this.body === body) this.body = undefined;
+					},
+				});
 			}
+		}
+		if (this.body && ManagedObject.whence(this.body) !== this) {
+			throw err(ERROR.View_NotAttached);
 		}
 		if (callback && !this._renderer.isRendered()) this.beforeRender();
 		this._renderer.render(this.body, callback);
@@ -202,7 +216,7 @@ export abstract class ViewComposite<TView extends View = View> extends View {
 	}
 
 	/** Stateful renderer wrapper, handles content component */
-	private _renderer = new RenderContext.DynamicRendererWrapper();
+	private _renderer = new RenderContext.ViewController();
 }
 
 export namespace ViewComposite {

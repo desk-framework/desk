@@ -1,5 +1,4 @@
 import {
-	Observer,
 	RenderContext,
 	UICell,
 	UIColumn,
@@ -102,6 +101,11 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 	}
 
 	async showAsync(place?: Partial<RenderContext.PlacementOptions>) {
+		// TODO(refactor): together with TestModalMenu this is
+		// a good candidate for refactoring. Refer to modal dialog
+		// implementation for a loop based approach. Would just
+		// need to find a way to associate an event with a menu item.
+
 		// return a promise that's resolved when one of the items is selected
 		// or when the menu is dismissed otherwise
 		return new Promise<{ key: string } | undefined>((r) => {
@@ -169,23 +173,13 @@ export class ModalMenu extends ViewComposite implements UITheme.MenuController {
 				itemRow.content.add(spacer, hintLabel);
 			}
 
-			// add an observer to register clicks and keyboard input
-			let self = this;
-			class ItemObserver extends Observer<UICell> {
-				onClick() {
-					self._resolve?.(item.key);
-				}
-				onEnterKeyPress() {
-					self._resolve?.(item.key);
-				}
-				onArrowDownKeyPress() {
-					itemCell.requestFocusNext();
-				}
-				onArrowUpKeyPress() {
-					itemCell.requestFocusPrevious();
-				}
-			}
-			new ItemObserver().observe(itemCell);
+			// add a listener to register clicks and keyboard input
+			itemCell.listen((e) => {
+				if (e.name === "Click") this._resolve?.(item.key);
+				else if (e.name === "EnterKeyPress") this._resolve?.(item.key);
+				else if (e.name === "ArrowDownKeyPress") itemCell.requestFocusNext();
+				else if (e.name === "ArrowUpKeyPress") itemCell.requestFocusPrevious();
+			});
 		}
 		return container;
 	}

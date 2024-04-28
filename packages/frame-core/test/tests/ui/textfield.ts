@@ -1,9 +1,9 @@
 import {
 	UITextField,
 	UIFormContext,
-	app,
 	strf,
 	ui,
+	ManagedObject,
 } from "../../../dist/index.js";
 import {
 	describe,
@@ -30,7 +30,7 @@ describe("UITextField", (scope) => {
 		expect(tf).toHaveProperty("placeholder").asString().toBe("foo");
 	});
 
-	test("Preset using formField and form context", () => {
+	test("Preset using form field", () => {
 		let MyTF = ui.textField({
 			formField: "foo",
 			placeholder: strf("Placeholder"),
@@ -38,16 +38,10 @@ describe("UITextField", (scope) => {
 		let tf = new MyTF();
 		expect(tf).toHaveProperty("formField").toBe("foo");
 		expect(tf).toHaveProperty("placeholder").asString().toBe("Placeholder");
-		let formCtx = new UIFormContext({ foo: "" });
-		tf.formContext = formCtx;
-		formCtx.set("foo", "bar");
-		expect(tf).toHaveProperty("value").toBe("bar");
-		formCtx.set("foo", undefined);
-		expect(tf).toHaveProperty("value").toBe("");
 	});
 
 	test("Rendered with placeholder", async (t) => {
-		app.showPage(new UITextField("foo", "bar"));
+		t.render(new UITextField("foo", "bar"));
 		await t.expectOutputAsync(100, {
 			text: "foo",
 			value: "bar",
@@ -56,7 +50,7 @@ describe("UITextField", (scope) => {
 
 	test("User input, directly setting value", async (t) => {
 		let tf = new UITextField();
-		app.showPage(tf);
+		t.render(tf);
 		let tfElt = (
 			await t.expectOutputAsync(100, { type: "textfield" })
 		).getSingle();
@@ -66,17 +60,21 @@ describe("UITextField", (scope) => {
 	});
 
 	test("User input with form context", async (t) => {
-		let tf = new UITextField();
+		class Host extends ManagedObject {
+			// note that formContext must exist before it can be bound
+			readonly formContext = new UIFormContext({ foo: "bar" });
+			readonly tf = this.attach(new UITextField());
+		}
+		let host = new Host();
+		let tf = host.tf;
 
 		// use form context to set value to 'bar'
-		let formCtx = new UIFormContext({ foo: "bar" });
 		tf.formField = "foo";
-		tf.formContext = formCtx;
 		expect(tf.value).toBe("bar");
 
 		// render field, check that value is 'bar'
 		t.log("Rendering with value");
-		app.showPage(tf);
+		t.render(tf);
 		let tfElt = (
 			await t.expectOutputAsync(100, { type: "textfield" })
 		).getSingle();
@@ -86,6 +84,6 @@ describe("UITextField", (scope) => {
 		t.log("Updating element to set form context");
 		tfElt.value = "baz";
 		tfElt.sendPlatformEvent("input");
-		expect(formCtx.get("foo")).toBe("baz");
+		expect(host.formContext.get("foo")).toBe("baz");
 	});
 });

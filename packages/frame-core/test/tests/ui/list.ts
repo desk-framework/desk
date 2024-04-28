@@ -2,7 +2,6 @@ import {
 	bound,
 	ManagedList,
 	ManagedObject,
-	app,
 	UILabel,
 	UIListView,
 	UIRow,
@@ -24,13 +23,15 @@ describe("UIListView", (scope) => {
 
 	// helper function to get the text content of a list
 	function getListText(list: UIListView) {
-		return list.body.content.map((c) =>
-			String(
-				c instanceof UIListView.ItemControllerView
-					? c.body instanceof UILabel && c.body.text
-					: c instanceof UILabel && c.text,
-			),
-		);
+		return list
+			.getContent()!
+			.map((c) =>
+				String(
+					c instanceof UIListView.ItemControllerView
+						? c.body instanceof UILabel && c.body.text
+						: c instanceof UILabel && c.text,
+				),
+			);
 	}
 
 	// helper function to get a list of managed objects
@@ -61,7 +62,7 @@ describe("UIListView", (scope) => {
 
 	test("Empty list, rendered", async (t) => {
 		let MyList = ui.list({}, UILabel);
-		app.showPage(new MyList());
+		t.render(new MyList());
 		await t.expectOutputAsync(50, { type: "column" });
 	});
 
@@ -73,7 +74,7 @@ describe("UIListView", (scope) => {
 		let instance = new MyList();
 
 		t.log("Rendering");
-		app.showPage(instance);
+		t.render(instance);
 		let out = await t.expectOutputAsync(50, { type: "row" });
 		expect(out.elements[0], "row element").toBeDefined();
 		out.containing({ text: "a" }).toBeRendered("list element a");
@@ -88,25 +89,20 @@ describe("UIListView", (scope) => {
 
 	test("List of labels from bound array, rendered", async (t) => {
 		t.log("Creating instance");
-		class ArrayProvider extends ManagedObject {
-			constructor() {
-				super();
-				this.autoAttach("view");
-			}
-			declare view?: UIListView;
-			array = ["a", "b", "c"];
-		}
 		let MyList = ui.list(
 			{ items: bound("array") },
 			ui.label(bound("item")),
 			UIRow,
 		);
-		let instance = new MyList();
+		class ArrayProvider extends ManagedObject {
+			array = ["a", "b", "c"];
+			readonly view = this.attach(new MyList());
+		}
 		let parent = new ArrayProvider();
-		parent.view = instance;
+		let instance = parent.view;
 
 		t.log("Rendering");
-		app.showPage(instance);
+		t.render(instance);
 		await t.expectOutputAsync(50, { type: "row" });
 		expect(getListText(instance)).toBeArray(["a", "b", "c"]);
 	});
@@ -120,12 +116,12 @@ describe("UIListView", (scope) => {
 		let instance = new MyList();
 
 		t.log("Rendering");
-		app.showPage(instance);
+		t.render(instance);
 		let out = await t.expectOutputAsync(50, { type: "row" }, { text: "c" });
 		let cRendered = out.getSingle();
 
 		t.log("Updating list");
-		list.replace([c, b, d]);
+		list.replaceAll([c, b, d]);
 		await t.expectOutputAsync(50, { text: "d" });
 		expect(getListText(instance)).toBeArray(["c", "b", "d"]);
 		let sameC = await t.expectOutputAsync(50, { type: "row" }, { text: "c" });
@@ -155,7 +151,7 @@ describe("UIListView", (scope) => {
 		});
 
 		t.log("Rendering");
-		app.showPage(view);
+		t.render(view);
 		let out = await t.expectOutputAsync(50, { text: "d" });
 
 		t.log("Clicking");
@@ -175,7 +171,7 @@ describe("UIListView", (scope) => {
 		let instance = new MyList();
 
 		t.log("Rendering");
-		app.showPage(instance);
+		t.render(instance);
 		await t.expectOutputAsync(50, { type: "row" }, { text: "d" });
 		expect(getListText(instance)).toBeArray(["a", "b", "c", "d", "end"]);
 
@@ -195,7 +191,7 @@ describe("UIListView", (scope) => {
 		let instance = new MyList();
 
 		t.log("Rendering 0-1");
-		app.showPage(instance);
+		t.render(instance);
 		await t.expectOutputAsync(50, { type: "row" });
 		expect(getListText(instance)).toBeArray(["a", "b"]);
 
@@ -227,7 +223,7 @@ describe("UIListView", (scope) => {
 			ui.label({ text: bound("item.name"), allowFocus: true }),
 		);
 		let list = new Preset();
-		app.showPage(list);
+		t.render(list);
 		let out = await t.expectOutputAsync(50, { text: "a" });
 		expect(list.getIndexOfView(out.getSingle().output!.source)).toBe(0);
 		out = await t.expectOutputAsync(50, { text: "d" });
@@ -244,7 +240,7 @@ describe("UIListView", (scope) => {
 				ui.cell({ allowKeyboardFocus: true, accessibleRole: "list" }),
 			),
 		);
-		app.showPage(new Preset());
+		t.render(new Preset());
 		let out = await t.expectOutputAsync(50, { text: "a" });
 
 		t.log("Focus first item");
@@ -272,7 +268,7 @@ describe("UIListView", (scope) => {
 			}),
 		);
 		let list = new Preset();
-		app.showPage(list);
+		t.render(list);
 		let firstOut = await t.expectOutputAsync(100, { text: "a" });
 
 		t.log("Focus first item");
