@@ -71,11 +71,11 @@ await Promise.all([
 ]);
 
 // Create appropriate .d.ts files to reference dist folder
-let exportLine = 'export * from "../dist/index.js";';
+let exportLine = 'export * from "@desk-framework/frame-web";';
 await fs.writeFile(
 	"lib/desk-framework-web.iife.d.ts",
 	exportLine +
-		'\ndeclare global { const desk: typeof import("../dist/index.js") }',
+		'\ndeclare global { const desk: typeof import("@desk-framework/frame-web") }',
 );
 await fs.writeFile("lib/desk-framework-web.es2015.esm.min.d.ts", exportLine);
 await fs.writeFile("lib/desk-framework-web.es2018.esm.min.d.ts", exportLine);
