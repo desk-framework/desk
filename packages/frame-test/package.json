@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/frame-test",
-	"version": "4.0.0-dev.22",
+	"version": "4.0.0-dev.23",
 	"publishConfig": {
 		"tag": "next"
 	},
@@ -29,7 +29,7 @@
 		"endOfLine": "lf"
 	},
 	"peerDependencies": {
-		"@desk-framework/frame-core": "4.0.0-dev.22"
+		"@desk-framework/frame-core": "4.0.0-dev.23"
 	},
 	"devDependencies": {
 		"@desk-framework/frame-core": "file:../frame-core"
