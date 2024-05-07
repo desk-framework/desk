@@ -207,6 +207,7 @@ export function makeBaseCSS() {
 			borderWidth: "1px",
 			borderColor: "inherit",
 			borderRadius: "2px",
+			background: "#fff",
 			width: "1rem",
 			height: "1rem",
 			flexShrink: "0",
