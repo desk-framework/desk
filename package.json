@@ -1,7 +1,7 @@
 {
 	"name": "desk-framework",
 	"description": "Desk framework: source monorepo",
-	"version": "4.0.0-dev.23",
+	"version": "4.0.0-dev.24",
 	"license": "MIT",
 	"private": true,
 	"type": "module",
