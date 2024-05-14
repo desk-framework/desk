@@ -132,7 +132,7 @@ export const styles: [
 				minHeight: 32,
 				padding: 4,
 				shrink: 0,
-				borderRadius: "50%",
+				borderRadius: 8,
 				background: _color_clear,
 				textColor: _color_text,
 				lineHeight: 1,
