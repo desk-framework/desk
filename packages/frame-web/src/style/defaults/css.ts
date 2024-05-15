@@ -52,6 +52,7 @@ export function makeBaseCSS() {
 			webkitUserSelect: "none",
 		},
 		[`.${CLASS_UI}.${CLASS_CONTAINER}`]: {
+			pointerEvents: "auto",
 			position: "relative",
 			display: "flex",
 			textAlign: "start||left",
@@ -112,6 +113,12 @@ export function makeBaseCSS() {
 			insetInlineEnd: "1ex",
 			top: 0,
 			height: "100%",
+		},
+		[`a.${CLASS_UI} span`]: {
+			verticalAlign: "middle",
+		},
+		[`button.${CLASS_UI} span`]: {
+			verticalAlign: "middle",
 		},
 
 		// flip icons in RTL mode

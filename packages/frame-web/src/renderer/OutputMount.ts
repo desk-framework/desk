@@ -34,22 +34,32 @@ export class OutputMount {
 		};
 		this._remount();
 		registerHandlers(elt, true);
-		document.body.appendChild(elt);
+		let overlays = document.querySelectorAll("desk-overlay");
+		if (overlays[0]) {
+			document.body.insertBefore(elt, overlays[0]);
+		} else {
+			document.body.appendChild(elt);
+		}
 		this._updateTitle();
 	}
 
-	/** Creates a modal root element, for use with various modal placement modes */
-	createModalElement(
+	/** Creates an overlay or modal root element */
+	createOverlayElement(
 		refElt?: HTMLElement,
 		refOffset?: number | [number, number],
 		reducedMotion?: boolean,
 		shadeBackground?: UIColor | string,
+		isModal?: boolean,
 	) {
-		let shader = (this._outer = this._shader = document.createElement("div"));
+		let shader =
+			(this._outer =
+			this._shader =
+				document.createElement("desk-overlay"));
 		shader.className = CLASS_MODAL_SHADER;
 		shader.tabIndex = 0;
+		if (!isModal) shader.style.pointerEvents = "none";
 		document.body.appendChild(shader);
-		registerHandlers(shader, true);
+		registerHandlers(shader, isModal);
 
 		// darken shader after rendering, and focus
 		function setFocus() {
@@ -62,9 +72,11 @@ export class OutputMount {
 		setTimeout(() => {
 			if (reducedMotion) shader.style.transition = "none";
 			shader.style.backgroundColor = String(shadeBackground);
-			setFocus();
-			setTimeout(setFocus, 10);
-			setTimeout(setFocus, 100);
+			if (isModal) {
+				setFocus();
+				setTimeout(setFocus, 10);
+				setTimeout(setFocus, 100);
+			}
 		}, 0);
 
 		// create a flex wrapper to contain content
@@ -92,8 +104,11 @@ export class OutputMount {
 				: (refOffset || 0) + "px";
 		}
 
-		// send `CloseModal` event if clicked outside modal, or pressed escape
+		// send `CloseModal` event if clicked outside modal, or pressed escape;
+		// note that scroll gestures still need to work, so we listen for click
+		let start = Date.now();
 		const checkAndClose = (e: Event) => {
+			if (e.type !== "keydown" && Date.now() - start < 500) return;
 			if (
 				(e.target === shader || e.target === wrapper) &&
 				this._lastView &&
@@ -103,7 +118,7 @@ export class OutputMount {
 			}
 		};
 		shader.addEventListener("click", checkAndClose, true);
-		shader.addEventListener("touchend", checkAndClose, true);
+		shader.addEventListener("mousedown", checkAndClose, true);
 		shader.addEventListener(
 			"keydown",
 			(e) => {
