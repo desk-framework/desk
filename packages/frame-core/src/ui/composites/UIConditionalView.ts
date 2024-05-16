@@ -1,4 +1,10 @@
-import { View, ViewClass, ViewComposite } from "../../app/index.js";
+import {
+	RenderContext,
+	View,
+	ViewClass,
+	ViewComposite,
+} from "../../app/index.js";
+import { ManagedEvent } from "../../base/index.js";
 
 /**
  * A view composite that automatically creates and unlinks the contained view
@@ -7,7 +13,7 @@ import { View, ViewClass, ViewComposite } from "../../app/index.js";
  *
  * @online_docs Refer to the Desk website for more documentation on using this UI component class.
  */
-export class UIConditionalView extends ViewComposite {
+export class UIConditionalView extends View {
 	constructor() {
 		super();
 
@@ -20,14 +26,16 @@ export class UIConditionalView extends ViewComposite {
 			},
 			set(this: UIConditionalView, v) {
 				state = !!v;
-				if (!!this.body !== state) {
+				if (!!this._body !== state) {
 					if (state && this._Body) {
-						this.body = this.attach(new this._Body(), (e) => {
-							this.delegateViewEvent(e);
+						this._body = this.attach(new this._Body(), (e) => {
+							if (!e.noPropagation) {
+								this.emit(ManagedEvent.withDelegate(e, this));
+							}
 						});
 					} else {
-						if (this.body) this.body.unlink();
-						this.body = undefined;
+						this._body?.unlink();
+						this._body = undefined;
 					}
 					this.render();
 				}
@@ -58,4 +66,39 @@ export class UIConditionalView extends ViewComposite {
 
 	/** The conditional view body, constructed each time state becomes true */
 	private _Body?: ViewClass;
+
+	render(callback?: RenderContext.RenderCallback) {
+		// skip extra rendering if view didn't actually change
+		if (!callback && this._body === this._renderer?.lastView) return this;
+
+		// use given callback to (re-) render view
+		this._renderer.render(this._body, callback);
+		return this;
+	}
+
+	/**
+	 * Searches the view hierarchy for view objects of the provided type
+	 * @summary This method looks for matching view objects in the current view structure — including the current view itself. If a component is an instance of the provided class, it's added to the list. Components _within_ matching components aren't searched for further matches.
+	 * @param type A view class
+	 * @returns An array with instances of the provided view class; may be empty but never undefined.
+	 */
+	findViewContent<T extends View>(type: ViewClass<T>): T[] {
+		return this._body
+			? this._body instanceof type
+				? [this._body]
+				: this._body.findViewContent(type)
+			: [];
+	}
+
+	/** Requests input focus on the current view element */
+	requestFocus() {
+		this._body?.requestFocus();
+		return this;
+	}
+
+	/** The current view to be rendered */
+	private _body?: View;
+
+	/** Stateful renderer wrapper, handles content component */
+	private _renderer = new RenderContext.ViewController();
 }
