@@ -12,12 +12,13 @@ export const effects: [
 	name: string,
 	effect: RenderContext.OutputEffect<HTMLElement>,
 ][] = [
-	["Inset", makeBoxShadowEffect("inset 0 .25rem .75rem rgba(0,0,0,.1)")],
-	["Shadow", makeBoxShadowEffect("0 .25rem .75rem rgba(0,0,0,.1)")],
+	["Inset", makeBoxShadowEffect("inset 0 .25rem .75rem rgba(0,0,0,.1)", "")],
+	["Shadow", makeBoxShadowEffect("0 .25rem .75rem rgba(0,0,0,.1)", "10")],
 	[
 		"Elevate",
 		makeBoxShadowEffect(
 			"0 .5rem 1.5rem rgba(0,0,0,.25), 0 .5rem 1rem -.5rem rgba(0,0,0,.1)",
+			"20",
 		),
 	],
 	[
@@ -30,10 +31,12 @@ export const effects: [
 
 function makeBoxShadowEffect(
 	boxShadow: string,
+	zIndex: string,
 ): RenderContext.OutputEffect<HTMLElement> {
 	return {
 		applyEffect: function (element: HTMLElement) {
 			element.style.boxShadow = boxShadow;
+			if (zIndex) element.style.zIndex = zIndex;
 		},
 	};
 }
