@@ -1,5 +1,5 @@
 import { RenderContext, app } from "@desk-framework/frame-core";
-import { CLASS_MODAL_WRAPPER } from "./css.js";
+import { CLASS_OVERLAY_WRAPPER } from "./css.js";
 
 // Note: it's tempting to come up with some dazzling effects here,
 // but this would impact bundle size for no good reason. Likely, an
@@ -69,7 +69,7 @@ function applyDraggable(element: HTMLElement) {
 		// find modal wrapper element
 		if (!dragElt) {
 			let modalWrapper = element.parentElement;
-			while (modalWrapper && modalWrapper.className !== CLASS_MODAL_WRAPPER) {
+			while (modalWrapper && modalWrapper.className !== CLASS_OVERLAY_WRAPPER) {
 				modalWrapper = modalWrapper.parentElement;
 			}
 			if (!modalWrapper || !modalWrapper.firstChild) return;
