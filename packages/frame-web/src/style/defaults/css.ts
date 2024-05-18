@@ -50,6 +50,7 @@ export function makeBaseCSS() {
 			fontWeight: "normal",
 			userSelect: "none",
 			webkitUserSelect: "none",
+			webkitTapHighlightColor: "transparent",
 		},
 		[`.${CLASS_UI}.${CLASS_CONTAINER}`]: {
 			pointerEvents: "auto",
