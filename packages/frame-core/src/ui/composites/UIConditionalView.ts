@@ -26,16 +26,16 @@ export class UIConditionalView extends View {
 			},
 			set(this: UIConditionalView, v) {
 				state = !!v;
-				if (!!this._body !== state) {
+				if (!!this.body !== state) {
 					if (state && this._Body) {
-						this._body = this.attach(new this._Body(), (e) => {
+						this.body = this.attach(new this._Body(), (e) => {
 							if (!e.noPropagation) {
 								this.emit(ManagedEvent.withDelegate(e, this));
 							}
 						});
 					} else {
-						this._body?.unlink();
-						this._body = undefined;
+						this.body?.unlink();
+						this.body = undefined;
 					}
 					this.render();
 				}
@@ -64,15 +64,18 @@ export class UIConditionalView extends View {
 	 */
 	declare state: boolean;
 
+	/** The current view content to be rendered */
+	body?: View;
+
 	/** The conditional view body, constructed each time state becomes true */
 	private _Body?: ViewClass;
 
 	render(callback?: RenderContext.RenderCallback) {
 		// skip extra rendering if view didn't actually change
-		if (!callback && this._body === this._renderer?.lastView) return this;
+		if (!callback && this.body === this._renderer?.lastView) return this;
 
 		// use given callback to (re-) render view
-		this._renderer.render(this._body, callback);
+		this._renderer.render(this.body, callback);
 		return this;
 	}
 
@@ -83,21 +86,18 @@ export class UIConditionalView extends View {
 	 * @returns An array with instances of the provided view class; may be empty but never undefined.
 	 */
 	findViewContent<T extends View>(type: ViewClass<T>): T[] {
-		return this._body
-			? this._body instanceof type
-				? [this._body]
-				: this._body.findViewContent(type)
+		return this.body
+			? this.body instanceof type
+				? [this.body]
+				: this.body.findViewContent(type)
 			: [];
 	}
 
 	/** Requests input focus on the current view element */
 	requestFocus() {
-		this._body?.requestFocus();
+		this.body?.requestFocus();
 		return this;
 	}
-
-	/** The current view to be rendered */
-	private _body?: View;
 
 	/** Stateful renderer wrapper, handles content component */
 	private _renderer = new RenderContext.ViewController();
