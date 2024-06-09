@@ -7,8 +7,8 @@ import {
 	UIColor,
 	UIComponent,
 } from "@desk-framework/frame-core";
-import { WebHashNavigationController } from "./path/WebHashNavigationController.js";
-import { WebHistoryNavigationController } from "./path/WebHistoryNavigationController.js";
+import { WebHashNavigationContext } from "./WebHashNavigationContext.js";
+import { WebHistoryNavigationContext } from "./WebHistoryNavigationContext.js";
 import { WebRenderer } from "./renderer/WebRenderer.js";
 import { WebViewportContext } from "./renderer/WebViewportContext.js";
 import { Dialog, DialogStyles } from "./style/Dialog.js";
@@ -21,11 +21,8 @@ import { WebTheme } from "./style/WebTheme.js";
  */
 export type WebContext = GlobalContext & {
 	theme: WebTheme;
-	activities: ActivityContext & {
-		navigationController:
-			| WebHashNavigationController
-			| WebHistoryNavigationController;
-	};
+	activities: ActivityContext;
+	navigation: WebHashNavigationContext | WebHistoryNavigationContext;
 };
 
 /**
@@ -92,11 +89,11 @@ export class WebContextOptions extends ConfigOptions {
 	 */
 	modalMenuStyles: ModalMenuStyles = ModalMenu.styles;
 
-	/** Breakpoint (in logical pixels) below which {@link ViewportContext.narrow} and {@link ViewportContext.short} are set */
-	smallBreakpoint = 590;
+	/** Viewport column width in pixels, defaults to 300 */
+	viewportColumnWidth = 300;
 
-	/** Breakpoint (in logical pixels) above which {@link ViewportContext.wide} and {@link ViewportContext.tall} are set */
-	largeBreakpoint = 1150;
+	/** Viewport row height in pixels, defaults to 300 */
+	viewportRowHeight = 300;
 
 	/** True if all anumations should be disabled */
 	reducedMotion = false;
@@ -156,13 +153,9 @@ export function useWebContext(config?: ConfigOptions.Arg<WebContextOptions>) {
 
 	// create navigation path
 	if (options.useHistoryAPI) {
-		app.activities.navigationController = new WebHistoryNavigationController(
-			options,
-		);
+		app.navigation = new WebHistoryNavigationContext(options);
 	} else {
-		app.activities.navigationController = new WebHashNavigationController(
-			options,
-		);
+		app.navigation = new WebHashNavigationContext(options);
 	}
 
 	// enable hot module reload for activities

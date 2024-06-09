@@ -5,6 +5,8 @@ import {
 	useTestContext,
 } from "@desk-framework/frame-test";
 import {
+	$activity,
+	$view,
 	Activity,
 	ManagedEvent,
 	UIFormContext,
@@ -13,7 +15,6 @@ import {
 	UITextField,
 	ViewComposite,
 	app,
-	bound,
 	ui,
 } from "../../../dist/index.js";
 
@@ -166,13 +167,13 @@ describe("UIFormContext", () => {
 		const MyComp = ViewComposite.define(
 			{ formContext: undefined as UIFormContext | undefined },
 			ui.row(
-				ui.label(bound("formContext.errors.foo")),
+				ui.label($view.bind("formContext.errors.foo")),
 				ui.textField({ formField: "foo" }),
 			),
 		);
 		let view = new MyComp();
 		expect(view).toHaveProperty("formContext");
-		view.render();
+		view.render((() => {}) as any);
 		let row = view.body as UIRow;
 		let [label, tf] = row.content.toArray() as [UILabel, UITextField];
 		view.formContext = ctx;
@@ -204,12 +205,12 @@ describe("UIFormContext", () => {
 			ui.row(
 				ui.use(
 					FormContainer,
-					{ formContext: bound("form1") },
+					{ formContext: $activity.bind("form1") },
 					ui.textField({ formField: "text" }),
 				),
 				ui.use(
 					FormContainer,
-					{ formContext: bound("form2") },
+					{ formContext: $activity.bind("form2") },
 					ui.textField({ formField: "text" }),
 				),
 			),

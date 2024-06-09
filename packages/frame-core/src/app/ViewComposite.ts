@@ -1,7 +1,19 @@
-import { BindingOrValue, ManagedEvent, ManagedObject } from "../base/index.js";
+import {
+	Binding,
+	BindingOrValue,
+	ManagedEvent,
+	ManagedObject,
+	bind,
+} from "../base/index.js";
 import { ERROR, err, errorHandler } from "../errors.js";
 import { RenderContext } from "./RenderContext.js";
 import { View, ViewClass } from "./View.js";
+
+/** Label property used to filter bindings using $view */
+const $_bind_label = Symbol("view");
+
+/** An object that can be used to create bindings for properties of the containing {@link ViewComposite} object */
+export const $view: Binding.Source = bind.$on($_bind_label);
 
 /**
  * A class that encapsulates a dynamic view
@@ -79,6 +91,9 @@ export class ViewComposite extends View {
 	 * - Alternatively, you can set it yourself, e.g. in the constructor. In this case, ensure that the object is a {@link View} instance that's attached directly to this view composite, and events are delegated using {@link ViewComposite.delegateViewEvent}.
 	 */
 	body?: View;
+
+	/** @internal */
+	[$_bind_label] = true;
 
 	/**
 	 * Creates a preset view structure for this view composite, to be overridden
@@ -160,7 +175,7 @@ export class ViewComposite extends View {
 	 * Renders the current view, if any
 	 * - This method is called automatically whenever required. It's not necessary to invoke this method from an application, or to override it.
 	 */
-	render(callback?: RenderContext.RenderCallback) {
+	render(callback: RenderContext.RenderCallback) {
 		if (!this.body) {
 			let body = this.createView();
 			if (body) {
@@ -178,11 +193,10 @@ export class ViewComposite extends View {
 		if (this.body && ManagedObject.whence(this.body) !== this) {
 			throw err(ERROR.View_NotAttached);
 		}
-		if (callback && !this._renderer.isRendered()) this.beforeRender();
-		this._renderer.render(this.body, callback);
+		if (!this._rendered) this.beforeRender();
+		this.body?.render(callback);
 		return this;
 	}
 
-	/** Stateful renderer wrapper, handles content component */
-	private _renderer = new RenderContext.ViewController();
+	private _rendered = false;
 }

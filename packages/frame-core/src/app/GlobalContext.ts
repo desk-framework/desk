@@ -1,5 +1,4 @@
 import {
-	Binding,
 	ConfigOptions,
 	LazyString,
 	ManagedObject,
@@ -7,12 +6,12 @@ import {
 } from "../base/index.js";
 import { ERROR, err, safeCall, setErrorHandler } from "../errors.js";
 import { UITheme } from "../ui/UITheme.js";
-import { ActivityContext } from "./ActivityContext.js";
-import type { NavigationController } from "./NavigationController.js";
 import { Activity } from "./Activity.js";
+import { ActivityContext } from "./ActivityContext.js";
 import type { I18nProvider } from "./I18nProvider.js";
 import { LogWriter } from "./LogWriter.js";
 import { MessageDialogOptions } from "./MessageDialogOptions.js";
+import { NavigationContext } from "./NavigationContext.js";
 import { NavigationTarget } from "./NavigationTarget.js";
 import { RenderContext } from "./RenderContext.js";
 import { Scheduler } from "./Scheduler.js";
@@ -20,6 +19,10 @@ import { Service } from "./Service.js";
 import { ServiceContext } from "./ServiceContext.js";
 import type { View } from "./View.js";
 import type { ViewportContext } from "./ViewportContext.js";
+import { $_app_bind_label } from "./app_binding.js";
+
+/** @internal Counter that blocks multiple invocations of GlobalContext constructor */
+let once = 0;
 
 /**
  * A singleton class that represents the global application state
@@ -30,9 +33,6 @@ import type { ViewportContext } from "./ViewportContext.js";
  * @hideconstructor
  */
 export class GlobalContext extends ManagedObject {
-	/** @internal The current singleton instance, available as {@link app} */
-	static readonly instance = new GlobalContext();
-
 	/**
 	 * Sets a global unhandled error handler
 	 * - This method _replaces_ the current handler, if any, and is not cleared by {@link GlobalContext.clear()}.
@@ -44,11 +44,14 @@ export class GlobalContext extends ManagedObject {
 		setErrorHandler(f);
 	}
 
-	/** Private constructor, cannot be used */
-	private constructor() {
-		if (GlobalContext.instance) throw Error;
+	/** App constructor, do not use (refer to {@link app} instead) */
+	constructor() {
+		if (once++) throw Error;
 		super();
-		Binding.limitTo(this);
+
+		// set as root object (cannot be attached, no more bindings)
+		ManagedObject.makeRoot(this);
+		(this as any)[$_app_bind_label] = true;
 
 		// define i18n property and handle new objects when set
 		let i18n: I18nProvider | undefined;
@@ -86,15 +89,15 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * The current activity context, an instance of {@link ActivityContext}
-	 * - This object (indirectly) contains all activity instances, as well as the current location path object.
+	 * - This object (indirectly) contains all activity instances. Activities must be either added to this context object (using the {@link GlobalContext.addActivity app.addActivity()} method), or attached to a parent activity.
 	 * @note To add an activity to the application, use the {@link GlobalContext.addActivity app.addActivity()} method instead.
 	 */
 	readonly activities = this.attach(new ActivityContext());
 
 	/**
 	 * The current service context, an instance of {@link ServiceContext}
-	 * - This object contains all current service instances, and provides methods to observe any changes.
-	 * @note To add a service to the application, use the {@link GlobalContext.addService app.addService()} method instead.
+	 * - This object contains all current service instances, and provides methods to observe changes.
+	 * @note To add a service to the application, you can use the {@link GlobalContext.addService app.addService()} method directly.
 	 */
 	readonly services = this.attach(new ServiceContext());
 
@@ -106,7 +109,7 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * An object containing information about the user's viewport, e.g. browser window
-	 * - You can use `app.viewport` directly, or using a binding (bound to `"viewport"`, since all views and activities are ultimately attached to the global application context, i.e. `app`).
+	 * - You can use `app.viewport` directly, or using a binding (see {@link $viewport}).
 	 * - Refer to {@link ViewportContext} for available properties of `app.viewport`.
 	 *
 	 * @see {@link ViewportContext}
@@ -119,7 +122,7 @@ export class GlobalContext extends ManagedObject {
 	 * @example
 	 * // Use the viewport size in a view:
 	 * ui.cell(
-	 *   { hidden: bound("!viewport.portrait") }
+	 *   { hidden: $viewport.not("portrait") }
 	 *   // ... portrait cell content
 	 * )
 	 */
@@ -140,6 +143,13 @@ export class GlobalContext extends ManagedObject {
 	 * @see {@link UITheme}
 	 */
 	declare theme?: UITheme;
+
+	/**
+	 * The current navigation context, an instance of {@link NavigationContext}
+	 * - This object encapsulates the current location path, and references any activities that should be activated automatically based on the current path.
+	 * @note To add a page activity to the application, you can use the {@link GlobalContext.addActivity app.addActivity()} method directly. To navigate to a specific path, use the {@link GlobalContext.navigate app.navigate()} method.
+	 */
+	navigation = new NavigationContext();
 
 	/**
 	 * The global asynchronous task scheduler, an instance of {@link Scheduler}
@@ -168,6 +178,7 @@ export class GlobalContext extends ManagedObject {
 	 */
 	clear() {
 		if (this.renderer) this.renderer.clear();
+		this.navigation.clear();
 		this.activities.clear();
 		this.services.clear();
 		this.scheduler.stopAll();
@@ -182,13 +193,16 @@ export class GlobalContext extends ManagedObject {
 	 * Adds an activity to the global application context
 	 *
 	 * @summary
-	 * This method adds an {@link Activity} instance to the current {@link ActivityContext}, i.e. `app.activities`. This allows the activity to use the current path and renderer to activate and/or render its view automatically.
+	 * This method adds an {@link Activity} instance to the {@link ActivityContext} (i.e. `app.activities`) as well as to the current {@link NavigationContext} for automatic activation if the current location matches {@link Activity.navigationPageId}.
 	 *
 	 * @param activity The activity to be added
 	 * @param activate True if the activity should be activated immediately
+	 *
+	 * @note You only need to add activities to the global context if they're not attached to a parent activity. If an activity is attached to a parent activity you can either activate it manually (e.g. for detail pages or dialog activities), or add it to the {@link NavigationContext} after attaching it.
 	 */
 	addActivity(activity: Activity, activate?: boolean) {
 		this.activities.add(activity);
+		this.navigation.addPage(activity);
 		if (activate) safeCall(() => activity.activateAsync());
 		return this;
 	}
@@ -208,10 +222,10 @@ export class GlobalContext extends ManagedObject {
 
 	/**
 	 * Navigates to the specified path asynchronously
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate to the specified path, which may in turn activate or deactivate activities using the {@link Activity.navigationPageId} property.
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationContext.navigateAsync()} to navigate to the specified path, which may in turn activate or deactivate activities using the {@link Activity.navigationPageId} property.
 	 * - The target location can be a {@link NavigationTarget} instance, an object that provides a navigation target (i.e. an {@link Activity}), or a URL-like path (i.e. `pageId/detail...`).
 	 * @param target The target location
-	 * @param mode The navigation mode, refer to {@link NavigationController.navigateAsync()}
+	 * @param mode The navigation mode, refer to {@link NavigationContext.navigateAsync()}
 	 *
 	 * @example
 	 * // In a web application, navigate to the /foo URL
@@ -223,27 +237,20 @@ export class GlobalContext extends ManagedObject {
 			| LazyString
 			| NavigationTarget
 			| { getNavigationTarget(): NavigationTarget },
-		mode?: NavigationController.NavigationMode,
+		mode?: NavigationContext.NavigationMode,
 	) {
 		safeCall(() =>
-			this.activities.navigationController.navigateAsync(
-				new NavigationTarget(target),
-				mode,
-			),
+			this.navigation.navigateAsync(new NavigationTarget(target), mode),
 		);
 		return this;
 	}
 
 	/**
 	 * Navigates back to the previous location in the location history stack
-	 * - The behavior of this method is platform dependent. It uses {@link NavigationController.navigateAsync()} to navigate back within navigation history, if possible.
+	 * - The behavior of this method is platform dependent. It uses {@link NavigationContext.navigateAsync()} to navigate back within navigation history, if possible.
 	 */
 	goBack() {
-		safeCall(() =>
-			this.activities.navigationController.navigateAsync(undefined, {
-				back: true,
-			}),
-		);
+		safeCall(() => this.navigation.navigateAsync(undefined, { back: true }));
 		return this;
 	}
 
@@ -383,16 +390,3 @@ export class GlobalContext extends ManagedObject {
 		});
 	}
 }
-
-/**
- * The current instance of the global application context
- *
- * @description
- * Use `app` to access properties and methods of {@link GlobalContext}, e.g. `app.theme` and `app.addActivity(...)`. This instance is available immediately when the application starts, and remains the same throughout its lifetime.
- */
-export const app = GlobalContext.instance;
-
-// use default error handler
-setErrorHandler((err) => {
-	app.log.error(err);
-});

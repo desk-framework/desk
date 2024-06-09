@@ -141,6 +141,29 @@ describe("UIButton", (scope) => {
 		let elt = (await t.expectOutputAsync(100, { text: "foo" })).getSingle();
 		elt.click();
 		await t.sleep(2);
-		expect(app.activities.navigationController.pageId).toBe("foo");
+		expect(app.navigation.pageId).toBe("foo");
+	});
+
+	test("Back button navigation", async (t) => {
+		let MyButton = ui.button({
+			label: "back",
+			onClick: "NavigateBack",
+		});
+		class MyActivity extends Activity {
+			constructor() {
+				super({ renderPlacement: { mode: "page" } });
+			}
+			protected override createView() {
+				return new MyButton();
+			}
+		}
+		app.addActivity(new MyActivity(), true);
+		app.navigate("foo");
+		await t.expectNavAsync(50, "foo");
+		app.navigate("bar");
+		await t.expectNavAsync(50, "bar");
+		let elt = (await t.expectOutputAsync(100, { text: "back" })).getSingle();
+		elt.click();
+		await t.expectNavAsync(50, "foo");
 	});
 });

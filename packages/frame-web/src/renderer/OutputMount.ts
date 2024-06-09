@@ -1,7 +1,7 @@
 import { RenderContext, UIColor, View, app } from "@desk-framework/frame-core";
 import {
-	CLASS_MODAL_SHADER,
-	CLASS_MODAL_WRAPPER,
+	CLASS_OVERLAY_SHADER,
+	CLASS_OVERLAY_WRAPPER,
 	CLASS_PAGE_ROOT,
 } from "../style/defaults/css.js";
 import { registerHandlers } from "./events.js";
@@ -55,7 +55,7 @@ export class OutputMount {
 			(this._outer =
 			this._shader =
 				document.createElement("desk-overlay"));
-		shader.className = CLASS_MODAL_SHADER;
+		shader.className = CLASS_OVERLAY_SHADER;
 		shader.tabIndex = 0;
 		if (!isModal) shader.style.pointerEvents = "none";
 		document.body.appendChild(shader);
@@ -81,7 +81,7 @@ export class OutputMount {
 
 		// create a flex wrapper to contain content
 		let wrapper = (this._inner = document.createElement("div"));
-		wrapper.className = CLASS_MODAL_WRAPPER;
+		wrapper.className = CLASS_OVERLAY_WRAPPER;
 		wrapper.dir = app.i18n?.getAttributes().rtl ? "rtl" : "ltr";
 		wrapper.ariaModal = "true";
 		wrapper.ariaAtomic = "true";
@@ -94,18 +94,33 @@ export class OutputMount {
 			document.body.contains(refElt) &&
 			refElt.nodeType === Node.ELEMENT_NODE
 		) {
+			let prev = "";
+			let interval = 128;
 			const updateRect = () => {
 				if (!this._inner) return;
 				let rect = refElt!.getBoundingClientRect();
 				let scr = shader.getBoundingClientRect();
-				wrapper.style.top = Math.floor(rect.top - scr.top) + "px";
-				wrapper.style.left = Math.floor(rect.left - scr.left) + "px";
-				wrapper.style.width = Math.floor(rect.width) + "px";
-				wrapper.style.height = Math.floor(rect.height) + "px";
-				wrapper.style.margin = Array.isArray(refOffset)
-					? refOffset[1] + "px " + refOffset[0] + "px"
-					: (refOffset || 0) + "px";
-				setTimeout(updateRect, 200);
+				let styles = [
+					Math.floor(rect.top - scr.top) + "px",
+					Math.floor(rect.left - scr.left) + "px",
+					Math.floor(rect.width) + "px",
+					Math.floor(rect.height) + "px",
+				] as const;
+				let cmp = styles.join();
+				let changed = cmp !== prev;
+				prev = cmp;
+				if (changed) {
+					wrapper.style.top = styles[0];
+					wrapper.style.left = styles[1];
+					wrapper.style.width = styles[2];
+					wrapper.style.height = styles[3];
+					wrapper.style.margin = Array.isArray(refOffset)
+						? refOffset[1] + "px " + refOffset[0] + "px"
+						: (refOffset || 0) + "px";
+				}
+				if (changed) interval = 16;
+				else if (interval < 256) interval <<= 1;
+				setTimeout(updateRect, interval);
 			};
 			updateRect();
 		}
