@@ -1,6 +1,6 @@
 import {
 	UIStyle,
-	bound,
+	$activity,
 	ui,
 } from "../../../../lib/desk-framework-web.es2015.esm.min";
 
@@ -33,16 +33,16 @@ export default (
 				<button
 					label="Light"
 					value="light"
-					pressed={bound("selectedTheme").matches("light")}
+					pressed={$activity.bind("selectedTheme").matches("light")}
 					style={ToggleButtonStyle}
-					onMouseDown="+SetTheme"
+					onPress="+SetTheme"
 				/>
 				<button
 					label="Dark"
 					value="dark"
-					pressed={bound("selectedTheme").matches("dark")}
+					pressed={$activity.bind("selectedTheme").matches("dark")}
 					style={ToggleButtonStyle}
-					onMouseDown="+SetTheme"
+					onPress="+SetTheme"
 				/>
 			</row>
 		</cell>

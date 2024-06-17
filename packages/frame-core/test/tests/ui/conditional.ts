@@ -5,10 +5,10 @@ import {
 	useTestContext,
 } from "@desk-framework/frame-test";
 import {
+	$view,
 	ManagedObject,
 	UICell,
 	ViewComposite,
-	bound,
 	ui,
 } from "../../../dist/index.js";
 
@@ -41,17 +41,17 @@ describe("UIConditionalView", () => {
 	});
 
 	test("Rendering content using bound state", async (t) => {
-		const MyViewComposite = ViewComposite.withPreset<{ condition?: boolean }>(
-			{},
+		const MyViewComposite = ViewComposite.define(
+			{ condition: false },
 			ui.cell(
 				ui.conditional(
-					{ state: bound("condition") },
+					{ state: $view.boolean("condition") },
 					// label should only be rendered when condition is true
 					ui.label("foo"),
 				),
 			),
 		);
-		const MyView = MyViewComposite.preset({ condition: false });
+		const MyView = ui.use(MyViewComposite, { condition: false });
 
 		t.log("Creating view");
 		useTestContext((options) => {

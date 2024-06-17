@@ -1,12 +1,10 @@
 import {
+	$view,
 	RenderContext,
-	UICell,
 	UITheme,
-	UIVariant,
 	View,
 	ViewComposite,
 	app,
-	bound,
 	ui,
 } from "@desk-framework/frame-core";
 
@@ -16,22 +14,22 @@ import {
  * - These styles are used for dialog views created by activities with the {@link Activity.Options.showDialog} option enabled. Note that message dialog styles are configured separately using {@link MessageDialogStyles}.
  */
 export class DialogStyles {
+	/** The margin around the outer dialog container, to change its position on screen, defaults to `auto` */
+	margin: string | number = "auto";
+
+	/** The effect that's applied to the container, defaults to `Elevate` */
+	effect = ui.effect.ELEVATE;
+
 	/**
-	 * The cell variant (and style) used for the outer dialog container
+	 * The cell style that's applied to the outer dialog container
 	 * - The default style is based on `ui.style.CELL_BG` and includes properties for dimensions and border radius.
-	 * - Margin is set to `auto` to center the dialog on the screen if possible.
-	 * - An `Elevate` effect is applied to add a drop shadow to the dialog.
 	 */
-	containerVariant = new UIVariant(UICell, {
-		margin: "auto",
-		effect: ui.effect.ELEVATE,
-		style: ui.style.CELL_BG.extend({
-			width: "auto",
-			minWidth: 360,
-			maxWidth: "100vw",
-			grow: 0,
-			borderRadius: 12,
-		}),
+	containerStyle: ui.CellStyle = ui.style.CELL_BG.extend({
+		width: "auto",
+		minWidth: 360,
+		maxWidth: "100vw",
+		grow: 0,
+		borderRadius: 12,
 	});
 }
 
@@ -46,10 +44,12 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 	protected override createView() {
 		return new (ui.cell(
 			{
-				variant: Dialog.styles.containerVariant,
+				margin: Dialog.styles.margin,
+				effect: Dialog.styles.effect,
+				style: Dialog.styles.containerStyle,
 			},
 			ui.renderView({
-				view: bound("dialogView"),
+				view: $view.bind("dialogView"),
 				onViewUnlinked: "DialogViewUnlinked",
 			}),
 		))();
@@ -62,7 +62,7 @@ export class Dialog extends ViewComposite implements UITheme.DialogController {
 	show(place?: Partial<RenderContext.PlacementOptions>) {
 		if (this.dialogView.isUnlinked()) return;
 		app.render(this, {
-			mode: "dialog",
+			mode: "modal",
 			shade: true,
 			transform: {
 				show: ui.animation.SHOW_DIALOG,

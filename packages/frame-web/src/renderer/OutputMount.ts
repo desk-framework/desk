@@ -1,7 +1,7 @@
 import { RenderContext, UIColor, View, app } from "@desk-framework/frame-core";
 import {
-	CLASS_MODAL_SHADER,
-	CLASS_MODAL_WRAPPER,
+	CLASS_OVERLAY_SHADER,
+	CLASS_OVERLAY_WRAPPER,
 	CLASS_PAGE_ROOT,
 } from "../style/defaults/css.js";
 import { registerHandlers } from "./events.js";
@@ -13,36 +13,53 @@ let _nextId = 1;
 export class OutputMount {
 	readonly id = _nextId++;
 
-	/** Creates a fixed full-page root element, i.e. for placement mode "page" */
-	createPageElement(background: UIColor | string) {
+	/** Creates a fixed full-page root element, i.e. for placement modes "screen" and "page" */
+	createPageElement(
+		background: UIColor | string,
+		scroll?: boolean,
+		title?: string,
+	) {
 		let elt =
 			(this._outer =
 			this._inner =
 				document.createElement("desk-page-root"));
-		elt.className = CLASS_PAGE_ROOT;
 		elt.ariaAtomic = "true";
+		elt.className = CLASS_PAGE_ROOT;
+		elt.dataset.title = title || "";
+		if (scroll) elt.style.overflow = "auto";
 		this._remount = () => {
 			elt.dir = app.i18n?.getAttributes().rtl ? "rtl" : "ltr";
 			elt.style.background = String(background);
 			elt.style.color = String(new UIColor("Text"));
 		};
 		this._remount();
-		registerHandlers(elt);
-		document.body.appendChild(elt);
+		registerHandlers(elt, true);
+		let overlays = document.querySelectorAll("desk-overlay");
+		if (overlays[0]) {
+			document.body.insertBefore(elt, overlays[0]);
+		} else {
+			document.body.appendChild(elt);
+		}
+		this._updateTitle();
 	}
 
-	/** Creates a modal root element, for use with various modal placement modes */
-	createModalElement(
-		autoCloseModal?: boolean,
+	/** Creates an overlay or modal root element */
+	createOverlayElement(
 		refElt?: HTMLElement,
+		refOffset?: number | [number, number],
 		reducedMotion?: boolean,
 		shadeBackground?: UIColor | string,
+		isModal?: boolean,
 	) {
-		let shader = (this._outer = this._shader = document.createElement("div"));
-		shader.className = CLASS_MODAL_SHADER;
+		let shader =
+			(this._outer =
+			this._shader =
+				document.createElement("desk-overlay"));
+		shader.className = CLASS_OVERLAY_SHADER;
 		shader.tabIndex = 0;
+		if (!isModal) shader.style.pointerEvents = "none";
 		document.body.appendChild(shader);
-		registerHandlers(shader);
+		registerHandlers(shader, isModal);
 
 		// darken shader after rendering, and focus
 		function setFocus() {
@@ -55,14 +72,16 @@ export class OutputMount {
 		setTimeout(() => {
 			if (reducedMotion) shader.style.transition = "none";
 			shader.style.backgroundColor = String(shadeBackground);
-			setFocus();
-			setTimeout(setFocus, 10);
-			setTimeout(setFocus, 100);
+			if (isModal) {
+				setFocus();
+				setTimeout(setFocus, 10);
+				setTimeout(setFocus, 100);
+			}
 		}, 0);
 
 		// create a flex wrapper to contain content
 		let wrapper = (this._inner = document.createElement("div"));
-		wrapper.className = CLASS_MODAL_WRAPPER;
+		wrapper.className = CLASS_OVERLAY_WRAPPER;
 		wrapper.dir = app.i18n?.getAttributes().rtl ? "rtl" : "ltr";
 		wrapper.ariaModal = "true";
 		wrapper.ariaAtomic = "true";
@@ -75,35 +94,59 @@ export class OutputMount {
 			document.body.contains(refElt) &&
 			refElt.nodeType === Node.ELEMENT_NODE
 		) {
-			let rect = refElt.getBoundingClientRect();
-			wrapper.style.top = Math.floor(rect.top) + "px";
-			wrapper.style.left = Math.floor(rect.left) + "px";
-			wrapper.style.width = Math.floor(rect.width) + "px";
-			wrapper.style.height = Math.floor(rect.height) + "px";
+			let prev = "";
+			let interval = 128;
+			const updateRect = () => {
+				if (!this._inner) return;
+				let rect = refElt!.getBoundingClientRect();
+				let scr = shader.getBoundingClientRect();
+				let styles = [
+					Math.floor(rect.top - scr.top) + "px",
+					Math.floor(rect.left - scr.left) + "px",
+					Math.floor(rect.width) + "px",
+					Math.floor(rect.height) + "px",
+				] as const;
+				let cmp = styles.join();
+				let changed = cmp !== prev;
+				prev = cmp;
+				if (changed) {
+					wrapper.style.top = styles[0];
+					wrapper.style.left = styles[1];
+					wrapper.style.width = styles[2];
+					wrapper.style.height = styles[3];
+					wrapper.style.margin = Array.isArray(refOffset)
+						? refOffset[1] + "px " + refOffset[0] + "px"
+						: (refOffset || 0) + "px";
+				}
+				if (changed) interval = 16;
+				else if (interval < 256) interval <<= 1;
+				setTimeout(updateRect, interval);
+			};
+			updateRect();
 		}
 
-		// send `CloseModal` event if clicked outside modal, or pressed escape
-		if (autoCloseModal) {
-			const checkAndClose = (e: Event) => {
-				if (
-					(e.target === shader || e.target === wrapper) &&
-					this._lastView &&
-					!this._lastView.isUnlinked()
-				) {
-					e.stopPropagation();
-					this._lastView.emit("CloseModal");
-				}
-			};
-			shader.addEventListener("click", checkAndClose, true);
-			shader.addEventListener("touchend", checkAndClose, true);
-			shader.addEventListener(
-				"keydown",
-				(e) => {
-					if (e.key === "Escape") checkAndClose(e);
-				},
-				true,
-			);
-		}
+		// send `CloseModal` event if clicked outside modal, or pressed escape;
+		// note that scroll gestures still need to work, so we listen for click
+		let start = Date.now();
+		const checkAndClose = (e: Event) => {
+			if (e.type !== "keydown" && Date.now() - start < 500) return;
+			if (
+				(e.target === shader || e.target === wrapper) &&
+				this._lastView &&
+				!this._lastView.isUnlinked()
+			) {
+				this._lastView.emit("CloseModal");
+			}
+		};
+		shader.addEventListener("click", checkAndClose, true);
+		shader.addEventListener("mousedown", checkAndClose, true);
+		shader.addEventListener(
+			"keydown",
+			(e) => {
+				if (e.key === "Escape") checkAndClose(e);
+			},
+			true,
+		);
 
 		// handle remount by setting colors again
 		this._remount = () => {
@@ -181,6 +224,7 @@ export class OutputMount {
 		if (this._inner) {
 			// always remove inner element first, if any
 			this._inner.remove();
+			this._inner = undefined;
 		}
 
 		if (this._shader) {
@@ -188,10 +232,24 @@ export class OutputMount {
 			this._shader.style.background = "";
 			setTimeout(() => {
 				this._outer!.remove();
+				this._updateTitle();
 			}, 200);
 		} else if (this._outer) {
 			// otherwise, remove outer element right away, if any
 			this._outer.remove();
+			this._updateTitle();
+		}
+	}
+
+	/** Updates the document title according to the title of the last mount in the DOM */
+	private _updateTitle() {
+		let pageRoots = document.querySelectorAll("desk-page-root");
+		for (let i = pageRoots.length - 1; i >= 0; i--) {
+			let title = (pageRoots[i] as HTMLElement).dataset.title;
+			if (title) {
+				document.title = title;
+				break;
+			}
 		}
 	}
 

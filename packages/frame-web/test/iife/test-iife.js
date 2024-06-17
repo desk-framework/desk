@@ -1,12 +1,12 @@
-/// <reference path="../../lib/desk-framework-web.iife.d.ts" />
-const { app, ui, bound } = desk;
+const { app, ui, bind } = desk;
 
 (function () {
 	const ViewBody = ui.page(
-		ui.cell(
-			ui.label(bound.strf("Count: %n", "count"), {
+		ui.column(
+			ui.label(bind.strf("Count: %n", bind("count")), {
 				bold: true,
 				fontSize: 36,
+				tabularNums: true,
 			}),
 			ui.spacer(0, 32),
 			ui.row(

@@ -1,11 +1,12 @@
 import {
+	$activity,
+	$view,
 	Activity,
 	StringConvertible,
 	UITextField,
 	ViewComposite,
 	ViewEvent,
 	app,
-	bound,
 	ui,
 } from "@desk-framework/frame-core";
 import { describe, expect, test, useTestContext } from "../../dist/index.js";
@@ -15,7 +16,7 @@ class CountActivity extends Activity {
 	protected override createView() {
 		return new (ui.page(
 			ui.cell(
-				ui.textField({ value: bound("count"), onInput: "SetCount" }),
+				ui.textField({ value: $activity.string("count"), onInput: "SetCount" }),
 				ui.button("+", "CountUp"),
 			),
 		))();
@@ -43,11 +44,12 @@ describe("App test", (scope) => {
 	});
 
 	test("Single view is rendered", async (t) => {
-		const MyView = ViewComposite.withPreset(
+		const MyView = ViewComposite.define(
 			{ title: StringConvertible.EMPTY },
-			ui.label(bound.string("title")),
-		).preset({ title: "TEST" });
-		let myView = new MyView();
+			ui.label($view.bind("title")),
+		);
+		let Preset = ui.use(MyView, { title: "TEST" });
+		let myView = new Preset();
 		t.render(myView);
 		await t.expectOutputAsync(100, { text: "TEST" });
 	});
@@ -58,7 +60,7 @@ describe("App test", (scope) => {
 
 	test("Another path inactivates activity", async (t) => {
 		// initial path should be set directly
-		expect(app.activities.navigationController.pageId).toBe("count");
+		expect(app.navigation.pageId).toBe("count");
 
 		// setting another path takes some time
 		app.navigate("/another/path/here");

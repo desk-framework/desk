@@ -2,7 +2,7 @@ import { UIComponent, UIContainer, UIStyle } from "@desk-framework/frame-core";
 import {
 	CLASS_CONTAINER,
 	CLASS_TEXTCONTROL,
-	CLASS_TOGGLE_WRAPPER,
+	CLASS_TOGGLE,
 	CLASS_UI,
 } from "./defaults/css.js";
 
@@ -41,8 +41,8 @@ let _cssUpdater:
 	| ((css: { [spec: string]: any }, allImports: string[]) => void)
 	| undefined;
 
-/** CSS classes currently defined, one CSS class name per style class */
-let _cssDefined = new Map<any, UIStyle<any>>();
+/** CSS classes currently defined, one instance per class; or undefined if class doesn't have any styles (e.g. 'Cell') */
+let _cssDefined = new Map<any, UIStyle<any> | undefined>();
 
 /** Pending CSS update, if any */
 let _pendingCSS: { [spec: string]: any } | undefined;
@@ -115,7 +115,7 @@ export function setFocusDecoration(
 	setGlobalCSS({
 		[`.${CLASS_UI}:focus`]: { outline: "0", outlineOffset: "0" },
 		[`.${CLASS_UI}[tabindex]:focus-visible`]: styles,
-		[`.${CLASS_TOGGLE_WRAPPER}>input:focus-visible`]: styles,
+		[`.${CLASS_TOGGLE}>input:focus-visible`]: styles,
 	});
 }
 
@@ -146,15 +146,19 @@ export function setGlobalCSS(css: {
 export function defineStyleClass(
 	styleClass: UIStyle.Type<any>,
 	isTextStyle?: boolean,
-) {
+): UIStyle<any> | undefined {
 	if (_cssDefined.has(styleClass)) {
 		return _cssDefined.get(styleClass)!;
 	}
 	let instance = new styleClass();
 	let styles = instance.getStyles();
+	if (!styles.length) {
+		_cssDefined.set(styleClass, undefined);
+		return;
+	}
+	_cssDefined.set(styleClass, instance);
 	if (!instance.id) throw RangeError();
 	let selector = "*." + CLASS_UI + "." + instance.id;
-	_cssDefined.set(styleClass, instance);
 
 	// combine all CSS styles
 	let combined: { [spec: string]: Partial<CSSStyleDeclaration> } = {};
@@ -242,7 +246,7 @@ function applyElementBaseStyle(
 	if (systemName) className += " " + systemName;
 	if (BaseStyle) {
 		let style = defineStyleClass(BaseStyle, isTextControl);
-		className += " " + style.id;
+		if (style) className += " " + style.id;
 	}
 	element.className = className;
 }
@@ -405,6 +409,9 @@ function addTextStyleCSS(
 	let smallCaps = textStyle.smallCaps;
 	if (smallCaps !== undefined)
 		result.fontVariant = smallCaps ? "small-caps" : "normal";
+	let tabularNums = textStyle.tabularNums;
+	if (tabularNums !== undefined)
+		result.fontVariantNumeric = tabularNums ? "tabular-nums" : "normal";
 	let underline = textStyle.underline;
 	let strikeThrough = textStyle.strikeThrough;
 	if (underline)
@@ -416,6 +423,7 @@ function addTextStyleCSS(
 	if (textStyle.userSelect) {
 		result.userSelect = "text";
 		(result as any).webkitUserSelect = "text";
+		result.cursor = "text";
 	}
 }
 
@@ -439,18 +447,12 @@ function addDecorationStyleCSS(
 	let borderRadius = decoration.borderRadius;
 	if (borderRadius !== undefined)
 		result.borderRadius = getCSSLength(decoration.borderRadius);
-	let padding = decoration.padding;
-	if (padding !== undefined) result.padding = getCSSLength(padding);
-	if (typeof padding === "object") {
-		if ("start" in padding)
-			result.paddingInlineStart = getCSSLength(padding.start);
-		if ("end" in padding) result.paddingInlineEnd = getCSSLength(padding.end);
-	}
 	if (decoration.opacity! >= 0) result.opacity = String(decoration.opacity);
 	if (decoration.css) {
 		// copy all properties to result
 		for (let p in decoration.css) result[p] = decoration.css[p];
 	}
+	addPadding(result, decoration.padding);
 }
 
 /** Helper function to append CSS styles to given object for a given `ContainerLayout` object */
@@ -472,6 +474,19 @@ function addContainerLayoutCSS(
 		result.flexWrap = wrapContent ? "wrap" : "nowrap";
 	let clip = layout.clip;
 	if (clip !== undefined) result.overflow = clip ? "hidden" : "visible";
+	addPadding(result, layout.padding);
+}
+
+function addPadding(
+	result: Partial<CSSStyleDeclaration>,
+	padding?: UIComponent.Offsets,
+) {
+	if (padding !== undefined) result.padding = getCSSLength(padding);
+	if (typeof padding === "object") {
+		if ("start" in padding)
+			result.paddingInlineStart = getCSSLength(padding.start);
+		if ("end" in padding) result.paddingInlineEnd = getCSSLength(padding.end);
+	}
 }
 
 /** Helper function to turn given CSS properties into a single string */
@@ -542,7 +557,9 @@ function _makeCSSUpdater() {
 		_cssElt.setAttribute("type", "text/css");
 		document.head!.appendChild(_cssElt);
 		_cssElt.textContent =
-			allImports.map((s) => "@import url(" + JSON.stringify(s) + ");\n") + text;
+			allImports
+				.map((s) => "@import url(" + JSON.stringify(s) + ");\n")
+				.join("") + text;
 		setTimeout(() => {
 			old && old.remove();
 		}, 30);

@@ -14,14 +14,17 @@ export class UIColumn extends UIContainer {
 	 * - This method is called automatically. Do not call this method after constructing a UI component.
 	 */
 	override applyViewPreset(
-		preset: View.ViewPreset<
+		preset: View.ExtendPreset<
 			UIContainer,
 			this,
-			"width" | "spacing" | "align" | "distribute"
+			"width" | "spacing" | "align" | "distribute" | "reverse"
 		>,
 	) {
 		super.applyViewPreset(preset);
 	}
+
+	/** True if content should be displayed in reverse order */
+	reverse = false;
 
 	/** Column width, in pixels or CSS length with unit */
 	width?: string | number = undefined;

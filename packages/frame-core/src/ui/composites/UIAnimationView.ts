@@ -16,7 +16,7 @@ export class UIAnimationView extends ViewComposite {
 	 * - This method is called automatically. Do not call this method after constructing an instance
 	 */
 	override applyViewPreset(
-		preset: View.ViewPreset<
+		preset: View.ExtendPreset<
 			ViewComposite,
 			UIAnimationView,
 			"showAnimation" | "hideAnimation" | "repeatAnimation"
@@ -48,7 +48,7 @@ export class UIAnimationView extends ViewComposite {
 		}
 	}
 
-	override render(callback?: RenderContext.RenderCallback) {
+	override render(callback: RenderContext.RenderCallback) {
 		if (callback) {
 			let orig = callback;
 			let result: RenderContext.RenderCallback = (callback = (

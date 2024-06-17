@@ -18,6 +18,7 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 			// note some properties are handled by container (e.g. padding)
 			"textDirection",
 			"margin",
+			"padding",
 			"borderRadius",
 			"background",
 			"textColor",
@@ -32,6 +33,7 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 		switch (property) {
 			case "textDirection":
 			case "margin":
+			case "padding":
 			case "borderRadius":
 			case "background":
 			case "textColor":
@@ -102,6 +104,8 @@ export class UICellRenderer extends UIContainerRenderer<UICell> {
 				if ("end" in cell.margin)
 					element.style.marginInlineEnd = getCSSLength(cell.margin.end, 0);
 			}
+		} else {
+			element.style.margin = "";
 		}
 
 		if (cell instanceof UIAnimatedCell) {

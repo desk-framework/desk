@@ -1,31 +1,37 @@
 /** @internal UI component class name */
 export const CLASS_UI = "Desk__UI";
 /** @internal Page root element class name */
-export const CLASS_PAGE_ROOT = "Desk__Page";
-/** @internal Modal root (shader) element class name */
-export const CLASS_MODAL_SHADER = "Desk__ModalShader";
-/** @internal Modal wrapper element class name */
-export const CLASS_MODAL_WRAPPER = "Desk__ModalWrapper";
+export const CLASS_PAGE_ROOT = "Desk__Pg";
+/** @internal Modal/overlay root (shader) element class name */
+export const CLASS_OVERLAY_SHADER = "Desk__Ovl";
+/** @internal Modal/overlay wrapper element class name */
+export const CLASS_OVERLAY_WRAPPER = "__Wr";
 /** @internal Container separator element class name: horizontal or vertical line */
-export const CLASS_SEPARATOR_LINE = "Desk__Sep--line";
+export const CLASS_SEPARATOR_LINE = "__Sp-l";
 /** @internal Container separator element class name: vertical line */
-export const CLASS_SEPARATOR_LINE_VERT = "Desk__Sep--line-vert";
+export const CLASS_SEPARATOR_LINE_VERT = "__Sp-lv";
 /** @internal Container separator element class name: spacer */
-export const CLASS_SEPARATOR_SPACER = "Desk__Sep--space";
+export const CLASS_SEPARATOR_SPACER = "__Sp";
 /** @internal Additional text control class name */
-export const CLASS_TEXTCONTROL = "_Text";
+export const CLASS_TEXTCONTROL = "__T";
 /** @internal Additional container class name */
-export const CLASS_CONTAINER = "_Container";
+export const CLASS_CONTAINER = "__C";
 /** @internal Additional column class name */
-export const CLASS_COLUMN = "_Column";
+export const CLASS_COLUMN = "__CC";
 /** @internal Additional row class name */
-export const CLASS_ROW = "_Row";
+export const CLASS_ROW = "__CR";
 /** @internal Additional cell class name */
-export const CLASS_CELL = "_Cell";
+export const CLASS_CELL = "__Cl";
 /** @internal Additional scroll container class name */
-export const CLASS_SCROLL = "_Scroll";
+export const CLASS_SCROLL = "__CS";
 /** @internal Additional toggle wrapper class name */
-export const CLASS_TOGGLE_WRAPPER = "_Toggle";
+export const CLASS_TOGGLE = "__Tg";
+/** @internal Additional toggle wrapper class names by type */
+export const CLASS_TOGGLE_TYPE = {
+	checkbox: "__Tg-c",
+	switch: "__Tg-s",
+	none: "__Tg-n",
+} as const;
 
 /** @internal Returns an object with necessary global CSS classes */
 export function makeBaseCSS() {
@@ -44,8 +50,10 @@ export function makeBaseCSS() {
 			fontWeight: "normal",
 			userSelect: "none",
 			webkitUserSelect: "none",
+			webkitTapHighlightColor: "transparent",
 		},
 		[`.${CLASS_UI}.${CLASS_CONTAINER}`]: {
+			pointerEvents: "auto",
 			position: "relative",
 			display: "flex",
 			textAlign: "start||left",
@@ -79,8 +87,16 @@ export function makeBaseCSS() {
 			minHeight: "0",
 			flexShrink: "0",
 		},
-		[`.${CLASS_UI}.${CLASS_CELL}>.${CLASS_COLUMN}`]: {
+
+		// add special nesting rules for container elements
+		[`.${CLASS_UI}.${CLASS_CELL}>.${CLASS_CONTAINER}`]: {
 			flexGrow: "1",
+		},
+		[`.${CLASS_UI}.${CLASS_COLUMN}>.${CLASS_CONTAINER}`]: {
+			flexShrink: "0",
+		},
+		[`.${CLASS_UI}.${CLASS_ROW}>.${CLASS_CONTAINER}`]: {
+			flexShrink: "0",
 		},
 
 		// set sensible placeholder style
@@ -107,6 +123,12 @@ export function makeBaseCSS() {
 			top: 0,
 			height: "100%",
 		},
+		[`a.${CLASS_UI} span`]: {
+			verticalAlign: "middle",
+		},
+		[`button.${CLASS_UI} span`]: {
+			verticalAlign: "middle",
+		},
 
 		// flip icons in RTL mode
 		[`[dir="rtl"] ._RTL-flip`]: {
@@ -126,7 +148,7 @@ export function makeBaseCSS() {
 			flexDirection: "column",
 			cursor: "default",
 		},
-		[`.${CLASS_MODAL_SHADER}`]: {
+		[`.${CLASS_OVERLAY_SHADER}`]: {
 			zIndex: "1000",
 			position: "fixed",
 			top: "0",
@@ -140,7 +162,7 @@ export function makeBaseCSS() {
 			background: "transparent",
 			cursor: "default",
 		},
-		[`.${CLASS_MODAL_WRAPPER}`]: {
+		[`.${CLASS_OVERLAY_WRAPPER}`]: {
 			display: "flex",
 			flexDirection: "column",
 			justifyContent: "start", // otherwise tall modals expand above frame
@@ -148,7 +170,7 @@ export function makeBaseCSS() {
 			width: "100%",
 			height: "100%",
 		},
-		[`.${CLASS_MODAL_WRAPPER}>.${CLASS_UI}`]: {
+		[`.${CLASS_OVERLAY_WRAPPER}>.${CLASS_UI}`]: {
 			zIndex: "10000",
 		},
 
@@ -175,44 +197,104 @@ export function makeBaseCSS() {
 		},
 
 		// add custom toggle styles
-		[`.${CLASS_UI}.${CLASS_TOGGLE_WRAPPER}>input`]: {
+		[`.${CLASS_UI}.${CLASS_TOGGLE}`]: {
+			display: "inline-flex",
+			alignItems: "center",
+		},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}>input`]: {
 			webkitAppearance: "none",
 			mozAppearance: "none",
 			appearance: "none",
-			position: "relative",
+		},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.none}>input`]: {
+			display: "none",
+		},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.checkbox}>input+label`]:
+			{
+				padding: "0 0 0 0.35rem",
+			},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.checkbox}>input`]: {
+			margin: "2px",
 			display: "inline-block",
-			verticalAlign: "middle",
-			top: "-0.1rem",
-			left: "2px",
+			position: "relative",
 			outlineOffset: "0",
 			color: "inherit",
 			borderStyle: "solid",
 			borderWidth: "1px",
 			borderColor: "inherit",
 			borderRadius: "2px",
+			background: "#fff",
 			width: "1rem",
 			height: "1rem",
+			flexShrink: "0",
 			padding: "0",
-			margin: "0",
 			cursor: "inherit",
 		},
-		[`.${CLASS_UI}.${CLASS_TOGGLE_WRAPPER}>input:checked`]: {
-			background: "currentColor",
-			borderColor: "transparent",
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.checkbox}>input:checked`]:
+			{
+				background: "currentColor",
+				borderColor: "transparent",
+			},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.checkbox}>input:checked::after`]:
+			{
+				content: "''",
+				boxSizing: "border-box",
+				display: "block",
+				position: "absolute",
+				top: "0",
+				left: ".25rem",
+				height: ".65rem",
+				width: ".4rem",
+				transform: "rotate(45deg)",
+				borderWidth: "0 2px 2px 0",
+				borderStyle: "solid",
+				borderColor: "#fff",
+			},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.switch}>input+label`]: {
+			flexGrow: "1",
 		},
-		[`.${CLASS_UI}.${CLASS_TOGGLE_WRAPPER}>input:checked::after`]: {
-			content: "''",
-			boxSizing: "border-box",
-			display: "block",
-			position: "absolute",
-			top: "0",
-			left: ".25rem",
-			height: ".65rem",
-			width: ".4rem",
-			transform: "rotate(45deg)",
-			borderWidth: "0 2px 2px 0",
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.switch}>input`]: {
+			order: "2",
+			width: "2.5rem",
+			height: "1.5rem",
+			flexShrink: "0",
+			margin: "2px 2px 2px .35rem",
+			display: "inline-block",
+			position: "relative",
+			outlineOffset: "0",
+			color: "inherit",
 			borderStyle: "solid",
-			borderColor: "#fff",
+			borderWidth: "1px",
+			borderColor: "inherit",
+			borderRadius: "1rem",
+			background: "rgba(128,128,128,.5)",
+			cursor: "inherit",
 		},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.switch}>input:checked`]:
+			{
+				background: "currentColor",
+				borderColor: "transparent",
+				opacity: "1",
+				boxShadow: "none",
+			},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.switch}>input::after`]: {
+			content: "''",
+			display: "block",
+			boxSizing: "border-box",
+			position: "absolute",
+			top: "calc(0.125rem - 1px)",
+			left: ".125rem",
+			height: "1.25rem",
+			width: "1.25rem",
+			borderRadius: "1rem",
+			background: "#fff",
+			boxShadow: "0 2px 4px rgba(0,0,0,.5)",
+			transition: "all 0.1s ease",
+		},
+		[`.${CLASS_UI}.${CLASS_TOGGLE}.${CLASS_TOGGLE_TYPE.switch}>input:checked::after`]:
+			{
+				left: "1.05rem",
+				borderColor: "transparent",
+			},
 	};
 }

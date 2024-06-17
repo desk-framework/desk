@@ -1,11 +1,14 @@
-import type { RenderContext, View, ViewClass } from "../app/index.js";
+import type {
+	RenderContext,
+	View,
+	ViewClass,
+	ViewComposite,
+} from "../app/index.js";
 import type { Binding, BindingOrValue, LazyString } from "../base/index.js";
 import type { UIColor } from "./UIColor.js";
-import { UIComponent } from "./UIComponent.js";
 import type { UIIconResource } from "./UIIconResource.js";
 import { UIStyle } from "./UIStyle.js";
 import type { UITheme } from "./UITheme.js";
-import { UIVariant } from "./UIVariant.js";
 import type { UIAnimationView } from "./composites/UIAnimationView.js";
 import type { UIConditionalView } from "./composites/UIConditionalView.js";
 import type { UIListView } from "./composites/UIListView.js";
@@ -31,25 +34,50 @@ export namespace ui {
 	/**
 	 * Type definition for a UI component preset object
 	 * - This type is used to define the properties, bindings, and event handlers that can be preset on UI components using functions such as `ui.button(...)`.
-	 * - The `variant` property can be used to specify a {@link UIVariant} object.
-	 * @see {@link View.ViewPreset}
-	 * @see {@link UIVariant}
 	 */
-	export type PresetType<T extends UIComponent> = View.ViewPreset<T> & {
-		/** A UI component variant object, applied before other presets */
-		variant?: UIVariant<T>;
-	};
+	export type PresetType<
+		T extends View,
+		TPreset = T extends ViewComposite & {
+			new (p?: infer TPreset): ViewComposite;
+		}
+			? TPreset
+			: View.ExtendPreset<T>,
+	> = TPreset;
+
+	/** Type alias for values that are accepted as style presets for a {@link UICell} */
+	export type CellStyle = UIStyle.TypeOrOverrides<UICell.StyleType>;
+
+	/** Type alias for values that are accepted as style presets for a {@link UILabel} */
+	export type LabelStyle = UIStyle.TypeOrOverrides<UILabel.StyleType>;
+
+	/** Type alias for values that are accepted as style presets for a {@link UIButton} */
+	export type ButtonStyle = UIStyle.TypeOrOverrides<UIButton.StyleType>;
+
+	/** Type alias for values that are accepted as style presets for a {@link UIImage} */
+	export type ImageStyle = UIStyle.TypeOrOverrides<UIImage.StyleType>;
+
+	/** Type alias for values that are accepted as style presets for a {@link UITextField} */
+	export type TextFieldStyle = UIStyle.TypeOrOverrides<UITextField.StyleType>;
+
+	/** Type alias for values that are accepted as style presets for a {@link UIToggle} */
+	export type ToggleStyle = UIStyle.TypeOrOverrides<UIToggle.StyleType>;
+
+	/** Type alias for values that are accepted as label style presets for a {@link UIToggle} */
+	export type ToggleLabelStyle =
+		UIStyle.TypeOrOverrides<UIToggle.LabelStyleType>;
 
 	/**
 	 * Placement attributes to be used with `<mount>` or {@link ui.mount()}
-	 * - Use only the `page` property to render the view as a full-screen page
+	 * - Use only the `page` _or_ `screen` property to render the view as a full-screen page
 	 * - Use only the `id` property to render the view with a specific mount ID (e.g. HTML element `id`)
 	 * - Otherwise, set the `place` property to a custom {@link RenderContext.PlacementOptions} object
 	 * @see {@link ui.mount}
 	 */
 	export type MountPlacement = {
-		/** True if the view should be rendered as a full-screen page */
+		/** True if the view should be rendered as a full-screen scrollable page */
 		page?: true;
+		/** True if the view should be rendered as a full-screen page */
+		screen?: true;
 		/** Target mount ID (e.g. HTML element `id`) */
 		id?: string;
 		/** Custom placement options */
@@ -75,10 +103,10 @@ export namespace ui {
 			separator: ui.PresetType<UISeparator>;
 			spacer: ui.PresetType<UISpacer>;
 			image: ui.PresetType<UIImage>;
-			render: View.ViewPreset<UIViewRenderer>;
-			animate: View.ViewPreset<UIAnimationView>;
-			conditional: View.ViewPreset<UIConditionalView>;
-			list: View.ViewPreset<UIListView>;
+			render: ui.PresetType<UIViewRenderer>;
+			animate: ui.PresetType<UIAnimationView>;
+			conditional: ui.PresetType<UIConditionalView>;
+			list: ui.PresetType<UIListView>;
 			mount: ui.MountPlacement;
 		}
 	}
@@ -91,12 +119,12 @@ export interface ui {
 	 *
 	 * @note To enable JSX support for TypeScript projects, set the `jsxFactory` configuration to `ui.jsx`, and import `ui` in each `.tsx` file to allow the compiler to access it.
 	 *
-	 * **Bindings in label text** — Several JSX elements accept text content, namely `<label>`, `<button>`, `<toggle>`, and `<textfield>` (for placeholder text). This text is assigned to the `text`, `label`, or `placeholder` properties, and may consist of plain text and bindings (i.e. the result of {@link bound()} functions, refer to {@link Binding} for more information).
+	 * **Bindings in label text** — Several JSX elements accept text content, namely `<label>`, `<button>`, `<toggle>`, and `<textfield>` (for placeholder text). This text is assigned to the `text`, `label`, or `placeholder` properties, and may consist of plain text and bindings (i.e. the result of {@link bind()}, refer to {@link Binding} for more information).
 	 *
-	 * As a shortcut within JSX text content, bindings may also be specified directly using `%[...]` syntax, which are used with {@link bound.strf()}. In addition, this syntax may be used with aliases and default string values:
+	 * As a shortcut within JSX text content, bindings may also be specified directly using `%[...]` syntax, which are used with {@link bind.strf()}. In addition, this syntax may be used with aliases and default string values:
 	 *
 	 * - `Foo: %[foo]` — inserts a binding for `foo`
-	 * - `Foo: %[foo:.2f]` — inserts a binding for `foo`, and uses {@link bound.strf()} to format the bound value as a number with 2 decimals
+	 * - `Foo: %[foo:.2f]` — inserts a binding for `foo`, and uses {@link bind.strf()} to format the bound value as a number with 2 decimals
 	 * - `Foo: %[foo=somePropertyName]` — inserts a binding for `somePropertyName`, but allows for localization of `Foo: %[foo]` instead
 	 * - `Foo: %[foo=another.propertyName:.2f]` — inserts a bindings for `another.propertyName`, but allows for localization of `Foo: %[foo:.2f]` instead.
 	 * - `Foo: %[foo=some.numProp:?||None]` — inserts a binding for `some.numProp`, but allows for localization of `Foo: %[foo:?||None]` instead (and inserts `None` if the value for `some.numProp` is undefined or an empty string).
@@ -184,11 +212,11 @@ export interface ui {
 	label(
 		preset: ui.PresetType<UILabel>,
 		text?: BindingOrValue<string | LazyString>,
-		style?: UIVariant<UILabel> | UIStyle.TypeOrOverrides<UILabel.StyleType>,
+		style?: UIStyle.TypeOrOverrides<UILabel.StyleType>,
 	): ViewClass<UILabel>;
 	label(
 		text?: BindingOrValue<string | LazyString>,
-		style?: UIVariant<UILabel> | UIStyle.TypeOrOverrides<UILabel.StyleType>,
+		style?: UIStyle.TypeOrOverrides<UILabel.StyleType>,
 	): ViewClass<UILabel>;
 
 	/**
@@ -203,12 +231,12 @@ export interface ui {
 		preset: ui.PresetType<UIButton>,
 		label?: BindingOrValue<string | LazyString>,
 		onClick?: string,
-		style?: UIVariant<UIButton> | UIStyle.TypeOrOverrides<UIButton.StyleType>,
+		style?: UIStyle.TypeOrOverrides<UIButton.StyleType>,
 	): ViewClass<UIButton>;
 	button(
 		label?: BindingOrValue<string | LazyString>,
 		onClick?: string,
-		style?: UIVariant<UIButton> | UIStyle.TypeOrOverrides<UIButton.StyleType>,
+		style?: UIStyle.TypeOrOverrides<UIButton.StyleType>,
 	): ViewClass<UIButton>;
 
 	/**
@@ -259,9 +287,7 @@ export interface ui {
 	 * @param preset The properties, bindings, and event handlers that will be preset on each instance of the resulting class
 	 * @returns A new class that extends {@link UIViewRenderer}
 	 */
-	renderView(
-		preset: View.ViewPreset<UIViewRenderer>,
-	): ViewClass<UIViewRenderer>;
+	renderView(preset: ui.PresetType<UIViewRenderer>): ViewClass<UIViewRenderer>;
 	renderView(view: BindingOrValue<ViewClass>): ViewClass<UIViewRenderer>;
 
 	/**
@@ -271,7 +297,7 @@ export interface ui {
 	 * @returns A new class that extends {@link UIAnimationView}
 	 */
 	animate(
-		preset: View.ViewPreset<UIAnimationView>,
+		preset: ui.PresetType<UIAnimationView>,
 		content: ViewClass,
 	): ViewClass<UIAnimationView>;
 
@@ -282,7 +308,7 @@ export interface ui {
 	 * @returns A new class that extends {@link UIConditionalView}
 	 */
 	conditional(
-		preset: View.ViewPreset<UIConditionalView>,
+		preset: View.ExtendPreset<UIConditionalView>,
 		content: ViewClass,
 	): ViewClass<UIConditionalView>;
 
@@ -294,11 +320,24 @@ export interface ui {
 	 * @param BookEnd A view that is added to the end of the list (optional)
 	 */
 	list(
-		preset: View.ViewPreset<UIListView>,
+		preset: ui.PresetType<UIListView>,
 		ItemBody: ViewClass,
 		ContainerBody?: ViewClass<UIContainer>,
 		BookEnd?: ViewClass,
 	): ViewClass<UIListView>;
+
+	/**
+	 * Creates a preset {@link ViewComposite} constructor using the provided object and content
+	 * @summary This method creates a constructor that extends the provided view composite class, providing its original constructor with the preset object containing properties, bindings, and event aliases; also overrides the {@link ViewComposite.defineView} method to pass in the specified content view(s), i.e. further preset view classes.
+	 * @param viewComposite The view composite class to use
+	 * @param preset Properties, bindings, and event aliases to preset on the view composite constructor
+	 * @param content View class(es) to be contained within the view composite (if supported by its `defineView` method)
+	 */
+	use<TPreset extends {}, TInstance extends ViewComposite>(
+		viewComposite: { new (preset?: TPreset): TInstance },
+		preset: NoInfer<TPreset>,
+		...content: ViewClass[]
+	): typeof viewComposite;
 
 	/**
 	 * A function that returns a new UIColor instance for the specified theme color
@@ -307,6 +346,7 @@ export interface ui {
 	 */
 	color: {
 		(name: string): UIColor;
+		fg(onLight: UIColor | string, onDark: UIColor | string): UIColor;
 		readonly CLEAR: UIColor;
 		readonly BLACK: UIColor;
 		readonly DARKER_GRAY: UIColor;
@@ -399,12 +439,16 @@ export interface ui {
 	};
 
 	/**
-	 * A function that returns a new or existing UIStyle (base) class for the specified style
-	 * - Styles for each class can be defined using {@link UITheme.styles}.
+	 * A function that returns a new or existing style for the specified arguments
+	 * - If called with a string, the base style is taken from the current theme. Styles for each class can be defined using {@link UITheme.styles}.
+	 * - If called with a set of style types or overrides, all styles and overrides are applied in order. Note that a style type object will replace previous styles, while overrides will be merged with the previous styles.
 	 * @see {@link UIStyle}
 	 */
 	style: {
-		(name: string): UIStyle.Type<any>;
+		(name: string): UIStyle.Type<unknown>;
+		<TDefinition>(
+			...styles: Array<UIStyle.TypeOrOverrides<TDefinition> | undefined>
+		): UIStyle.TypeOrOverrides<TDefinition>;
 		readonly CELL: UIStyle.Type<UICell.StyleType>;
 		readonly CELL_BG: UIStyle.Type<UICell.StyleType>;
 		readonly LABEL: UIStyle.Type<UILabel.StyleType>;
@@ -414,6 +458,7 @@ export interface ui {
 		readonly BUTTON: UIStyle.Type<UIButton.StyleType>;
 		readonly BUTTON_PRIMARY: UIStyle.Type<UIButton.StyleType>;
 		readonly BUTTON_PLAIN: UIStyle.Type<UIButton.StyleType>;
+		readonly BUTTON_SMALL: UIStyle.Type<UIButton.StyleType>;
 		readonly BUTTON_ICON: UIStyle.Type<UIButton.StyleType>;
 		readonly BUTTON_DANGER: UIStyle.Type<UIButton.StyleType>;
 		readonly BUTTON_SUCCESS: UIStyle.Type<UIButton.StyleType>;

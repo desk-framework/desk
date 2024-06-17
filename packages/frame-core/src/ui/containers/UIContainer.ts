@@ -29,10 +29,10 @@ export abstract class UIContainer extends UIComponent {
 	 * - This method is called automatically. Do not call this method after constructing a UI component.
 	 */
 	override applyViewPreset(
-		preset: View.ViewPreset<
+		preset: View.ExtendPreset<
 			UIComponent,
 			this,
-			"layout" | "padding" | "asyncContentRendering"
+			"padding" | "layout" | "asyncContentRendering"
 		>,
 	) {
 		super.applyViewPreset(preset);
@@ -52,16 +52,16 @@ export abstract class UIContainer extends UIComponent {
 	declare readonly content: ManagedList<View>;
 
 	/**
+	 * Padding around contained elements, in pixels or CSS length with unit, **or** an object with separate offset values
+	 * - If this property is set, its value overrides `padding` from the {@link layout} object.
+	 */
+	padding?: UIComponent.Offsets = undefined;
+
+	/**
 	 * Options related to layout of content components within this container
 	 * - These options _override_ the defaults for the type of container.
 	 */
 	layout?: Readonly<UIContainer.Layout> = undefined;
-
-	/**
-	 * Padding around contained elements, in pixels or CSS length with unit, **or** an object with separate offset values
-	 * - If this property is set on a {@link UICell}, its value overrides `padding` from the current cell style.
-	 */
-	padding?: UIComponent.Offsets = undefined;
 
 	/**
 	 * True if content views should be rendered asynchronously
@@ -85,6 +85,8 @@ export namespace UIContainer {
 		clip?: boolean;
 		/** Options for separator between each component */
 		separator?: Readonly<SeparatorOptions>;
+		/** Padding around contained elements, in pixels or CSS length with unit, **or** an object with separate offset values */
+		padding?: UIComponent.Offsets;
 	};
 
 	/**

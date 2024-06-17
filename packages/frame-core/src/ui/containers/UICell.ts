@@ -17,7 +17,7 @@ export class UICell extends UIContainer {
 	 * - This method is called automatically. Do not call this method after constructing a UI component.
 	 */
 	override applyViewPreset(
-		preset: View.ViewPreset<
+		preset: View.ExtendPreset<
 			UIContainer,
 			this,
 			| "textDirection"
@@ -65,9 +65,6 @@ export class UICell extends UIContainer {
 	/** The style to be applied to this cell */
 	style?: UIStyle.TypeOrOverrides<UICell.StyleType> = undefined;
 
-	/** The spacing property exists on {@link UIRow} and {@link UIColumn} and cannot be used on cells */
-	spacing?: never;
-
 	/**
 	 * True if this cell *itself* may receive direct input focus
 	 * - This property can't be changed after rendering.
@@ -101,7 +98,7 @@ export class UIAnimatedCell extends UICell {
 	 * - This method is called automatically. Do not call this method after constructing a UI component.
 	 */
 	override applyViewPreset(
-		preset: View.ViewPreset<
+		preset: View.ExtendPreset<
 			UICell,
 			this,
 			"animationDuration" | "animationTiming"

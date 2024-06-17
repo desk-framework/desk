@@ -5,6 +5,8 @@ import {
 	useTestContext,
 } from "@desk-framework/frame-test";
 import {
+	$activity,
+	$view,
 	Activity,
 	ManagedEvent,
 	UIFormContext,
@@ -13,7 +15,6 @@ import {
 	UITextField,
 	ViewComposite,
 	app,
-	bound,
 	ui,
 } from "../../../dist/index.js";
 
@@ -163,18 +164,16 @@ describe("UIFormContext", () => {
 		let ctx = new UIFormContext({ foo: "bar" }).addTest("foo", (t) => {
 			t.assert(t.value && t.value.length > 1, "Too short");
 		});
-		let MyComp = ViewComposite.withPreset<{
-			formContext?: UIFormContext;
-		}>(
-			{ formContext: undefined },
+		const MyComp = ViewComposite.define(
+			{ formContext: undefined as UIFormContext | undefined },
 			ui.row(
-				ui.label(bound("formContext.errors.foo")),
+				ui.label($view.bind("formContext.errors.foo")),
 				ui.textField({ formField: "foo" }),
 			),
 		);
 		let view = new MyComp();
 		expect(view).toHaveProperty("formContext");
-		view.render();
+		view.render((() => {}) as any);
 		let row = view.body as UIRow;
 		let [label, tf] = row.content.toArray() as [UILabel, UITextField];
 		view.formContext = ctx;
@@ -198,17 +197,20 @@ describe("UIFormContext", () => {
 		useTestContext((options) => {
 			options.renderFrequency = 5;
 		});
-		const FormContainer = ViewComposite.withPreset<{
-			formContext?: UIFormContext;
-		}>({}, (...content) => ui.column(...content));
+		const FormContainer = ViewComposite.define(
+			{ formContext: undefined as UIFormContext | undefined },
+			(_, ...content) => ui.column(...content),
+		);
 		const ViewBody = ui.page(
 			ui.row(
-				FormContainer.preset(
-					{ formContext: bound("form1") },
+				ui.use(
+					FormContainer,
+					{ formContext: $activity.bind("form1") },
 					ui.textField({ formField: "text" }),
 				),
-				FormContainer.preset(
-					{ formContext: bound("form2") },
+				ui.use(
+					FormContainer,
+					{ formContext: $activity.bind("form2") },
 					ui.textField({ formField: "text" }),
 				),
 			),

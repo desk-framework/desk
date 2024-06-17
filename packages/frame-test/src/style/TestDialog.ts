@@ -1,10 +1,10 @@
 import {
+	$view,
 	RenderContext,
 	UITheme,
 	View,
 	ViewComposite,
 	app,
-	bound,
 	ui,
 } from "@desk-framework/frame-core";
 
@@ -20,7 +20,7 @@ export class TestDialog
 	protected override createView() {
 		return new (ui.cell(
 			ui.renderView({
-				view: bound("dialogView"),
+				view: $view.bind("dialogView"),
 				onViewUnlinked: "DialogViewUnlinked",
 			}),
 		))();
@@ -32,6 +32,6 @@ export class TestDialog
 
 	show(place?: Partial<RenderContext.PlacementOptions>) {
 		if (this.dialogView.isUnlinked()) return;
-		app.render(this, { mode: "dialog", ...place });
+		app.render(this, { mode: "modal", ...place });
 	}
 }

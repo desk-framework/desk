@@ -35,6 +35,8 @@ export abstract class UIComponent extends View {
 	 * - This method is called automatically. Don't call this method after constructing a UI component.
 	 */
 	override applyViewPreset(preset: {
+		/** An identifier for this component */
+		name?: string;
 		/** True if this component should be hidden from view (doesn't stop the component from being rendered) */
 		hidden?: BindingOrValue<boolean>;
 		/** Options for the positioning of this component within parent component(s) (overrides) */
@@ -59,10 +61,10 @@ export abstract class UIComponent extends View {
 		onDoubleClick?: string;
 		/** Event that's emitted when a context menu has been requested on the output element */
 		onContextMenu?: string;
-		/** Event that's emitted when a mouse button has been released */
-		onMouseUp?: string;
-		/** Event that's emitted when a mouse button has been pressed down */
-		onMouseDown?: string;
+		/** Event that's emitted when a mouse button or touch input has been pressed */
+		onPress?: string;
+		/** Event that's emitted when a mouse button or touch input has been released */
+		onRelease?: string;
 		/** Event that's emitted when a key button has been released */
 		onKeyUp?: string;
 		/** Event that's emitted when a key button has been pressed down */
@@ -91,12 +93,19 @@ export abstract class UIComponent extends View {
 		// request focus (renderer will remember)
 		if (preset.requestFocus) {
 			setTimeout(() => this.requestFocus(), 1);
-			delete preset.requestFocus;
 		}
+		delete preset.requestFocus;
 
 		// apply all other property values, bindings, and event handlers
 		super.applyViewPreset(preset);
 	}
+
+	/**
+	 * An identifier for this component
+	 * - Identifiers don't have to be unique, but can be used to identify components in a part of the view hierarchy.
+	 * - Depending on the platform, this identifier may be exposed in the rendered output (e.g. HTML attribute), but only once.
+	 */
+	name?: string;
 
 	/**
 	 * True if the component should be hidden from view
@@ -292,6 +301,8 @@ export namespace UIComponent {
 		fontWeight?: string | number;
 		/** Letter spacing (pixels or string with unit) */
 		letterSpacing?: string | number;
+		/** True for monospaced (tabular) numeric characters */
+		tabularNums?: boolean;
 		/** Line height (CSS relative to font size, *not* in pixels) */
 		lineHeight?: string | number;
 		/** Line break handling mode (CSS white-space) */

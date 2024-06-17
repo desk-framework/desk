@@ -34,7 +34,7 @@ export function jsx(tag: any, presets: any, ...rest: any[]): ViewClass {
 	let fmt = "";
 	let nBindings = 0;
 	let hasText: boolean | undefined;
-	let bindings: any = {};
+	let bindings: { [id: string]: Binding } = {};
 	let components: any[] = [];
 	for (let r of rest) {
 		if (r instanceof LazyString) {
@@ -45,7 +45,7 @@ export function jsx(tag: any, presets: any, ...rest: any[]): ViewClass {
 				/\%\[([^\]\:\s\=]+)(?:\=([^\]\:\s]*))?/g,
 				(s, id, path) => {
 					if (!bindings[id]) {
-						bindings[id] = path || id;
+						bindings[id] = new Binding(path || id);
 						nBindings++;
 					}
 					return "%[" + id;
@@ -82,7 +82,7 @@ export function jsx(tag: any, presets: any, ...rest: any[]): ViewClass {
 	let f = typeof tag === "string" ? (ui as any)[tagNames[tag] || tag] : tag;
 	if (typeof f !== "function") throw err(ERROR.JSX_InvalidTag, String(tag));
 	if (f.prototype instanceof ViewComposite) {
-		return f.preset(merged, ...components);
+		return ui.use(f, merged, ...components);
 	}
 	if (f.prototype instanceof View) {
 		throw err(ERROR.JSX_InvalidTag, f.name);

@@ -13,6 +13,7 @@ export const defaultControlTextStyle: CombinedStyleType = {
 	lineHeight: "1.25",
 };
 
+const _color_bg = ui.color.BACKGROUND;
 const _color_clear = ui.color.CLEAR;
 const _color_text = ui.color.TEXT;
 const _color_controlBase = ui.color.CONTROL_BASE;
@@ -60,18 +61,28 @@ const pressedNotDisabled: CombinedStyleType = {
 	[UIStyle.STATE_DISABLED]: false,
 };
 
-function makeBgButtonStyle(bg: UIColor, baseBg?: UIColor, baseFg?: UIColor) {
+function makeButtonStyle(
+	styles: CombinedStyleType | undefined,
+	bg: UIColor,
+	baseBg?: UIColor,
+	baseFg?: UIColor,
+) {
 	let fg = bg.text();
 	return [
-		{ ...baseButtonStyle, background: baseBg || bg, textColor: baseFg || fg },
+		{
+			...baseButtonStyle,
+			background: baseBg || bg,
+			textColor: baseFg || fg,
+			...styles,
+		},
 		{
 			...hoveredNotDisabled,
-			background: bg.contrast(-0.1),
+			background: baseBg ? bg : bg.contrast(-0.05),
 			textColor: fg,
 		},
 		{
 			...pressedNotDisabled,
-			background: bg.contrast(0.1),
+			background: bg.contrast(-0.1),
 			textColor: fg,
 		},
 		disabledStyle,
@@ -87,53 +98,58 @@ export const styles: [
 		"BackgroundCell",
 		[
 			{
-				background: ui.color.BACKGROUND,
+				background: _color_bg,
 				borderThickness: 1,
-				borderColor: ui.color.BACKGROUND.fg(
+				borderColor: _color_bg.fg(
 					ui.color.TEXT.alpha(0.1),
 					ui.color.TEXT.alpha(0.2),
 				),
 			},
 		],
 	],
-	["Button", makeBgButtonStyle(_color_controlBase)],
-	["PrimaryButton", makeBgButtonStyle(ui.color.PRIMARY_BG)],
-	["SuccessButton", makeBgButtonStyle(ui.color.SUCCESS_BG)],
+	["Button", makeButtonStyle(undefined, _color_controlBase)],
+	["PrimaryButton", makeButtonStyle(undefined, ui.color.PRIMARY_BG)],
+	["SuccessButton", makeButtonStyle(undefined, ui.color.SUCCESS_BG)],
 	[
 		"DangerButton",
-		makeBgButtonStyle(ui.color.DANGER_BG, _color_controlBase, ui.color.DANGER),
+		makeButtonStyle(
+			undefined,
+			ui.color.DANGER_BG,
+			_color_controlBase,
+			ui.color.DANGER,
+		),
 	],
 	[
 		"PlainButton",
-		[
+		makeButtonStyle(
+			{ minWidth: 0 },
+			_color_controlBase,
+			_color_clear,
+			_color_text,
+		),
+	],
+	[
+		"SmallButton",
+		makeButtonStyle(
 			{
-				...baseButtonStyle,
-				background: _color_clear,
-				textColor: _color_text,
-				minWidth: 0,
+				fontSize: 12,
+				padding: { x: 8, y: 1 },
+				minWidth: 88,
+				borderRadius: 8,
 			},
-			{
-				...hoveredNotDisabled,
-				background: _color_controlBase,
-			},
-			{
-				...pressedNotDisabled,
-				background: _color_controlBase.contrast(-0.1),
-			},
-			disabledStyle,
-		],
+			_color_controlBase,
+		),
 	],
 	[
 		"IconButton",
-		[
+		makeButtonStyle(
 			{
 				minWidth: 32,
 				minHeight: 32,
 				padding: 4,
 				shrink: 0,
-				borderRadius: "50%",
-				background: _color_clear,
-				textColor: _color_text,
+				borderRadius: 8,
+				borderThickness: 0,
 				lineHeight: 1,
 				fontSize: "0",
 				css: {
@@ -141,16 +157,10 @@ export const styles: [
 					transition: "background 0.2s ease, border-color 0.2s ease",
 				},
 			},
-			{
-				...hoveredNotDisabled,
-				background: _color_controlBase,
-			},
-			{
-				...pressedNotDisabled,
-				background: _color_controlBase.contrast(-0.1),
-			},
-			disabledStyle,
-		],
+			_color_controlBase,
+			_color_clear,
+			_color_text,
+		),
 	],
 	[
 		"Label",
@@ -162,7 +172,7 @@ export const styles: [
 		],
 	],
 	["SmallLabel", [{ ...baseLabelStyle, fontSize: "0.75em", lineHeight: 1.25 }]],
-	["TitleLabel", [{ ...baseLabelStyle, fontSize: "1.75em", fontWeight: 600 }]],
+	["TitleLabel", [{ ...baseLabelStyle, fontSize: "1.5em", fontWeight: 600 }]],
 	[
 		"CloseLabel",
 		[
@@ -177,7 +187,7 @@ export const styles: [
 		"TextField",
 		[
 			{
-				background: _color_clear,
+				background: _color_bg,
 				textColor: _color_text,
 				borderThickness: 1,
 				borderColor: _color_text.alpha(0.25),
@@ -206,14 +216,14 @@ export const styles: [
 		"Toggle",
 		[
 			{
-				borderColor: _color_text.alpha(0.5),
+				borderColor: _color_text.alpha(0.25),
 				textColor: ui.color.PRIMARY_BG, // :checked fill
 				padding: { y: 4 },
 				css: { cursor: "pointer" },
 			},
 			{
 				...hoveredNotDisabled,
-				borderColor: _color_text.alpha(0.75),
+				borderColor: _color_text.alpha(0.5),
 			},
 			disabledStyle,
 		],
@@ -225,7 +235,7 @@ export const styles: [
 				textColor: _color_text, // (don't inherit :checked fill)
 				lineBreakMode: "pre-wrap",
 				lineHeight: 1.5,
-				padding: { y: 6, x: 8 },
+				padding: { y: 6 },
 				css: { display: "inline" },
 			},
 		],

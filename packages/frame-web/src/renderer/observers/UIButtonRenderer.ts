@@ -1,5 +1,5 @@
 import {
-	NavigationController,
+	NavigationContext,
 	app,
 	RenderContext,
 	UIButton,
@@ -10,7 +10,7 @@ import { applyStyles } from "../../style/DOMStyle.js";
 import { BaseObserver, getBaseStyleClass } from "./BaseObserver.js";
 import { setTextOrHtmlContent } from "./UILabelRenderer.js";
 
-interface HrefNavigationController extends NavigationController {
+interface HrefNavigationContext extends NavigationContext {
 	getPathHref(path?: NavigationTarget): string | undefined;
 }
 
@@ -58,10 +58,8 @@ export class UIButtonRenderer extends BaseObserver<UIButton> {
 		elt.tabIndex = button.disableKeyboardFocus ? -1 : 0;
 
 		// set href property if possible
-		if (button.navigateTo) {
-			let navController = app.activities.navigationController as
-				| HrefNavigationController
-				| undefined;
+		if (button.navigateTo !== undefined) {
+			let navController = app.navigation as HrefNavigationContext | undefined;
 			if (navController && typeof navController.getPathHref === "function") {
 				let href = navController.getPathHref(button.getNavigationTarget());
 				if (href !== undefined) (elt as HTMLAnchorElement).href = href;
@@ -70,7 +68,7 @@ export class UIButtonRenderer extends BaseObserver<UIButton> {
 
 		// handle direct clicks with `navigateTo` set
 		elt.addEventListener("click", (e) => {
-			if (button && button.navigateTo) {
+			if (button && button.navigateTo !== undefined) {
 				if (
 					(e as MouseEvent).ctrlKey ||
 					(e as MouseEvent).altKey ||
@@ -90,6 +88,10 @@ export class UIButtonRenderer extends BaseObserver<UIButton> {
 			}
 		});
 		return output;
+	}
+
+	override onDOMEvent(_: Event, data: any) {
+		data.value = this.observed?.value;
 	}
 
 	override updateStyle(element: HTMLButtonElement) {
