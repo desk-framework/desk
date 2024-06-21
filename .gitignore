@@ -1,6 +1,5 @@
 /_site
 dist/
-dist-*/
 lib/
 node_modules/
 build/
