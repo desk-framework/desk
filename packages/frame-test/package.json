@@ -28,6 +28,9 @@
 		"trailingComma": "all",
 		"endOfLine": "lf"
 	},
+	"files": [
+		"dist"
+	],
 	"peerDependencies": {
 		"@desk-framework/frame-core": "4.0.0-dev.29"
 	},

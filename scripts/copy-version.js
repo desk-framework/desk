@@ -1,10 +1,10 @@
 import * as fs from "node:fs";
 
-const MAIN_PACKAGE = "@desk-framework/frame-core";
 const PACKAGES = [
 	"packages/frame-core",
 	"packages/frame-test",
 	"packages/frame-web",
+	"packages/test-runner-esbuild",
 ];
 
 // get current version
@@ -25,8 +25,10 @@ for (let packagePath of PACKAGES) {
 	let packageJsonObj = JSON.parse(packageJson);
 	packageJsonObj.version = currentVersion;
 	packageJsonObj.publishConfig = { tag: newPublishTag };
-	if (packageJsonObj.name !== MAIN_PACKAGE) {
-		packageJsonObj.peerDependencies[MAIN_PACKAGE] = currentVersion;
+	for (let p in packageJsonObj.peerDependencies) {
+		if (PACKAGES.includes(p)) {
+			packageJsonObj.peerDependencies[p] = currentVersion;
+		}
 	}
 	fs.writeFileSync(
 		`${packagePath}/package.json`,
