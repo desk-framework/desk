@@ -1,6 +1,6 @@
 {
 	"name": "@desk-framework/test-runner-esbuild",
-	"version": "4.0.0-dev.30",
+	"version": "4.0.0-dev.31",
 	"publishConfig": {
 		"tag": "next"
 	},
@@ -34,7 +34,7 @@
 		"source-map-support": "^0.5.21"
 	},
 	"peerDependencies": {
-		"@desk-framework/frame-test": "4.0.0-dev.29"
+		"@desk-framework/frame-test": "4.0.0-dev.31"
 	},
 	"devDependencies": {
 		"@desk-framework/frame-test": "file:../frame-test"
