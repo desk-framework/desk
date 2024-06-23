@@ -9,7 +9,6 @@ menu_type: index
 ## Getting started {#getting-started}
 
 - {@link introduction +}
-- {@link documentation +}
 - {@link tutorials +}
 - {@link examples +}
 
@@ -18,11 +17,11 @@ menu_type: index
 - {@link objects +}
 - {@link event-handling +}
 - {@link bindings +}
-- {@link app-context +}
+- {@link data-structures +}
 - {@link activities +}
 - {@link services +}
+- {@link navigation +}
 - {@link task-scheduling +}
-- {@link data-structures +}
 
 ## Logging and i18n {#logging-i18n}
 
@@ -33,13 +32,15 @@ menu_type: index
 ## Views {#views}
 
 - {@link views +}
+- {@link jsx +}
 - {@link containers +}
 - {@link controls +}
 - {@link list-views +}
+- {@link view-composites +}
 
 ## Appearance {#appearance}
 
-- {@link themes-colors +}
+- {@link themes +}
 - {@link icons +}
 - {@link animation +}
 - {@link viewport-context +}

@@ -27,11 +27,13 @@
 		]
 	},
 	"devDependencies": {
+		"@types/clean-css": "^4.2.11",
 		"@types/js-yaml": "^4.0.6",
 		"@types/marked": "^5.0.1",
 		"@types/html-minifier-terser": "^7.0.0",
 		"js-yaml": "^4.1.0",
 		"html-entities": "^2.4.0",
+		"clean-css": "^5.3.3",
 		"marked": "^9.0.3",
 		"marked-highlight": "^2.0.6",
 		"marked-smartypants": "^1.1.3",

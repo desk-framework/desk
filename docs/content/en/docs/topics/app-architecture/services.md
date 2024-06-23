@@ -10,7 +10,7 @@ abstract: Learn how to use services to encapsulate global state and data in your
 
 ## Overview {#overview}
 
-Services are a relatively simple concept in Desk. You can register a service with the {@link app-context application context} to make it available to the rest of the application, and then use it to encapsulate global state and data.
+Services are a relatively simple concept in Desk. You can register a service with the global {@link app application context} to make it available to the rest of the application, and then use it to encapsulate global state and data.
 
 **Why?** — Rather than forcing all data to be passed around between activities, views, and data models at runtime, you can use the global app context to manage a single instance of each service during the lifetime of the application. Some data and state is inherently global to your application, and services are a good way to manage these concerns.
 
@@ -97,7 +97,7 @@ Both the Activity and Service classes provide a method to add an **observer** to
 
 While not strictly related to services, Desk provides a utility class for managing options that's well suited for use with services that are in some way configurable. The same class is used throughout the framework to manage configuration options for various classes, including the app context itself. This pattern ensures that both type information (in editor) and default options are available.
 
-- {@link ConfigOptions}
+- {@link ConfigOptions +}
 
 {@import :options}
 

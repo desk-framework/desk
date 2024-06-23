@@ -1,3 +1,5 @@
+// Compile/run: npx tsc -p . && node dist/bindings.js
+
 import { bound, Activity, app, Binding, ui } from "@desk-framework/frame-core";
 /** @jsx ui.jsx */
 
@@ -62,13 +64,13 @@ import { bound, Activity, app, Binding, ui } from "@desk-framework/frame-core";
 }
 {
 	// @doc-start bindings:debug
-	// add a listener before starting the application:
-	Binding.debugEmitter.listen((e) => {
-		if (e.data.bound) {
-			console.log("Bound: " + e.data.binding, e.data.value);
+	// add a handler before starting the application:
+	Binding.debugHandler = (b) => {
+		if (b.bound) {
+			console.log("Bound: " + b.binding, b.value);
 		} else {
-			console.log("Unbound: " + e.data.binding);
+			console.log("Unbound: " + b.binding);
 		}
-	});
+	};
 	// @doc-end
 }

@@ -16,6 +16,7 @@ let builder = await new DocBuilder()
 	.copyAssets("./content/en/assets/**/*", "../_site/docs/en/assets")
 	.copyAssets("../packages/frame-web/lib/**/*", "../_site/lib")
 	.copyAssets("./app/dist/bundle.js", "../_site")
+	.setTemplate("blog", await import("../templates/en/blog.js"))
 	.setTemplate("docs", await import("../templates/en/docs.js"))
 	.setTemplate("ref", await import("../templates/en/ref.js"))
 	.setTagText({
@@ -33,6 +34,12 @@ let builder = await new DocBuilder()
 		new DocBuilder().readItems("./content/en/docs/**/*.md", {
 			lang: "en-US",
 			template: "docs",
+		}),
+	)
+	.merge(
+		new DocBuilder().readItems("./content/en/blog/**/*.md", {
+			lang: "en-US",
+			template: "blog",
 		}),
 	)
 	.merge(

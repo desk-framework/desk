@@ -184,9 +184,7 @@ export class DocItem {
 		} else {
 			delegate.warn("No template set for", this.id);
 		}
-		return minify(html, {
-			collapseWhitespace: true,
-		});
+		return minify(html, { collapseWhitespace: true });
 	}
 
 	async getFieldHtmlAsync(field: string, delegate: DocItemHtmlDelegate) {

@@ -12,7 +12,7 @@ export const template = async (html, data, builder) => `
 			rel="stylesheet" />
 		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="/style.css?t=${Date.now()}" />
-		<title>Desk framework - ${data.title || data.id || ""}</title>
+		<title>Desk framework blog — ${data.title || data.id || ""}</title>
 		<meta name="description" content="${encode(data.abstract) || ""}" />
 	</head>
 	<body class="docpage">
@@ -26,45 +26,17 @@ export const template = async (html, data, builder) => `
 			</a>
 			<div class="header_links">
 				<a href="/docs/en/introduction.html">About</a>
-				<a href="/docs/en/"><b>Docs</b></a>
-				<a href="/docs/en/blog">Blog</a>
+				<a href="/docs/en/">Docs</a>
+				<a href="/docs/en/blog"><b>Blog</b></a>
 				<a href="https://github.com/desk-framework/desk" target="_blank">
 					<img src="/github-mark-white.svg" alt="GitHub" />
 				</a>
 			</div>
 		</div>
-		<div class="docpage_wrapper">
-			<div class="docpage_searchbar">
-				<div id="docpage-search"></div>
-				<div class="docpage_navbar_footer">
-					<i class="material-icons-outlined">arrow_upward</i>
-					<a href="#" id="back-to-top">Back to top</a>
-				</div>
-			</div>
-			<div class="docpage_navbar" id="docpage-navbar">
-				<div class="docpage_navbar_header">
-					<a href="/docs/en/">Docs (${builder.getTagText("VERSION")})</a>
-					<button id="navbar-searchbutton" class="navbar_searchbutton">search</button>
-					<button id="navbar-closebutton" class="navbar_closebutton">close</button>
-				</div>
-				<div class="docpage_navbar_pane">
-					${data.menu_html || ""}
-				</div>
-				<div class="docpage_navbar_footer">
-					<i class="material-icons-outlined">arrow_upward</i>
-					<a href="#" id="back-to-top">Back to top</a>
-				</div>
-			</div>
-			<div class="docpage_content">
-				<article class="docpage">
-					<div class="docpage_breadcrumb">
-						<button id="breadcrumb-menubutton" class="docpage_breadcrumb_menubutton">menu</button>
-						<span>${data.breadcrumb_html || ""}</span>
-						<button id="breadcrumb-searchbutton" class="docpage_breadcrumb_searchbutton">search</button>
-					</div>
-					${html}
-				</article>
-			</div>
+		<div class="blogpage_wrapper">
+			<article class="blogpage">
+				${html}
+			</article>
 		</div>
 		<script src="/script.js"></script>
 		<script src=\"/lib/desk-framework-web.es2018.iife.min.js\"></script>

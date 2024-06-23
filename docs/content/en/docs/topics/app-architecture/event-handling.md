@@ -8,6 +8,13 @@ abstract: Learn about events, event handling, and observers to watch for propert
 
 > {@include abstract}
 
+#### Summary
+
+- Events are used to communicate between managed objects.
+- Events are _emitted_ by {@link objects managed objects}, and can be handled by _listeners_, _observers_, or _attached_ parent objects. Observers can also be used to handle property changes.
+- _Change events_ are used to signal that an object has changed state in some way.
+- _View events_ are emitted by UI components and can be _delegated_ or handled by activity or view composite classes.
+
 ## Overview {#overview}
 
 In a Desk app, events are used to communicate between different {@link objects managed objects}. Once an object **emits** an event, it can be handled either by a listener function (callback), an observer (see below), or an attached parent object.
@@ -33,35 +40,32 @@ To emit an event, use the {@link ManagedObject.emit()} method. This method can b
 
 ## Emitting change events {#change}
 
-The {@link ManagedChangeEvent} event **subclass** is used to emit _change events_. There's nothing special about the event class itself, but change events are handled differently from other events. Notably:
+In general, events can be used for many different purposes, e.g. to delegate user interaction from individual UI components to an activity. Commonly, events are also used to signal that the source object has _changed state_, e.g. a data model that was updated, or a service that has connected to its backend.
 
-- Change events can be handled using a callback function, when emitted by an attached object or a service (see below).
-- Change events on {@link bindings bound} objects will trigger a forced update of the bound value.
+**Change events** simply include a `change` property on their data object (i.e. {@link ManagedEvent.data}) that references the managed object that has changed. The inclusion of this property enables some additional features:
 
-As with other events, change events can be emitted using the {@link ManagedObject.emit emit()} method, but to emit a change event using just the event name, you should use the {@link ManagedObject.emitChange emitChange()} method instead. Without any parameters, this method emits a change event with the name `Change` and no additional data.
+- Change events are handled by property observers and attached parent listeners — see below.
+- Change events on {@link bindings bound} objects will trigger an update of any bound (nested) property value.
 
-- {@link ManagedChangeEvent +}
+This means that emitting a change event is roughly handled in the same way as assigning a new object to the property that references the changed object. For example:
+
+```ts
+let newPayment = new Payment();
+cart.payment = newPayment;
+// ... behaves roughly the same as:
+
+let oldPayment = cart.payment;
+// (do something with oldPayment)
+oldPayment.emitChange();
+```
+
+You can use the {@link ManagedObject.emitChange()} method to emit a change event. A single parameter can be used to specify the event name; otherwise the event will be named `Change`.
+
 - {@link ManagedObject.emitChange}
 
 {@import :emitChange}
 
-## Handling change events from attached objects {#change-attach}
-
-With an architecture that's based on _composition_, parent objects are often interested in changes to attached objects — for example, to keep their own internal state up to date.
-
-You can simply provide a callback (or an {@link Observer} instance, see below) to the {@link ManagedObject.attach attach()} or {@link ManagedObject.autoAttach autoAttach()} methods to listen for change events. When a change event is emitted by an attached object, the parent object calls the callback automatically.
-
-{@import :attach-callback}
-
-## Handling change events from services {#service-events}
-
-Shared functionality and data is commonly encapsulated in a **service**, accessible by name (e.g. `Auth` or `Settings`) using the {@link ServiceContext service context}. Refer to the documentation for {@link services} to learn more.
-
-Services can be _observed_ by activities and other services. A callback function (or an {@link Observer} instance, see below) can be used to listen for change events that are emitted by a service, along with service registration, replacement, and unlinking, when provided to the `observeService()` method.
-
-- {@link Activity.observeService}
-
-{@import :service-callback}
+> **Note:** While the {@link ManagedObject.emitChange emitChange()} method is public, most commonly you'll emit change events from within methods of the managed object itself, after modifying its internal state — in line with the basic principles of object-oriented programming.
 
 ## Handling events using listeners {#listen}
 
@@ -71,26 +75,54 @@ Listeners provide the simplest mechanism for handling events. A listener adds a 
 
 {@import :listen}
 
-> **Note:** Since listeners can't be removed, don't add a listener to an object that's intended to 'outlive' the listener. For example, from the {@link Activity.ready()} method, don't add a listener to an object that stays around during the entire lifetime of the application. That may end up adding multiple listeners, creating a memory leak. In that case, use a (service) observer, or find a way to attach the target object to the activity.
+> **Note:** Since listeners can't be removed, don't add a listener to an object that's intended to 'outlive' the listener. For example, from the {@link Activity.ready()} method, don't add a listener to an object that stays around during the entire lifetime of the application. That may end up adding multiple listeners, creating a memory leak. In that case, use a (service) observer, or find a way to attach the target object to the activity. See below for better ways to handle events.
 
-### Async event streams {#listen-async}
+## Async event streams {#listen-async}
 
 Rather than using a callback function, you can also use an _async iterable_ to listen for events. This allows for a 'loop'-like syntax, and ensures that each event is handled in sequence, even if the event is emitted while the listener is still processing a previous event.
 
 {@import :listen-async}
 
+A useful side effect of this pattern is that you can use the `for await` syntax to wait for a managed object to be unlinked, as in the following example.
+
+{@import :listen-async-unlink}
+
+## Handling change events from attached objects {#change-attach}
+
+With an architecture that's based on _composition_, parent objects are often most interested in changes to attached objects — for example, to keep their own internal state up to date.
+
+You can simply provide a callback (or an {@link Observer} instance, see below) to the {@link ManagedObject.attach attach()} or {@link ManagedObject.autoAttach autoAttach()} methods to listen for change events from to-be attached objects.
+
+Note that this mechanism only works for change events, not for other events.
+
+{@import :attach-callback}
+
+## Handling change events from services {#service-events}
+
+Shared functionality and data is commonly encapsulated in a **service**, accessible by name (e.g. `Auth` or `Settings`) using the {@link ServiceContext service context}. Refer to the documentation for {@link services} to learn more.
+
+Services can be _observed_ by activities and other services. A callback function (or an {@link Observer} instance, see below) can be used to listen for change events that are emitted by a service, along with service registration, replacement, and unlinking, when provided to the `observeService()` method.
+
+A callback only listens for change events, not for other events.
+
+{@import :service-callback}
+
 ## Observers {#observers}
 
-The Desk framework provides an even more powerful mechanism for handling events, in the form of _observers_.
+The Desk framework provides an even more powerful mechanism for handling events, in the form of _observers_. These can be used to handle _all_ events, as well as property changes, and attachment changes (i.e. attaching or unlinking) of a managed object.
 
-Observers are _classes_ that are instantiated to observe a single object at a time. They can be used to handle all events, property changes, and attachment changes (i.e. attaching or unlinking) of any {@link ManagedObject} instance.
+Observers are defined as classes, which are instantiated to observe a single object at a time.
 
 To create an observer, write a subclass of the {@link Observer} class, and override its methods or add your own. Then, create an instance and use the {@link Observer.observe observe()} method to start observing a target object.
 
 - {@link Observer +}
 - {@link Observer.observe}
 
-The lifecycle of an observer instance extends beyond that of the target object, so that a single observer can be used to observe multiple objects. Once a target object is unlinked, the observer stops automatically. You can also stop the observer manually using the {@link Observer.stop stop()} method. After that, the observer can be used again to observe a new object.
+{@import :observer}
+
+Note that while an observer only observes one object at a time, the lifecycle of an observer instance extends beyond that of the target object. A single observer can be used to observe multiple objects _after_ one another.
+
+Once a target object is unlinked, the observer stops automatically. You can also stop the observer manually using the {@link Observer.stop stop()} method, or call {@link Observer.observe observe()} again to stop observing one object and start observing a new one.
 
 - {@link Observer.stop}
 
@@ -115,9 +147,7 @@ In addition, observers can be used to handle unlinking, and attachment changes (
 
 ## Handling property changes using observers {#observers-properties}
 
-With the help of an {@link Observer} instance, you can handle _property changes_ of a managed object. In the observer, you can either handle all property changes in a single method, or handle each property change individually — either synchronously or asynchronously.
-
-Each property is observed individually. Under the hood, this adds a property _getter_ and _setter_ for each observed property, the same way bindings are implemented. This allows the observer to intercept changes.
+With the help of an {@link Observer} instance, you can also handle _property changes_ of a managed object. Under the hood, this adds a property _getter_ and _setter_ for each observed property, the same way bindings are implemented. This allows the observer to intercept changes.
 
 > **Observed properties and maintainability**
 >
@@ -136,38 +166,30 @@ Once a property is observed, the observer's {@link Observer.handlePropertyChange
 
 ## Handling view events {#view-events}
 
-In practice, the most common source of events in a front-end application are view objects: UI components and other view instances emit events when the user interacts with them.
+Besides change events, the most common use of events in a front-end application is to signal user interaction: UI components and other view instances emit events when the user interacts with them.
 
-When a view is _attached_ to an activity or view composite, these events are handled by a single method. By default, this method tries to find a specific handler method for each event using the event name (e.g. `onButtonClick()` for a `ButtonClick` event). You can override this method to handle events in a different way, or implement a handler method for each event.
-
-- {@link Activity.delegateViewEvent}
-
-To declare **types** of events that are emitted by a view object, you can use the {@link ViewEvent} type. This type is based on the {@link ManagedEvent} class, but narrows down the `source` property to a specific {@link View} type (refer to the example code below).
+When a view is (indirectly) _attached_ to an activity or view composite, these events can be handled using specially named methods. To add a handler for a `EscapeKeyPress` event for example, you can add a method named `onEscapeKeyPress()` to the activity or view composite class. This method will be called with a single parameter, being the event that was emitted by the view. The event can be typed as a {@link ViewEvent}, which narrows the `source` property down to a {@link View} object.
 
 - {@link ViewEvent +}
 
-> **Note:** In an event handler, you can access the rendered output element (e.g. the DOM element) of a UI component using the {@link UIComponent.lastRenderOutput} property, if needed.
-
-Since views are typically defined using `ui` methods or JSX tags, which allow you to _alias_ events (e.g. `onClick: "Foo"`), adding event handlers to an activity or view composite class is as simple as adding a handler method with the appropriate name (like `onFoo()`).
+Since views are typically defined using `ui` methods or JSX tags, which allow you to _alias_ events (e.g. `onClick: "SelectContact"` or `onclick="SelectContact"`), adding event handlers to an activity or view composite class is as simple as adding a handler method with the appropriate name (like `onSelectContact()`).
 
 {@import :view-events}
 
-In the case of view composites, if the handler does not return true or if a handler doesn't exist, the event is also _delegated_ to the parent object (see next section).
+> **Note:** In an event handler, you can access the rendered output element (e.g. the DOM element) of a UI component using the {@link UIComponent.lastRenderOutput} property, if needed.
+
+**Event delegation** — After handling an event, the event will be re-emitted from the activity. Or rather, a _new_ event instance will be emitted, with the same `name`, `source`, and `data` properties, but with an additional `delegate` (referring to the delegating object). The original event is stored in the `inner` property.
+
+You can stop this behavior by returning `true` from the event handler method, or by overriding {@link Activity.delegateViewEvent} (or {@link ViewComposite.delegateViewEvent}) to handle events differently altogether.
 
 ## Handling delegated view events {#delegate-view-events}
 
-There are a few situations where being able to find the emitting view object using the event `source` property may not be enough — notably when the view is contained by another view object (or composite) that's important to understanding the source of the event.
+Some built-in view objects also emit delegated events. This allows handlers to access the containing object and its properties.
 
-- For events that are emitted by a view object **within a list** (i.e. a {@link UIListView} instance), handling the event often requires access to the list item object (or value) that's associated with the view object.
-- For events that are emitted from **within a form**, access to the form context object (i.e. {@link UIFormContext} instance) is often useful.
+- For events that are emitted by a view object **within a list** (i.e. a {@link UIListView} instance), handling the event often requires access to the specific list item object (or value).
 - For events that are emitted from **within a view composite**, and not handled by the composite itself, access to the composite object allows for retrieving view composite properties or its associated view model.
 
-In these cases, the event is _delegated_ by the containing view object or composite — emitting a **new** event object, that references both the containing view and the original event object. The new object has its {@link ManagedEvent.delegate delegate} property set to the containing view object, and the {@link ManagedEvent.inner inner} property set to the original event object.
-
-You can use the {@link DelegatedEvent} generic type to describe such events. For events that are emitted from within a list, you can use the more specific {@link UIListView.ItemEvent} type.
-
-- {@link DelegatedEvent +}
-- {@link UIListView.ItemEvent}
+In these cases, just like for activities, the new event object has its {@link ManagedEvent.delegate delegate} property set to the re-emitting (view) object, and the {@link ManagedEvent.inner inner} property set to the original event object.
 
 The following example shows how to handle an event that's emitted from within a list.
 

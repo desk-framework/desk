@@ -71,7 +71,7 @@ app.addActivity(new MyActivity(), true);
 
 Activities and views are both {@link objects managed objects}, and view objects are automatically _attached_ to the activity when assigned to the activity's `view` property. This ensures that each activity has at most a single view, and views are automatically unlinked — cleaning up any bindings and event handlers.
 
-- Views should be created and assigned to `view` by the activity's `ready` method. This method is called when the activity is activated (see below), or when the renderer is updated (e.g. when the {@link themes-colors theme} changes).
+- Views should be created and assigned to `view` by the activity's `ready` method. This method is called when the activity is activated (see below), or when the renderer is updated (e.g. when the {@link themes theme} changes).
 - After the view object is attached to the activity, all {@link bindings} are updated automatically, and the activity is ready to handle {@link event-handling events} from the view.
 - To show the view, use the {@link GlobalContext.showPage showPage()} or {@link GlobalContext.showDialog showDialog()} methods of the app context.
 - Views are unlinked automatically when the activity is unlinked **or** deactivated.
@@ -82,6 +82,11 @@ Activities and views are both {@link objects managed objects}, and view objects 
 - {@link GlobalContext.showDialog}
 
 > **Note:** The `ready` method may be called multiple times while the activity is active. You typically don't need to perform any additional checks to ensure that the view is shown only once, since creating the view object shouldn't have any side effects, and both of the above methods only ever render a single view once.
+
+Under the hood, these methods use the {@link GlobalContext.render()} method, which in turn uses the platform-specific renderer (an instance of {@link RenderContext}) to update the application's UI. In practice, both of these are rarely used directly from application code.
+
+- {@link GlobalContext.render}
+- {@link RenderContext +}
 
 ## Activating and deactivating an activity {#activating-deactivating}
 
