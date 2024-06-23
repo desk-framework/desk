@@ -1,11 +1,11 @@
 import * as fs from "node:fs";
 
-const PACKAGES = [
-	"packages/frame-core",
-	"packages/frame-test",
-	"packages/frame-web",
-	"packages/test-runner-esbuild",
-];
+const PACKAGES = {
+	"@desk-framework/frame-core": "packages/frame-core",
+	"@desk-framework/frame-test": "packages/frame-test",
+	"@desk-framework/frame-web": "packages/frame-web",
+	"@desk-framework/test-runner-esbuild": "packages/test-runner-esbuild",
+};
 
 // get current version
 let packageJson = fs.readFileSync("package.json", "utf-8");
@@ -20,13 +20,14 @@ let isPre = /[^\d\.]/.test(currentVersion);
 let newPublishTag = isPre ? "next" : "latest";
 
 // set package versions
-for (let packagePath of PACKAGES) {
+for (let packageName in PACKAGES) {
+	let packagePath = PACKAGES[packageName];
 	let packageJson = fs.readFileSync(`${packagePath}/package.json`, "utf-8");
 	let packageJsonObj = JSON.parse(packageJson);
 	packageJsonObj.version = currentVersion;
 	packageJsonObj.publishConfig = { tag: newPublishTag };
 	for (let p in packageJsonObj.peerDependencies) {
-		if (PACKAGES.includes(p)) {
+		if (PACKAGES[p]) {
 			packageJsonObj.peerDependencies[p] = currentVersion;
 		}
 	}
