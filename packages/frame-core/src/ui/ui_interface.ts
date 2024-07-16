@@ -377,8 +377,6 @@ export interface ui {
 		readonly SUCCESS_BG: UIColor;
 		readonly PRIMARY: UIColor;
 		readonly PRIMARY_BG: UIColor;
-		readonly ACCENT: UIColor;
-		readonly ACCENT_BG: UIColor;
 		readonly BRAND: UIColor;
 		readonly BRAND_BG: UIColor;
 	};

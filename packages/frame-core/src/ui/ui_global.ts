@@ -300,8 +300,6 @@ Object.assign(ui.color, {
 	SUCCESS_BG: ui.color("SuccessBackground"),
 	PRIMARY: ui.color("Primary"),
 	PRIMARY_BG: ui.color("PrimaryBackground"),
-	ACCENT: ui.color("Accent"),
-	ACCENT_BG: ui.color("AccentBackground"),
 	BRAND: ui.color("Brand"),
 	BRAND_BG: ui.color("BrandBackground"),
 });
