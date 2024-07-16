@@ -288,7 +288,6 @@ export interface ui {
 	 * @returns A new class that extends {@link UIViewRenderer}
 	 */
 	renderView(preset: ui.PresetType<UIViewRenderer>): ViewClass<UIViewRenderer>;
-	renderView(view: BindingOrValue<ViewClass>): ViewClass<UIViewRenderer>;
 
 	/**
 	 * Creates a preset {@link UIAnimationView} constructor using the provided options
