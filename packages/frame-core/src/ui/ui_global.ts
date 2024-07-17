@@ -312,6 +312,7 @@ Object.assign(ui.icon, {
 	CHECK: ui.icon("Check"),
 	MENU: ui.icon("Menu"),
 	MORE: ui.icon("More"),
+	SEARCH: ui.icon("Search"),
 	PLUS: ui.icon("Plus"),
 	MINUS: ui.icon("Minus"),
 	CHEVRON_DOWN: ui.icon("ChevronDown"),

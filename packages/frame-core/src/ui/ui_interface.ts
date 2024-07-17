@@ -392,6 +392,7 @@ export interface ui {
 		readonly CHECK: UIIconResource;
 		readonly MENU: UIIconResource;
 		readonly MORE: UIIconResource;
+		readonly SEARCH: UIIconResource;
 		readonly PLUS: UIIconResource;
 		readonly MINUS: UIIconResource;
 		readonly CHEVRON_DOWN: UIIconResource;
