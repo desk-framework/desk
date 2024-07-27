@@ -78,6 +78,10 @@ _ui.page = function (content: ViewClass) {
 	return _ui.mount({ page: true }, content);
 };
 
+_ui.screen = function (content: ViewClass) {
+	return _ui.mount({ screen: true }, content);
+};
+
 _ui.mount = function (
 	options:
 		| { page: true }
