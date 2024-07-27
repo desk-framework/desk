@@ -171,6 +171,10 @@ _ui.use = function <TPreset extends {}, TInstance extends ViewComposite>(
 	preset: NoInfer<TPreset>,
 	...content: ViewClass[]
 ): typeof viewComposite {
+	if (typeof preset === "function") {
+		content.unshift(preset as any);
+		preset = {} as any;
+	}
 	let C: ViewClass | undefined | void;
 	return class PresetViewComposite extends (viewComposite as any) {
 		constructor(p?: TPreset) {

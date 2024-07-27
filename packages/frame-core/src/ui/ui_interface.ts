@@ -343,6 +343,10 @@ export interface ui {
 		preset: NoInfer<TPreset>,
 		...content: ViewClass[]
 	): typeof viewComposite;
+	use<TInstance extends ViewComposite>(
+		viewComposite: { new (preset?: {}): TInstance },
+		...content: ViewClass[]
+	): typeof viewComposite;
 
 	/**
 	 * A function that returns a new UIColor instance for the specified theme color
