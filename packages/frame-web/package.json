@@ -22,7 +22,7 @@
 		"clean:test": "rimraf test/esbuild/public/dist test/esm/dist test/esm/lib test/esm/node_modules test/parcel/.parcel-cache test/parcel/dist test/parcel/node_modules",
 		"prebuild": "npm run clean",
 		"build": "tsc -p src --declaration",
-		"postbuild": "node esbuild-lib",
+		"postbuild": "prettier --log-level error --write \"dist/**/*.d.ts\" && node esbuild-lib",
 		"check-format": "prettier --check \"src/**/*.{ts,tsx}\""
 	},
 	"prettier": {
