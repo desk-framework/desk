@@ -96,6 +96,15 @@ let markdownFormatter = new MarkdownOutput(docsIndex);
 let htmlFormatter = new HTMLOutput(docsIndex);
 let collated = markdownFormatter.collate();
 
+// check references by generating markdown output if needed
+if (config.check) {
+	for (let co of collated) co.getOutput("md");
+	if (log.hasErrors()) {
+		console.error("Check failed");
+		process.exit(1);
+	}
+}
+
 // TODO: at this stage, the pre-processed markdown can be swapped (partially)
 // for a translated version (from markdown output with preserveLinks option).
 

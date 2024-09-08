@@ -6,24 +6,25 @@
 export class Config {
 	input: string[] = ["docs/**/*.md"];
 	samples: string[] = [];
+	check = false;
 	refFolder = "";
 	docFolder = "";
 	output = {
 		index: {
-			file: ".docgen.out/docgen.index.json",
+			file: "",
 			urlPrefix: "",
 		},
 		json: {
-			file: ".docgen.out/docgen.out.json",
+			file: "",
 			pretty: true,
 		},
 		markdown: {
-			path: ".docgen.out/markdown",
+			path: "",
 			preserveLinks: true,
 			yaml: true,
 		},
 		html: {
-			path: ".docgen.out/html",
+			path: "",
 			templates: "",
 			defaultTemplate: "",
 		},

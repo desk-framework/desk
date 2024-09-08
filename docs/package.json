@@ -12,7 +12,8 @@
 		"build:app": "cd app && npm run build",
 		"build:site": "docgen",
 		"build-verbose": "npm run prebuild && docgen -v > docgen.log",
-		"check-format": "cd app && npm run check-format"
+		"check-docs": "docgen check-docs.config.json",
+		"check-format": "prettier --check \"**/*.md\" && cd app && npm run check-format"
 	},
 	"prettier": {
 		"useTabs": true,
